@@ -44,13 +44,13 @@ public class Pot extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String potStatus;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String potImage;
-
     @Column(nullable = true, length = 100)
     private String oneLineSummary;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ModeOfOperation modeOfOperation; //팟 진행 방식
+    private ModeOfOperation modeOfOperation; // 팟 진행 방식
+
+    @Column(nullable = true, length = 700)
+    private String potSummary; // 팟 요약
 }

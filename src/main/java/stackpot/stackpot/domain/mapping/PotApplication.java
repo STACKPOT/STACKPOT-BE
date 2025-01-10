@@ -31,6 +31,9 @@ public class PotApplication extends BaseEntity {
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
     private Boolean liked;
 
+    @Column(nullable = false, length = 10)
+    private String potRole; // 팟 역할
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
     private Pot pot;
@@ -38,4 +41,8 @@ public class PotApplication extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pot_member_id", nullable = false)
+    private PotMember potMember;
 }

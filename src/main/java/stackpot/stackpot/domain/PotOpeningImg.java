@@ -9,18 +9,15 @@ import stackpot.stackpot.domain.common.BaseEntity;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class PotOpeningPhoto extends BaseEntity {
+public class PotOpeningImg extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private Long photoId;
+    private Long imgId;
 
     @Column(nullable = false, length = 255)
-    private String originalFilename;
-
-    @Column(nullable = false, length = 255)
-    private String savedFilename;
+    private String imgUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
