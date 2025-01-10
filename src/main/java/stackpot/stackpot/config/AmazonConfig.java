@@ -8,7 +8,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,19 +18,19 @@ public class AmazonConfig {
 
     private AWSCredentials awsCredentials;
 
-    @org.springframework.beans.factory.annotation.Value("${cloud.aws.credentials.accessKey}")
+    @org.springframework.beans.factory.annotation.Value("${spring.cloud.aws.credentials.accessKey}")
     private String accessKey;
 
-    @org.springframework.beans.factory.annotation.Value("${cloud.aws.credentials.secretKey}")
+    @org.springframework.beans.factory.annotation.Value("${spring.cloud.aws.credentials.secretKey}")
     private String secretKey;
 
-    @org.springframework.beans.factory.annotation.Value("${cloud.aws.region.static}")
+    @org.springframework.beans.factory.annotation.Value("${spring.cloud.aws.region.static}")
     private String region;
 
-    @org.springframework.beans.factory.annotation.Value("${cloud.aws.s3.bucket}")
+    @org.springframework.beans.factory.annotation.Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
 
-    @org.springframework.beans.factory.annotation.Value("${cloud.aws.s3.path.FeedFile}")
+    @org.springframework.beans.factory.annotation.Value("${spring.cloud.aws.s3.path.FeedFile}")
     private String FeedFilePath;
 
     @PostConstruct
