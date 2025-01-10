@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://stackpot-db.cp2quse6utig.ap-northeast-2.rds.amazonaws.com:3306/stackpot_server
-    username: root
-    password: stackpot1234
+    url: ${URL}
+    username: ${USERNAME}
+    password: ${PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   sql:
     init:
@@ -17,3 +17,16 @@ spring:
         hbm2ddl:
           auto: create
         default_batch_fetch_size: 1000
+  cloud:
+    aws:
+      s3:
+        bucket: stackpot
+        path:
+          FeedFile: FeedFile
+      region:
+        static: ap-northeast-2
+      stack:
+        auto: false
+      credentials:
+        accessKey: ${AWS_ACCESS_KEY_ID}
+        secretKey: ${AWS_SECRET_ACCESS_KEY}
