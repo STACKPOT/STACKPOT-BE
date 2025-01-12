@@ -16,7 +16,7 @@ public class PotMember extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private Long teamId;
+    private Long potMemberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
@@ -31,8 +31,11 @@ public class PotMember extends BaseEntity {
     private PotApplication potApplication;
 
     @Column(nullable = false, length = 10)
-    private String potRoleName;
+    private String roleName;
 
-    @Column(nullable = true, length = 10)
-    private String awards;
+    @Column(nullable = false)
+    private String owner;
+
+    @Column(nullable = false)
+    private String appealContent;
 }
