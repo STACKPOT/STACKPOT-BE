@@ -15,7 +15,7 @@ public class UserRequestDTO {
     @Setter
     public static class JoinDto {
         @NotNull
-        Role role;
+        String role;
         @NotNull
         String interest;
         @NotBlank

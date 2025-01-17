@@ -32,17 +32,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String email = (String) properties.get("email");
 
-        // 사용자 정보 저장 또는 업데이트
-        User member = saveOrUpdateUser(email);
+        // 사용자 정보 조회
+        User user = userRepository.findByEmail(email).orElse(null);
 
-        // 이메일을 Principal로 사용하기 위해 attributes 수정
+        // 리다이렉션 상태 플래그 추가
         Map<String, Object> modifiedAttributes = new HashMap<>(attributes);
         modifiedAttributes.put("email", email);
+        if (user == null) {
+            // 회원가입 페이지로 리다이렉션
+            modifiedAttributes.put("redirect", String.format("/signup?email=%s", email));
+        } else {
+            // 홈 페이지로 리다이렉션
+            modifiedAttributes.put("redirect", "/home");
+        }
 
         return new DefaultOAuth2User(
                 oAuth2User.getAuthorities(),
                 modifiedAttributes,
-                "email"  // email Principal로 설정
+                "email"  // Principal로 설정
         );
     }
 

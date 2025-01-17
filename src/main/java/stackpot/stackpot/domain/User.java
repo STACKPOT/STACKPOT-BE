@@ -3,6 +3,7 @@ package stackpot.stackpot.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
+import stackpot.stackpot.domain.enums.Role;
 
 @Entity
 @Getter
