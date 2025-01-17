@@ -10,6 +10,7 @@ public class MemberViewController {
     public String loginPage() {
         return "login";
     }
+
     @GetMapping("/signup")
     public String signupPage(Model model) {
 //        model.addAttribute("memberJoinDto", new MemberRequestDTO.JoinDto());
