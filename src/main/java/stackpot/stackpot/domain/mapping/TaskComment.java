@@ -18,7 +18,7 @@ public class TaskComment extends BaseEntity {
     private Long commentId;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    private String comment_content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "potMember_id", nullable = false)
