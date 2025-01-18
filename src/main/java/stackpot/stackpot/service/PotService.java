@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import stackpot.stackpot.domain.Pot;
-import stackpot.stackpot.repository.PotRepository;
+import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.web.dto.PotResponseDto;
 
 import java.time.LocalDate;

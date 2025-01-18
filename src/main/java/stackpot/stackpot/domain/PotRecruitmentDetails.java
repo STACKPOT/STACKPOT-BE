@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
 
-import java.time.LocalDate;
-
 @Entity
 @Getter
 @Builder
