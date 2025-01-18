@@ -25,7 +25,7 @@ public class MemberViewController {
         return "login";
     }
 
-//     회원가입 페이지 랜더링
+    // 회원가입 페이지 랜더링
     @GetMapping("/signup")
     public String signupPage() {
         // 단순히 회원가입 페이지를 렌더링
@@ -33,6 +33,7 @@ public class MemberViewController {
     }
 
     // 회원가입 처리
+    // 미완성
     @PostMapping("/user/signup")
     public String joinUser(@Valid @ModelAttribute("UserJoinDTO") UserRequestDTO.JoinDto request,
                            BindingResult bindingResult,

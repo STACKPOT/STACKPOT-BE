@@ -57,11 +57,14 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 
 @EnableWebSecurity
+@Configuration
 public class SecurityConfig {
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider, UserRepository userRepository) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/home", "/signup", "/user/signup", "/login", "/oauth2/**").permitAll()
+                        .requestMatchers("/", "/home", "/signup", "/user/profile","/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -91,12 +94,14 @@ public class SecurityConfig {
             // JWT 토큰 생성
             String token = jwtTokenProvider.createToken(email);
 
+            response.setHeader("Authorization", "Bearer " + token);
+
             if (userRepository.findByEmail(email).isPresent()) {
                 // 이메일이 존재하면 홈으로 리다이렉트
-                response.sendRedirect("/home?token=" + token);
+                response.sendRedirect("/home");
             } else {
                 // 이메일이 없으면 회원가입 페이지로 리다이렉트
-                response.sendRedirect("/signup?token=" + token);
+                response.sendRedirect("/signup");
             }
         };
     }
