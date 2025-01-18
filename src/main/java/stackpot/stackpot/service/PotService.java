@@ -17,8 +17,8 @@ public class PotService {
 
     private final PotRepository potRepository;
 
-    public List<PotResponseDto> getAllPots() {
-        return potRepository.findAll().stream()
+    public List<PotResponseDto> getAllPots(String role) {
+        return potRepository.findByRecruitmentRole(role).stream()
                 .map(pot -> PotResponseDto.builder()
                         .user(PotResponseDto.UserDto.builder()
                                 .nickname(pot.getUser().getNickname())
@@ -28,9 +28,11 @@ public class PotService {
                                 .potName(pot.getPotName())
                                 .potContent(pot.getPotContent())
                                 .recruitmentDeadline(pot.getRecruitmentDeadline())
-                                .dDay(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline()))  // D-Day 계산
+                                .dDay(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline()))
                                 .build())
                         .build())
                 .collect(Collectors.toList());
     }
+
+
 }
