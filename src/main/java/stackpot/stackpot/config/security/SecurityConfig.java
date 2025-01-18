@@ -68,16 +68,6 @@ public class SecurityConfig {
                         .requestMatchers("/", "/home", "/signup", "/user/profile","/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
-//                .oauth2Login(oauth2 -> oauth2
-//                        .loginPage("/login")
-//                        .successHandler(successHandler(jwtTokenProvider, userRepository)) // SuccessHandler 등록
-//                )
-//                .csrf(csrf -> csrf.ignoringRequestMatchers("/signup")) // CSRF 예외 처리
-//                .formLogin(form -> form
-//                        .loginPage("/login").permitAll()
-//                );
-//
-//        return http.build();
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/signup")) // CSRF 예외 처리
                 .formLogin(form -> form
                         .loginPage("/login").permitAll()
