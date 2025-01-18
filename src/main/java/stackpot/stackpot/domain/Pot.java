@@ -50,4 +50,7 @@ public class Pot extends BaseEntity {
 
     @Column(nullable = true, length = 400)
     private String potSummary; // 팟 요약
+
+    @Column(nullable = false)
+    private LocalDate recruitmentDeadline;
 }
