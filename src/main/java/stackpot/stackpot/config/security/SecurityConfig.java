@@ -54,6 +54,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 
 @EnableWebSecurity
@@ -67,14 +68,26 @@ public class SecurityConfig {
                         .requestMatchers("/", "/home", "/signup", "/user/profile","/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .successHandler(successHandler(jwtTokenProvider, userRepository)) // SuccessHandler 등록
-                )
+//                .oauth2Login(oauth2 -> oauth2
+//                        .loginPage("/login")
+//                        .successHandler(successHandler(jwtTokenProvider, userRepository)) // SuccessHandler 등록
+//                )
+//                .csrf(csrf -> csrf.ignoringRequestMatchers("/signup")) // CSRF 예외 처리
+//                .formLogin(form -> form
+//                        .loginPage("/login").permitAll()
+//                );
+//
+//        return http.build();
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/signup")) // CSRF 예외 처리
                 .formLogin(form -> form
                         .loginPage("/login").permitAll()
-                );
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .successHandler(successHandler(jwtTokenProvider, userRepository))
+                )
+                // JWT 필터 추가
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
