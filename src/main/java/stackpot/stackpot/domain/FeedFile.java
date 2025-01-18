@@ -15,11 +15,8 @@ public class FeedFile extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long fileId;
 
-    @Column(length = 255)
-    private String originalFilename;
-
-    @Column(length = 255)
-    private String savedFilename;
+    @Column(length = 255, nullable = false)
+    private String fileUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "feed_id", nullable = false)

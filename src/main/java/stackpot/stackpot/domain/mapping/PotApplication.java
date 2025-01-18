@@ -41,8 +41,4 @@ public class PotApplication extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pot_member_id", nullable = false)
-    private PotMember potMember;
 }

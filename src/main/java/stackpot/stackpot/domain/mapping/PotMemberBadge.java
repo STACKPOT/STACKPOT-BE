@@ -11,17 +11,17 @@ import stackpot.stackpot.domain.common.BaseEntity;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class UserBadge extends BaseEntity {
+public class PotMemberBadge extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userBadgeId;
+    private Long potMemberBadgeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "badge_id", nullable = false)
     private Badge badge;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "pot_member_id", nullable = false)
+    private PotMember potMember;
 }

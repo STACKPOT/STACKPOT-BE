@@ -3,7 +3,7 @@ package stackpot.stackpot.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
-import stackpot.stackpot.domain.enums.ModeOfOperation;
+import stackpot.stackpot.domain.enums.PotModeOfOperation;
 
 import java.time.LocalDate;
 
@@ -20,37 +20,37 @@ public class Pot extends BaseEntity {
     private Long potId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "creator_id", nullable = false)
-    private User creator;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false, length = 255)
     private String potName;
 
-    @Column(nullable = true)
-    private LocalDate startDate;
+    @Column(nullable = false)
+    private LocalDate potStartDate;
 
-    @Column(nullable = true)
-    private LocalDate endDate;
-
-    @Column(nullable = false, length = 255)
-    private String expectedDuration;
+    @Column(nullable = false)
+    private LocalDate potEndDate;
 
     @Column(nullable = false, length = 255)
-    private String languagesUsed;
+    private String potDuration;
+
+    @Column(nullable = false, length = 255)
+    private String potLan;
 
     @Column(nullable = true, columnDefinition = "TEXT")
-    private String description;
+    private String potContent;
 
     @Column(nullable = false, length = 255)
     private String potStatus;
 
-    @Column(nullable = true, length = 100)
-    private String oneLineSummary;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ModeOfOperation modeOfOperation; // 팟 진행 방식
+    private PotModeOfOperation potModeOfOperation; // 팟 진행 방식
 
-    @Column(nullable = true, length = 700)
+    @Column(nullable = true, length = 400)
     private String potSummary; // 팟 요약
+
+    @Column(nullable = false)
+    private LocalDate recruitmentDeadline;
 }

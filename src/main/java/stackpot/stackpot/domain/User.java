@@ -19,8 +19,8 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String loginId; // 로그인 아이디
 
-    @Column(nullable = true, length = 255)
-    private String userName; // 유저 이름
+    @Column(nullable = true, length = 12)
+    private String userName; // 유저 카톡 설정 이름
 
     @Column(nullable = false, length = 255)
     private String snsKey; // SNS 키
@@ -31,7 +31,7 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String role; // 역할
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = true, length = 255)
     private String kakaoId; // 카카오 아이디
 
     @Column(nullable = false, length = 255)

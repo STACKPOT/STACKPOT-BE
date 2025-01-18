@@ -35,6 +35,7 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 	implementation 'mysql:mysql-connector-java:8.0.33'
+<<<<<<< HEAD
 
 	//spring security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -49,6 +50,10 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
+=======
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.security:spring-security-crypto'
+>>>>>>> e0ad439881904e64fc72af577e7577859549ebc4
 }
 
 tasks.named('test') {

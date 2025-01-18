@@ -24,9 +24,6 @@ public class PotRecruitmentDetails extends BaseEntity {
     @Column(nullable = true)
     private Integer recruitmentCount;
 
-    @Column(nullable = false)
-    private LocalDate recruitmentDeadline;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
     private Pot pot;

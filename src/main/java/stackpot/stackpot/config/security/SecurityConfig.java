@@ -1,3 +1,4 @@
+
 //package stackpot.stackpot.config.security;
 //
 //import org.springframework.context.annotation.Bean;
@@ -56,14 +57,11 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 
 @EnableWebSecurity
-@Configuration
 public class SecurityConfig {
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider, UserRepository userRepository) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/home", "/signup","user/signup", "/login", "/oauth2/**").permitAll()
+                        .requestMatchers("/", "/home", "/signup", "/user/signup", "/login", "/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -77,7 +75,7 @@ public class SecurityConfig {
 
         return http.build();
     }
-
+//
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -85,8 +83,6 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationSuccessHandler successHandler(JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
-
-
 
         return (request, response, authentication) -> {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
