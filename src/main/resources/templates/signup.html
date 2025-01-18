@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>회원가입</title>
+    <style>
+        /* 기존 스타일 유지 */
+    </style>
+</head>
+<body>
+<h2>회원가입</h2>
+<form th:action="@{/user/signup}" th:object="${UserJoinDTO}" method="post">
+    <div th:if="${error}" th:text="${error}" style="color: red;"></div>
+    <button type="submit">가입하기</button>
+</form>
+</body>
+</html>

@@ -2,14 +2,19 @@ package stackpot.stackpot.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import stackpot.stackpot.domain.common.BaseEntity;
+import stackpot.stackpot.domain.enums.Role;
+
+import java.util.Collection;
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class User extends BaseEntity {
+public class User extends BaseEntity implements UserDetails{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,4 +49,19 @@ public class User extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String email; // 이메일
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public String getPassword() {
+        return null;
+    }
+
+    @Override
+    public String getUsername() {
+        return email; // 사용자 식별자로 이메일을 사용
+    }
 }
