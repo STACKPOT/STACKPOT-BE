@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class PotResponseDto {
+public class PotResponseDTO {
     private UserDto user;
     private PotDto pot;
     private List<RecruitmentDetailsDto> recruitmentDetails; // 필드 선언

@@ -24,7 +24,7 @@ public class Pot extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "pot", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pot", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<PotRecruitmentDetails> recruitmentDetails;
 
     @Column(nullable = false, length = 255)

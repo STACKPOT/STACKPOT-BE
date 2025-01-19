@@ -45,6 +45,9 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = false, unique = true)
     private String email; // 이메일
 
+    @Column(nullable = true, unique = true)
+    private String kakaoId;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;

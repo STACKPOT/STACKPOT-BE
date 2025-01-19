@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PotRepository extends JpaRepository<Pot, Long> {
-    @Query("SELECT p FROM Pot p JOIN p.recruitmentDetails r WHERE r.recruitmentRole = :role")
-    List<Pot> findByRecruitmentRole(@Param("role") String role);
-
-    @Query("SELECT p FROM Pot p LEFT JOIN FETCH p.recruitmentDetails r WHERE p.potId = :potId")
-    Optional<Pot> findPotWithRecruitmentDetailsById(@Param("potId") Long potId);
+    List<Pot> findByRecruitmentDetails_RecruitmentRole(String recruitmentRole);
+    Optional<Pot> findPotWithRecruitmentDetailsByPotId(Long potId);
 }

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import stackpot.stackpot.service.PotService;
-import stackpot.stackpot.web.dto.PotResponseDto;
+import stackpot.stackpot.web.dto.PotResponseDTO;
 
 import java.util.List;
 
@@ -17,13 +17,12 @@ public class PotController {
     private final PotService potService;
 
     @GetMapping("/pots")
-    public List<PotResponseDto> getPots(@RequestParam(required = false) String role) {
-        return potService.getAllPots(role);
+    public List<PotResponseDTO> getPots(@RequestParam(required = false) String recruitmentRole) {
+        return potService.getAllPots(recruitmentRole);
     }
 
-    // 특정 Pot의 상세 정보 조회
     @GetMapping("/pots/{potId}")
-    public PotResponseDto getPotDetails(@PathVariable Long potId) {
+    public PotResponseDTO getPotDetails(@PathVariable Long potId) {
         return potService.getPotDetails(potId);
     }
 }
