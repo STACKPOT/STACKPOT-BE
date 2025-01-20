@@ -24,8 +24,8 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = true, length = 12)
     private String userName; // 유저 카톡 설정 이름
 
-    @Column(nullable = false, length = 255)
-    private String snsKey; // SNS 키
+//    @Column(nullable = false, length = 255)
+//    private String snsKey; // SNS 키
 
     @Column(nullable = true, length = 255)
     private String nickname; // 닉네임

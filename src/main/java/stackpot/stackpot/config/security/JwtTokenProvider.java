@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.Authentication;
+import stackpot.stackpot.web.dto.TokenServiceResponse;
+
 import java.security.Key;
 import java.util.Date;
 
@@ -21,18 +23,27 @@ public class JwtTokenProvider {
     private final UserDetailsService  userDetailsService;
 
     // JWT 생성 (이메일 포함)
-    public String createToken(String email) {
+    public TokenServiceResponse createToken(String email) {
         Claims claims = Jwts.claims().setSubject(email);
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
-        return Jwts.builder()
+        String accessToken = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key)
                 .compact();
+
+        String refreshToken = Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(validity)
+                .signWith(key)
+                .compact();
+//        return accessToken;
+        return TokenServiceResponse.of(accessToken, refreshToken);
     }
 
     public boolean validateToken(String token) {
