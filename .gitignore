@@ -37,4 +37,5 @@ out/
 .vscode/
 
 .env
-application-secrets.yml
+application-secrets.yml.DS_Store
+.DS_Store
