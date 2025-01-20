@@ -1,8 +1,6 @@
 package stackpot.stackpot.service;
 
-import stackpot.stackpot.web.dto.ApplicantResponseDTO;
-import stackpot.stackpot.web.dto.LikedApplicantResponseDTO;
-import stackpot.stackpot.web.dto.PotAllResponseDTO;
+import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
 
@@ -25,4 +23,8 @@ public interface PotService {
     // 사용자가 참여 중인 팟 목록 조회
     List<PotAllResponseDTO> getMyPots();
 
+    // 팟 다 끓이기
+    void patchPotStatus(Long potId);
+
+    PotSummaryResponseDTO getPotSummary(Long potId);
 }

@@ -5,6 +5,7 @@ import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
 import stackpot.stackpot.domain.enums.PotModeOfOperation;
 import stackpot.stackpot.domain.mapping.PotApplication;
+import stackpot.stackpot.domain.mapping.PotMember;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -31,6 +32,9 @@ public class Pot extends BaseEntity {
     @OneToMany(mappedBy = "pot", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PotApplication> potApplication;
 
+    @OneToMany(mappedBy = "pot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PotMember> potMembers;
+
     @Column(nullable = false, length = 255)
     private String potName;
 
@@ -49,6 +53,7 @@ public class Pot extends BaseEntity {
     @Column(nullable = true, columnDefinition = "TEXT")
     private String potContent;
 
+    @Setter
     @Column(nullable = false, length = 255)
     private String potStatus;
 

@@ -24,21 +24,22 @@ public class PotServiceImpl implements PotService {
     private final PotRepository potRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final PotSummarizationService potSummarizationService;
 
-    // JWT 토큰에서 사용자 ID 추출
-    private Long extractUserIdFromToken(String token) {
-        String jwtToken = token.replace("Bearer ", "");
-        String email = jwtTokenProvider.getEmailFromToken(jwtToken);
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        return user.getId();
-    }
 
     @Override
     public List<PotAllResponseDTO.PotDetail> getAllPots(String role) {
-        return potRepository.findByRecruitmentDetails_RecruitmentRole(role).stream()
+        List<Pot> pots;
+
+        if (role == null || role.isEmpty()) {
+            pots = potRepository.findAll();  // 모든 팟 조회
+        } else {
+            pots = potRepository.findByRecruitmentDetails_RecruitmentRole(role);
+        }
+
+        return pots.stream()
                 .map(pot -> PotAllResponseDTO.PotDetail.builder()
                         .user(UserResponseDTO.builder()
                                 .nickname(pot.getUser().getNickname())
@@ -238,10 +239,10 @@ public class PotServiceImpl implements PotService {
                 .map(this::convertToPotDetail)
                 .collect(Collectors.toList());
 
-        // 진행 중인 팟 리스트
-        List<PotAllResponseDTO.PotDetail> ongoingPots = myPots.stream()
+        // 진행 중인 팟 리스트 변환 (멤버 정보 포함)
+        List<MyPotResponseDTO.OngoingPotsDetail> ongoingPots = myPots.stream()
                 .filter(pot -> "진행중".equals(pot.getPotStatus()))
-                .map(this::convertToPotDetail)
+                .map(this::convertToOngoingPotDetail)
                 .collect(Collectors.toList());
 
         // 끓인 팟 리스트
@@ -256,6 +257,45 @@ public class PotServiceImpl implements PotService {
                     .completedPots(completedPots)
                     .build());
 
+    }
+
+    @Override
+    public void patchPotStatus(Long potId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+
+        // 팟 생성자 확인
+        if (!pot.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Only the pot owner can modify pot status.");
+        }
+
+        // 팟 상태를 "complete"으로 변경
+        pot.setPotStatus("complete");
+
+        // 변경된 상태 저장
+        potRepository.save(pot);
+    }
+
+    @Override
+    public PotSummaryResponseDTO getPotSummary(Long potId) {
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+
+        String prompt = "구인글에 내용을 우리 프로젝트를 소개하는 400자로 정리해줘. " +
+                "기획 배경, 주요기능, 어떤 언어와 프레임워크 사용했는지 등등 구체적인게 들어있으면 더 좋아.\n" +
+                "내용: " + pot.getPotContent();
+
+        String summary = potSummarizationService.summarizeText(prompt, 400);
+
+        return PotSummaryResponseDTO.builder()
+                .summary(summary)
+                .build();
     }
 
     // Pot을 PotAllResponseDTO.PotDetail로 변환하는 메서드
@@ -290,6 +330,41 @@ public class PotServiceImpl implements PotService {
                         .build())
                 .pot(potDto)
                 .recruitmentDetails(recruitmentDetailsDto)
+                .build();
+    }
+
+    // 진행 중인 팟 변환 메서드 (멤버 포함)
+    private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
+        List<RecruitmentDetailsResponseDTO> recruitmentDetails = pot.getRecruitmentDetails().stream()
+                .map(details -> RecruitmentDetailsResponseDTO.builder()
+                        .recruitmentId(details.getRecruitmentId())
+                        .recruitmentRole(details.getRecruitmentRole())
+                        .recruitmentCount(details.getRecruitmentCount())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
+                .map(member -> PotMemberResponseDTO.builder()
+                        .potMemberId(member.getPotMemberId())
+                        .roleName(member.getRoleName())
+
+                        .build())
+                .collect(Collectors.toList());
+
+        return MyPotResponseDTO.OngoingPotsDetail.builder()
+                .user(UserResponseDTO.builder()
+                        .nickname(pot.getUser().getNickname())
+                        .role(pot.getUser().getRole())
+                        .build())
+                .pot(PotResponseDTO.builder()
+                        .potId(pot.getPotId())
+                        .potName(pot.getPotName())
+                        .potStartDate(pot.getPotStartDate())
+                        .potEndDate(pot.getPotEndDate())
+                        .potStatus(pot.getPotStatus())
+                        .build())
+                .recruitmentDetails(recruitmentDetails)
+                .potMembers(potMembers)
                 .build();
     }
 

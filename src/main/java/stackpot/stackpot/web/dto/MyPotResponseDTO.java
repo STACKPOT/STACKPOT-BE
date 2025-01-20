@@ -8,21 +8,17 @@ import java.util.List;
 
 @Getter
 @Builder
-public class PotAllResponseDTO {
-    @JsonProperty("recruitingPots")
-    private List<PotDetail> recruitingPots;
+public class MyPotResponseDTO {
 
-    @JsonProperty("ongoingPots")
-    private List<MyPotResponseDTO.OngoingPotsDetail> ongoingPots;
-
-    @JsonProperty("completedPots")
-    private List<PotDetail> completedPots;
+    @JsonProperty("MyPots")
+    private List<OngoingPotsDetail> ongoingPots;
 
     @Getter
     @Builder
-    public static class PotDetail {
+    public static class OngoingPotsDetail {
         private UserResponseDTO user;
         private PotResponseDTO pot;
         private List<RecruitmentDetailsResponseDTO> recruitmentDetails;
+        private List<PotMemberResponseDTO> potMembers;
     }
 }
