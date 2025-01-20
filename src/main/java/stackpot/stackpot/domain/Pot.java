@@ -8,6 +8,7 @@ import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.mapping.PotMember;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.List;
 
 @Entity
@@ -22,6 +23,7 @@ public class Pot extends BaseEntity {
     @Column(nullable = false)
     private Long potId;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -66,4 +68,26 @@ public class Pot extends BaseEntity {
 
     @Column(nullable = false)
     private LocalDate recruitmentDeadline;
+    public void updateFields(Map<String, Object> updates) {
+        updates.forEach((key, value) -> {
+            if (value != null) {
+                switch (key) {
+                    case "potName" -> this.potName = (String) value;
+                    case "potStartDate" -> this.potStartDate = (LocalDate) value;
+                    case "potEndDate" -> this.potEndDate = (LocalDate) value;
+                    case "potDuration" -> this.potDuration = (String) value;
+                    case "potLan" -> this.potLan = (String) value;
+                    case "potContent" -> this.potContent = (String) value;
+                    case "potStatus" -> this.potStatus = (String) value;
+                    case "potModeOfOperation" -> this.potModeOfOperation = PotModeOfOperation.valueOf((String) value);
+                    case "potSummary" -> this.potSummary = (String) value;
+                    case "recruitmentDeadline" -> this.recruitmentDeadline = (LocalDate) value;
+                }
+            }
+        });
+    }
+
+
+
+
 }

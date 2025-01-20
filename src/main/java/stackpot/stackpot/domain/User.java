@@ -34,6 +34,9 @@ public class User extends BaseEntity implements UserDetails{
     private String role; // 역할
 
     @Column(nullable = true, length = 255)
+    private String kakaoId; // 카카오 아이디
+
+    @Column(nullable = false, length = 255)
     private String interest; // 관심사
 
     @Column(nullable = true, columnDefinition = "TEXT")
@@ -61,5 +64,8 @@ public class User extends BaseEntity implements UserDetails{
     @Override
     public String getUsername() {
         return email; // 사용자 식별자로 이메일을 사용
+    }
+    public Long getUserId() {
+        return id;
     }
 }

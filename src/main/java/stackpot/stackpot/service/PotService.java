@@ -1,10 +1,20 @@
 package stackpot.stackpot.service;
 
+import stackpot.stackpot.web.dto.PotRequestDto;
+import stackpot.stackpot.web.dto.PotResponseDto;
 import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
 
+
 public interface PotService {
+    PotResponseDto createPotWithRecruitments(String token, PotRequestDto requestDto);
+    PotResponseDto updatePotWithRecruitments(String token, Long potId, PotRequestDto requestDto);
+
+    void deletePot(String token, Long potId);
+
+    //---------------
+
     // 모집 역할에 따라 모든 팟 조회
     List<PotAllResponseDTO.PotDetail> getAllPots(String role);
 
