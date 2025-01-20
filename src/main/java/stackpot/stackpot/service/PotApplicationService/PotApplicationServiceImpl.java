@@ -43,7 +43,7 @@ public class PotApplicationServiceImpl implements PotApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
 
         // 중복 신청 방지
-        boolean alreadyApplied = potApplicationRepository.existsByUserIdAndPotId(user.getId(), potId);
+        boolean alreadyApplied = potApplicationRepository.existsByUserIdAndPot_PotId(user.getId(), potId);
         if (alreadyApplied) {
             throw new IllegalStateException("이미 해당 팟에 지원하셨습니다.");
         }

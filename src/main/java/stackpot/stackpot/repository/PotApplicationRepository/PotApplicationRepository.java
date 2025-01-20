@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface PotApplicationRepository extends JpaRepository<PotApplication, Long> {
     List<PotApplication> findByPot_PotId(Long potId);
+    boolean existsByUserIdAndPot_PotId(Long userId, Long potId);
+
 }
