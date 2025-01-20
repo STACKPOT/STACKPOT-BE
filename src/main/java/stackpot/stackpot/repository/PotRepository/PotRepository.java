@@ -1,4 +1,4 @@
-package stackpot.stackpot.repository;
+package stackpot.stackpot.repository.PotRepository;
 
 
 

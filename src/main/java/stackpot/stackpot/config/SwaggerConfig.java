@@ -32,11 +32,13 @@ public class SwaggerConfig {
                         .bearerFormat("JWT")
                         .in(SecurityScheme.In.HEADER));
 
+
+        // 서버 URL 설정
         return new OpenAPI()
-                .addServersItem(new Server().url("http://localhost:8080"))
+                .addServersItem(new Server().url("http://localhost:8080").description("Local server")) // 로컬 서버
+                .addServersItem(new Server().url("https://api.stackpot.com").description("Production server")) // 프로덕션 서버
                 .info(info)
                 .addSecurityItem(securityRequirement)
                 .components(components);
-
     }
 }

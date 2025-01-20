@@ -20,10 +20,10 @@ public class MemberViewController {
     private final JwtTokenProvider jwtTokenProvider;
 
     // 로그인 페이지
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login";
-    }
+//    @GetMapping("/login")
+//    public String loginPage() {
+//        return "login";
+//    }
 
     // 회원가입 페이지 랜더링
     @GetMapping("/signup")

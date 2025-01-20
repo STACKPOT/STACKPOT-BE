@@ -3,6 +3,7 @@ package stackpot.stackpot.converter;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
+import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.PotModeOfOperation;
 import stackpot.stackpot.web.dto.PotRequestDto;
 import stackpot.stackpot.web.dto.PotResponseDto;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 public class PotConverterImpl implements PotConverter {
 
     @Override
-    public Pot toEntity(PotRequestDto dto) {
+    public Pot toEntity(PotRequestDto dto, User user) {
         return Pot.builder()
                 .user(user) // 사용자 정보 설정
                 .potName(dto.getPotName())

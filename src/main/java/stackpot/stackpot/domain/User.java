@@ -59,4 +59,7 @@ public class User extends BaseEntity implements UserDetails{
     public String getUsername() {
         return email; // 사용자 식별자로 이메일을 사용
     }
+    public Long getUserId() {
+        return id;
+    }
 }
