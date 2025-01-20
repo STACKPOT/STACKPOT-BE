@@ -10,8 +10,7 @@ import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
-import stackpot.stackpot.web.dto.LikedApplicantResponseDTO;
-import stackpot.stackpot.web.dto.PotResponseDTO;
+import stackpot.stackpot.web.dto.*;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -38,14 +37,14 @@ public class PotServiceImpl implements PotService {
     }
 
     @Override
-    public List<PotResponseDTO> getAllPots(String role) {
+    public List<PotAllResponseDTO.PotDetail> getAllPots(String role) {
         return potRepository.findByRecruitmentDetails_RecruitmentRole(role).stream()
-                .map(pot -> PotResponseDTO.builder()
-                        .user(PotResponseDTO.UserDto.builder()
+                .map(pot -> PotAllResponseDTO.PotDetail.builder()
+                        .user(UserResponseDTO.builder()
                                 .nickname(pot.getUser().getNickname())
                                 .role(pot.getUser().getRole())
                                 .build())
-                        .pot(PotResponseDTO.PotDto.builder()
+                        .pot(PotResponseDTO.builder()
                                 .potId(pot.getPotId())
                                 .potName(pot.getPotName())
                                 .potStartDate(pot.getPotStartDate())
@@ -65,13 +64,13 @@ public class PotServiceImpl implements PotService {
 
 
     @Override
-    public PotResponseDTO getPotDetails(Long potId) {
+    public ApplicantResponseDTO getPotDetails(Long potId) {
         Pot pot = potRepository.findPotWithRecruitmentDetailsByPotId(potId)
                 .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
 
         // 지원자 정보를 DTO로 변환
-        List<PotResponseDTO.ApplicantDto> applicantDto = pot.getPotApplication().stream()
-                .map(app -> PotResponseDTO.ApplicantDto.builder()
+        List<ApplicantResponseDTO.ApplicantDto> applicantDto = pot.getPotApplication().stream()
+                .map(app -> ApplicantResponseDTO.ApplicantDto.builder()
                         .applicationId(app.getApplicationId())
                         .potRole(app.getPotRole())
                         .liked(app.getLiked())
@@ -79,8 +78,8 @@ public class PotServiceImpl implements PotService {
                 .collect(Collectors.toList());
 
         // 모집 정보를 DTO로 변환
-        List<PotResponseDTO.RecruitmentDetailsDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
-                .map(details -> PotResponseDTO.RecruitmentDetailsDto.builder()
+        List<RecruitmentDetailsResponseDTO> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
+                .map(details -> RecruitmentDetailsResponseDTO.builder()
                         .recruitmentId(details.getRecruitmentId())
                         .recruitmentRole(details.getRecruitmentRole())
                         .recruitmentCount(details.getRecruitmentCount())
@@ -88,7 +87,7 @@ public class PotServiceImpl implements PotService {
                 .collect(Collectors.toList());
 
         // Pot 정보를 DTO로 변환
-        PotResponseDTO.PotDto potDto = PotResponseDTO.PotDto.builder()
+        PotResponseDTO potDto = PotResponseDTO.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStartDate(pot.getPotStartDate())
@@ -103,14 +102,14 @@ public class PotServiceImpl implements PotService {
                 .dDay(Math.toIntExact(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline())))
                 .build();
 
-        return PotResponseDTO.builder()
-                .user(PotResponseDTO.UserDto.builder()
+        return ApplicantResponseDTO.builder()
+                .user(UserResponseDTO.builder()
                         .nickname(pot.getUser().getNickname())
                         .role(pot.getUser().getRole())
                         .build())
                 .pot(potDto)
                 .recruitmentDetails(recruitmentDetailsDto)
-                .applicants(applicantDto)
+                .applicant(applicantDto)
                 .build();
     }
 
@@ -170,7 +169,7 @@ public class PotServiceImpl implements PotService {
 
 
     @Override
-    public List<PotResponseDTO> getAppliedPots() {
+    public List<PotAllResponseDTO.PotDetail> getAppliedPots() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -180,11 +179,11 @@ public class PotServiceImpl implements PotService {
         // 사용자가 지원한 팟 조회
         List<Pot> appliedPots = potRepository.findByPotApplication_User_Id(user.getId());
 
-        // Pot 리스트를 PotResponseDTO로 변환
+        // Pot 리스트를 PotAllResponseDTO.PotDetail로 변환
         return appliedPots.stream().map(pot -> {
             // 모집 정보를 DTO로 변환
-            List<PotResponseDTO.RecruitmentDetailsDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
-                    .map(details -> PotResponseDTO.RecruitmentDetailsDto.builder()
+            List<RecruitmentDetailsResponseDTO> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
+                    .map(details -> RecruitmentDetailsResponseDTO.builder()
                             .recruitmentId(details.getRecruitmentId())
                             .recruitmentRole(details.getRecruitmentRole())
                             .recruitmentCount(details.getRecruitmentCount())
@@ -192,7 +191,7 @@ public class PotServiceImpl implements PotService {
                     .collect(Collectors.toList());
 
             // Pot 정보를 DTO로 변환
-            PotResponseDTO.PotDto potDto = PotResponseDTO.PotDto.builder()
+            PotResponseDTO potDto = PotResponseDTO.builder()
                     .potId(pot.getPotId())
                     .potName(pot.getPotName())
                     .potStartDate(pot.getPotStartDate())
@@ -207,16 +206,91 @@ public class PotServiceImpl implements PotService {
                     .dDay(Math.toIntExact(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline())))
                     .build();
 
-            return PotResponseDTO.builder()
+            // 유저 정보를 DTO로 변환
+            UserResponseDTO userDto = UserResponseDTO.builder()
+                    .nickname(pot.getUser().getNickname())
+                    .role(pot.getUser().getRole())
+                    .build();
+
+            return PotAllResponseDTO.PotDetail.builder()
+                    .user(userDto)
                     .pot(potDto)
                     .recruitmentDetails(recruitmentDetailsDto)
                     .build();
         }).collect(Collectors.toList());
     }
 
+    // 사용자가 만든 팟 조회
     @Override
-    public List<PotResponseDTO> getMyPots() {
-        return List.of();
+    public List<PotAllResponseDTO> getMyPots() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        // 사용자가 만든 팟 조회
+        List<Pot> myPots = potRepository.findByUserId(user.getId());
+
+        // 모집중인 팟 리스트
+        List<PotAllResponseDTO.PotDetail> recruitingPots = myPots.stream()
+                .filter(pot -> "모집중".equals(pot.getPotStatus()))
+                .map(this::convertToPotDetail)
+                .collect(Collectors.toList());
+
+        // 진행 중인 팟 리스트
+        List<PotAllResponseDTO.PotDetail> ongoingPots = myPots.stream()
+                .filter(pot -> "진행중".equals(pot.getPotStatus()))
+                .map(this::convertToPotDetail)
+                .collect(Collectors.toList());
+
+        // 끓인 팟 리스트
+        List<PotAllResponseDTO.PotDetail> completedPots = myPots.stream()
+                .filter(pot -> "끓임".equals(pot.getPotStatus()))
+                .map(this::convertToPotDetail)
+                .collect(Collectors.toList());
+
+            return List.of(PotAllResponseDTO.builder()
+                    .recruitingPots(recruitingPots)
+                    .ongoingPots(ongoingPots)
+                    .completedPots(completedPots)
+                    .build());
+
+    }
+
+    // Pot을 PotAllResponseDTO.PotDetail로 변환하는 메서드
+    private PotAllResponseDTO.PotDetail convertToPotDetail(Pot pot) {
+        List<RecruitmentDetailsResponseDTO> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
+                .map(details -> RecruitmentDetailsResponseDTO.builder()
+                        .recruitmentId(details.getRecruitmentId())
+                        .recruitmentRole(details.getRecruitmentRole())
+                        .recruitmentCount(details.getRecruitmentCount())
+                        .build())
+                .collect(Collectors.toList());
+
+        PotResponseDTO potDto = PotResponseDTO.builder()
+                .potId(pot.getPotId())
+                .potName(pot.getPotName())
+                .potStartDate(pot.getPotStartDate())
+                .potEndDate(pot.getPotEndDate())
+                .potDuration(pot.getPotDuration())
+                .potLan(pot.getPotLan())
+                .potContent(pot.getPotContent())
+                .potStatus(pot.getPotStatus())
+                .potSummary(pot.getPotSummary())
+                .recruitmentDeadline(pot.getRecruitmentDeadline())
+                .potModeOfOperation(pot.getPotModeOfOperation().name())
+                .dDay(Math.toIntExact(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline())))
+                .build();
+
+        return PotAllResponseDTO.PotDetail.builder()
+                .user(UserResponseDTO.builder()
+                        .nickname(pot.getUser().getNickname())
+                        .role(pot.getUser().getRole())
+                        .build())
+                .pot(potDto)
+                .recruitmentDetails(recruitmentDetailsDto)
+                .build();
     }
 
 }

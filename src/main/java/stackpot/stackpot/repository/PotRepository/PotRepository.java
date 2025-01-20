@@ -13,5 +13,6 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
     List<Pot> findByRecruitmentDetails_RecruitmentRole(String recruitmentRole);
     Optional<Pot> findPotWithRecruitmentDetailsByPotId(Long potId);
     List<Pot> findByPotApplication_User_Id(Long userId);
+    List<Pot> findByUserId(Long userId);
 
 }
