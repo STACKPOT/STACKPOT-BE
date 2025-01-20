@@ -28,8 +28,9 @@ public class PotApplication extends BaseEntity {
     @Column(nullable = true)
     private LocalDateTime appliedAt;
 
+    @Setter
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
-    private Boolean liked;
+    private Boolean liked = false;
 
     @Column(nullable = false, length = 10)
     private String potRole; // 팟 역할
@@ -41,4 +42,5 @@ public class PotApplication extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
 import stackpot.stackpot.domain.enums.PotModeOfOperation;
+import stackpot.stackpot.domain.mapping.PotApplication;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,8 +25,11 @@ public class Pot extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "pot", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "pot")
     private List<PotRecruitmentDetails> recruitmentDetails;
+
+    @OneToMany(mappedBy = "pot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PotApplication> potApplication;
 
     @Column(nullable = false, length = 255)
     private String potName;
