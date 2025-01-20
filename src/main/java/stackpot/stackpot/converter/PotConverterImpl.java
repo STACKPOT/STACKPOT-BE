@@ -16,19 +16,19 @@ import java.util.stream.Collectors;
 public class PotConverterImpl implements PotConverter {
 
     @Override
-    public Pot toEntity(PotRequestDto dto, User user) {
+    public Pot toEntity(PotRequestDto requestDto, User user) {
         return Pot.builder()
-                .user(user) // 사용자 정보 설정
-                .potName(dto.getPotName())
-                .potStartDate(dto.getPotStartDate())
-                .potEndDate(dto.getPotEndDate())
-                .potDuration(dto.getPotDuration())
-                .potLan(dto.getPotLan())
-                .potContent(dto.getPotContent())
-                .potStatus(dto.getPotStatus())
-                .potModeOfOperation(PotModeOfOperation.valueOf(dto.getPotModeOfOperation()))
-                .potSummary(dto.getPotSummary())
-                .recruitmentDeadline(dto.getRecruitmentDeadline())
+                .potName(requestDto.getPotName())
+                .potStartDate(requestDto.getPotStartDate())
+                .potEndDate(requestDto.getPotEndDate())
+                .potDuration(requestDto.getPotDuration())
+                .potLan(requestDto.getPotLan())
+                .potContent(requestDto.getPotContent())
+                .potStatus(requestDto.getPotStatus())
+                .potModeOfOperation(PotModeOfOperation.valueOf(requestDto.getPotModeOfOperation()))
+                .potSummary(requestDto.getPotSummary())
+                .recruitmentDeadline(requestDto.getRecruitmentDeadline())
+                .user(user) // 사용자 설정
                 .build();
     }
 
