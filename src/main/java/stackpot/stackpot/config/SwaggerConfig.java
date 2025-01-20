@@ -20,6 +20,7 @@ public class SwaggerConfig {
                 .version("1.0.0");
 
         String jwtSchemeName = "JWT TOKEN";
+
         // API 요청헤더에 인증정보 포함
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
         // SecuritySchemes 등록
@@ -31,7 +32,7 @@ public class SwaggerConfig {
                         .bearerFormat("JWT"));
 
         return new OpenAPI()
-                .addServersItem(new Server().url("/api"))
+                .addServersItem(new Server().url(""))
                 .info(info)
                 .addSecurityItem(securityRequirement)
                 .components(components);

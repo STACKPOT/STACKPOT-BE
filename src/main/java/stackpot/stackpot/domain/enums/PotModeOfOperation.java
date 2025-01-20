@@ -1,5 +1,5 @@
 package stackpot.stackpot.domain.enums;
 
-public enum ModeOfOperation {
+public enum PotModeOfOperation {
     ONLINE, OFFLINE
 }
