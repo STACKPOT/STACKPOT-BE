@@ -5,9 +5,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.config.security.JwtTokenProvider;
+import stackpot.stackpot.converter.MyPotTodoConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.mapping.PotApplication;
+import stackpot.stackpot.domain.mapping.UserTodo;
+import stackpot.stackpot.repository.PotRepository.MyPotRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
@@ -22,7 +25,10 @@ import java.util.stream.Collectors;
 public class MyPotServiceImpl implements MyPotService {
 
     private final PotRepository potRepository;
+    private final MyPotRepository myPotRepository;
     private final UserRepository userRepository;
+    private final MyPotTodoConverter myPotTodoConverter;
+
 
     @Override
     public List<MyPotResponseDTO> getMyOnGoingPots() {
@@ -47,6 +53,31 @@ public class MyPotServiceImpl implements MyPotService {
                 .build());
     }
 
+    @Override
+    public MyPotTodoResponseDTO postTodo(Long potId, MyPotTodoRequestDTO requestDTO) {
+        // 현재 인증된 사용자 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        // 해당 Pot 존재 여부 확인
+        Pot pot = potRepository.findById(requestDTO.getPotId())
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + requestDTO.getPotId()));
+
+        // To-Do 생성
+        UserTodo userTodo = UserTodo.builder()
+                .pot(pot)
+                .user(user)
+                .content(requestDTO.getContent())
+                .status(requestDTO.getStatus())
+                .build();
+
+        myPotRepository.save(userTodo);
+
+        return myPotTodoConverter.toTodoResultDto(userTodo);
+    }
 
     // 진행 중인 팟 변환 메서드 (멤버 포함)
     private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
@@ -82,5 +113,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .potMembers(potMembers)
                 .build();
     }
+
+
 
 }

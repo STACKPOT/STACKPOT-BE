@@ -9,6 +9,7 @@ import stackpot.stackpot.domain.enums.TodoStatus;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

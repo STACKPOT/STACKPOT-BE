@@ -22,11 +22,8 @@ import java.util.stream.Collectors;
 public class PotServiceImpl implements PotService {
 
     private final PotRepository potRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final PotSummarizationService potSummarizationService;
-
-
 
 
     @Override
