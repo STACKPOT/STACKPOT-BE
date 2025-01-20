@@ -2,15 +2,18 @@ package stackpot.stackpot.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import stackpot.stackpot.domain.common.BaseEntity;
+
+import java.util.Collection;
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class User extends BaseEntity {
-
+public class User extends BaseEntity implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Primary Key
@@ -21,13 +24,13 @@ public class User extends BaseEntity {
     @Column(nullable = true, length = 12)
     private String userName; // 유저 카톡 설정 이름
 
-    @Column(nullable = false, length = 255)
-    private String snsKey; // SNS 키
+//    @Column(nullable = false, length = 255)
+//    private String snsKey; // SNS 키
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = true, length = 255)
     private String nickname; // 닉네임
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = true, length = 255)
     private String role; // 역할
 
     @Column(nullable = true, length = 255)
@@ -37,11 +40,26 @@ public class User extends BaseEntity {
     private String interest; // 관심사
 
     @Column(nullable = true, columnDefinition = "TEXT")
-    private String introduction; // 한 줄 소개
+    private String userIntroduction; // 한 줄 소개
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer userTemperature; // 유저 온도
 
     @Column(nullable = false, unique = true)
     private String email; // 이메일
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public String getPassword() {
+        return null;
+    }
+
+    @Override
+    public String getUsername() {
+        return email; // 사용자 식별자로 이메일을 사용
+    }
 }
