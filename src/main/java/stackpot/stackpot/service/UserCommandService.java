@@ -1,9 +1,9 @@
 package stackpot.stackpot.service;
 
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.web.dto.UserRequestDTO;
+import stackpot.stackpot.web.dto.UserRequestDto;
 
 public interface UserCommandService {
 
-    public User joinUser(UserRequestDTO.JoinDto request);
+    public User joinUser(UserRequestDto.JoinDto request);
 }
