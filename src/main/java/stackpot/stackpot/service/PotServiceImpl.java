@@ -3,6 +3,10 @@ package stackpot.stackpot.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -145,28 +149,28 @@ public class PotServiceImpl implements PotService {
     }
 
     //-----------------
-
-    private final PotRepository potRepository;
-    private final UserRepository userRepository;
     private final PotSummarizationService potSummarizationService;
 
+    @Transactional
     @Override
-    public List<PotAllResponseDTO.PotDetail> getAllPots(String role) {
-        List<Pot> pots;
+    public List<PotAllResponseDTO.PotDetail> getAllPots(String role, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Pot> potPage;
+
 
         if (role == null || role.isEmpty()) {
-            pots = potRepository.findAll();  // 모든 팟 조회
+            potPage = potRepository.findAll(pageable);
         } else {
-            pots = potRepository.findByRecruitmentDetails_RecruitmentRole(role);
+            potPage = potRepository.findByRecruitmentDetails_RecruitmentRole(role, pageable);
         }
 
-        return pots.stream()
+        return potPage.getContent().stream()
                 .map(pot -> PotAllResponseDTO.PotDetail.builder()
                         .user(UserResponseDTO.builder()
                                 .nickname(pot.getUser().getNickname())
                                 .role(pot.getUser().getRole())
                                 .build())
-                        .pot(PotResponseDTO.builder()
+                        .pot(PotResponseDto.builder()
                                 .potId(pot.getPotId())
                                 .potName(pot.getPotName())
                                 .potStartDate(pot.getPotStartDate())
@@ -209,7 +213,7 @@ public class PotServiceImpl implements PotService {
                 .collect(Collectors.toList());
 
         // Pot 정보를 DTO로 변환
-        PotResponseDTO potDto = PotResponseDTO.builder()
+        PotResponseDto potDto = PotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStartDate(pot.getPotStartDate())
@@ -283,10 +287,27 @@ public class PotServiceImpl implements PotService {
                 .map(app -> LikedApplicantResponseDTO.builder()
                         .applicationId(app.getApplicationId())
                         .applicantRole(app.getPotRole())
-                        .potNickname(app.getUser().getNickname() + " - " + app.getPotRole())
+                        .potNickname(app.getUser().getNickname() + getVegetableNameByRole(app.getPotRole()))
                         .liked(app.getLiked())
                         .build())
                 .collect(Collectors.toList());
+        /*pot role
+            브로콜리 : 디자이너
+            당근 : 기획자
+            양파 : 백앤드
+            버섯 : 프론트앤드
+        */
+    }
+
+    private String getVegetableNameByRole(String role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "디자이너", " 브로콜리",
+                "기획자", " 당근",
+                "백앤드", " 양파",
+                "프론트앤드", " 버섯"
+        );
+
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 
 
@@ -313,7 +334,7 @@ public class PotServiceImpl implements PotService {
                     .collect(Collectors.toList());
 
             // Pot 정보를 DTO로 변환
-            PotResponseDTO potDto = PotResponseDTO.builder()
+            PotResponseDto potDto = PotResponseDto.builder()
                     .potId(pot.getPotId())
                     .potName(pot.getPotName())
                     .potStartDate(pot.getPotStartDate())
@@ -429,7 +450,7 @@ public class PotServiceImpl implements PotService {
                         .build())
                 .collect(Collectors.toList());
 
-        PotResponseDTO potDto = PotResponseDTO.builder()
+        PotResponseDto potDto = PotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStartDate(pot.getPotStartDate())
@@ -446,7 +467,7 @@ public class PotServiceImpl implements PotService {
 
         return PotAllResponseDTO.PotDetail.builder()
                 .user(UserResponseDTO.builder()
-                        .nickname(pot.getUser().getNickname())
+                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(pot.getUser().getRole()))
                         .role(pot.getUser().getRole())
                         .build())
                 .pot(potDto)
@@ -474,10 +495,10 @@ public class PotServiceImpl implements PotService {
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDTO.builder()
-                        .nickname(pot.getUser().getNickname())
+                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(pot.getUser().getRole()))
                         .role(pot.getUser().getRole())
                         .build())
-                .pot(PotResponseDTO.builder()
+                .pot(PotResponseDto.builder()
                         .potId(pot.getPotId())
                         .potName(pot.getPotName())
                         .potStartDate(pot.getPotStartDate())

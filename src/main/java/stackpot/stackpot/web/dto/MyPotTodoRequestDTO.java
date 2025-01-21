@@ -11,7 +11,6 @@ import stackpot.stackpot.domain.enums.TodoStatus;
 @AllArgsConstructor
 @Builder
 public class MyPotTodoRequestDTO {
-    private Long potId;
     private String content;
     private TodoStatus status;
 }

@@ -34,9 +34,6 @@ public class User extends BaseEntity implements UserDetails{
     private String role; // 역할
 
     @Column(nullable = true, length = 255)
-    private String kakaoId; // 카카오 아이디
-
-    @Column(nullable = false, length = 255)
     private String interest; // 관심사
 
     @Column(nullable = true, columnDefinition = "TEXT")

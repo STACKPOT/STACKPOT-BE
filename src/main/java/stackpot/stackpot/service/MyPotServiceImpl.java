@@ -53,6 +53,36 @@ public class MyPotServiceImpl implements MyPotService {
                 .build());
     }
 
+    /*@Override
+    public MyPotTodoResponseDTO postTodo(Long potId, MyPotTodoRequestDTO requestDTO) {
+        // 현재 인증된 사용자 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        // 해당 Pot 존재 여부 확인
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+
+        // To-Do 생성
+        UserTodo userTodo = UserTodo.builder()
+                .pot(pot)
+                .user(user)
+                .content(requestDTO.getContent())
+                .status(requestDTO.getStatus())
+                .build();
+
+        System.out.println("Received potId from path: " + potId);
+        System.out.println("Request content: " + requestDTO.getContent());
+        System.out.println("Request status: " + requestDTO.getStatus());
+
+        myPotRepository.save(userTodo);
+
+        return myPotTodoConverter.toTodoResultDto(userTodo);
+    }*/
+
     @Override
     public MyPotTodoResponseDTO postTodo(Long potId, MyPotTodoRequestDTO requestDTO) {
         // 현재 인증된 사용자 가져오기
@@ -63,8 +93,16 @@ public class MyPotServiceImpl implements MyPotService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
         // 해당 Pot 존재 여부 확인
-        Pot pot = potRepository.findById(requestDTO.getPotId())
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + requestDTO.getPotId()));
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+
+        // 사용자가 pot의 멤버인지 확인
+        boolean isMember = pot.getPotMembers().stream()
+                .anyMatch(member -> member.getUser().getId().equals(user.getId()));
+
+        if (!isMember) {
+            throw new IllegalArgumentException("User is not a member of the requested pot.");
+        }
 
         // To-Do 생성
         UserTodo userTodo = UserTodo.builder()
@@ -73,6 +111,10 @@ public class MyPotServiceImpl implements MyPotService {
                 .content(requestDTO.getContent())
                 .status(requestDTO.getStatus())
                 .build();
+
+        System.out.println("Received potId from path: " + potId);
+        System.out.println("Request content: " + requestDTO.getContent());
+        System.out.println("Request status: " + requestDTO.getStatus());
 
         myPotRepository.save(userTodo);
 
@@ -102,8 +144,7 @@ public class MyPotServiceImpl implements MyPotService {
                         .nickname(pot.getUser().getNickname())
                         .role(pot.getUser().getRole())
                         .build())
-                .pot(PotResponseDTO.builder()
-                        .potId(pot.getPotId())
+                .pot(PotResponseDto.builder()
                         .potName(pot.getPotName())
                         .potStartDate(pot.getPotStartDate())
                         .potEndDate(pot.getPotEndDate())

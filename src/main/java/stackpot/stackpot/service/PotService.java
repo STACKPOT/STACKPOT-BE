@@ -16,7 +16,7 @@ public interface PotService {
     //---------------
 
     // 모집 역할에 따라 모든 팟 조회
-    List<PotAllResponseDTO.PotDetail> getAllPots(String role);
+    List<PotAllResponseDTO.PotDetail>  getAllPots(String role, Integer page, Integer size);
 
     // 특정 팟의 세부 정보 조회
     ApplicantResponseDTO getPotDetails(Long potId);

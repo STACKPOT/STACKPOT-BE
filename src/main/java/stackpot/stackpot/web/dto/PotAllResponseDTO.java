@@ -22,7 +22,7 @@ public class PotAllResponseDTO {
     @Builder
     public static class PotDetail {
         private UserResponseDTO user;
-        private PotResponseDTO pot;
+        private PotResponseDto pot;
         private List<RecruitmentDetailsResponseDTO> recruitmentDetails;
     }
 }

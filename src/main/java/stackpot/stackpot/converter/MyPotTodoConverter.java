@@ -8,6 +8,7 @@ import stackpot.stackpot.web.dto.MyPotTodoResponseDTO;
 public class MyPotTodoConverter {
     public static MyPotTodoResponseDTO toTodoResultDto(UserTodo userTodo){
         return MyPotTodoResponseDTO.builder()
+                .potId(userTodo.getPot().getPotId())
                 .todoId(userTodo.getTodoId())
                 .content(userTodo.getContent())
                 .status(userTodo.getStatus())
