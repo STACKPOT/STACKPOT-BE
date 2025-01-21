@@ -92,7 +92,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .orElseGet(() -> {
                     User user = User.builder()
                             .email(email)
-                            .loginId(UUID.randomUUID().toString()) // 랜덤 로그인 ID 생성
+                            .userTemperature(33)
                             .build();
                     return userRepository.save(user); // 저장된 사용자 반환
                 });

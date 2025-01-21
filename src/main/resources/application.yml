@@ -49,4 +49,4 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
   jwt:
-    secret: ${JW098654w3T_SECRET}
+    secret: ${JWT_SECRET}

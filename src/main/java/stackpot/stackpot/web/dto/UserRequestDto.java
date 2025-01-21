@@ -3,28 +3,25 @@ package stackpot.stackpot.web.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.management.relation.Role;
-
-public class UserRequestDTO {
+public class UserRequestDto {
 
     @Getter
     @Setter
     public static class JoinDto {
-        @NotNull
+        @NotBlank(message = "Role은 공백일 수 없습니다.")
         String role;
-        @NotNull
+
+        @NotBlank(message = "Interest는 공백일 수 없습니다.")
         String interest;
-        @NotBlank
+
+        @NotBlank(message = "Nickname은 공백일 수 없습니다.")
         String nickname;
-        @NotBlank
-        @Email
-        String email; // 이메일
-        @NotNull
-        String kakaoId; // 카카오 아이디
+
+        @NotBlank(message = "KakaoId는 공백일 수 없습니다.")
+        String kakaoId;
 
     }
 }

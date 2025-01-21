@@ -1,18 +1,28 @@
 package stackpot.stackpot.converter;
 
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.web.dto.UserRequestDTO;
+import stackpot.stackpot.web.dto.UserRequestDto;
+import stackpot.stackpot.web.dto.UserResponseDto;
 
 public class UserConverter {
-    public static User toUser(UserRequestDTO.JoinDto request) {
+    public static User toUser(UserRequestDto.JoinDto request) {
 
         return User.builder()
-//                .nickname(request.getNickname())
-                .email(request.getEmail())   // 추가된 코드
-//                .kakaoId(request.getKakaoId())
-//                .interest(request.getInterest())
-//                .role(request.getRole())
-                .userTemperature((int)35.5)
+                .nickname(request.getNickname())
+                .kakaoId(request.getKakaoId())
+                .interest(request.getInterest())
+                .role(request.getRole())
+                .build();
+    }
+
+    public static UserResponseDto toDto(User user) {
+
+        return UserResponseDto.builder()
+                .nickname(user.getNickname())
+                .email(user.getEmail())   // 추가된 코드
+                .kakaoId(user.getKakaoId())
+                .role(user.getRole())
+                .userTemperature(user.getUserTemperature())
                 .build();
     }
 }
