@@ -8,8 +8,8 @@ import java.util.List;
 
 
 public interface PotService {
-    PotResponseDto createPotWithRecruitments(String token, PotRequestDto requestDto);
-    PotResponseDto updatePotWithRecruitments(String token, Long potId, PotRequestDto requestDto);
+    PotResponseDto createPotWithRecruitments(PotRequestDto requestDto);
+    PotResponseDto updatePotWithRecruitments(Long potId, PotRequestDto requestDto);
 
     void deletePot(String token, Long potId);
 
