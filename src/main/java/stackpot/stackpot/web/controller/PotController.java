@@ -63,16 +63,6 @@ public class PotController {
 
     //----------------------------
 
-    // 모든 팟 조회
-    /*@GetMapping
-    public ResponseEntity<ApiResponse<List<PotAllResponseDTO.PotDetail>>> getPots(
-            @RequestParam(required = false) String recruitmentRole,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(required = true) Integer size) {
-        List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(recruitmentRole, page, size);
-        return ResponseEntity.ok(ApiResponse.onSuccess(pots));
-    }*/
-
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
             @RequestParam(required = false) String recruitmentRole,

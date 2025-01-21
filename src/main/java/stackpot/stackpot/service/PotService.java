@@ -11,7 +11,7 @@ public interface PotService {
     PotResponseDto createPotWithRecruitments(PotRequestDto requestDto);
     PotResponseDto updatePotWithRecruitments(Long potId, PotRequestDto requestDto);
 
-    void deletePot(String token, Long potId);
+    void deletePot(Long potId);
 
     //---------------
 

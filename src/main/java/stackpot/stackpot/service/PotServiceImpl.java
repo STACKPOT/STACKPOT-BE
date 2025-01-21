@@ -133,7 +133,6 @@ public class PotServiceImpl implements PotService {
 
 
 
-
     @Transactional
     public void deletePot(Long potId) {
         // 인증 정보에서 사용자 이메일 가져오기
@@ -160,6 +159,7 @@ public class PotServiceImpl implements PotService {
         potRepository.delete(pot);
     }
 
+
     //-------------------
 
     private final PotSummarizationService potSummarizationService;
@@ -179,7 +179,7 @@ public class PotServiceImpl implements PotService {
 
         return potPage.getContent().stream()
                 .map(pot -> PotAllResponseDTO.PotDetail.builder()
-                        .user(UserResponseDTO.builder()
+                        .user(UserResponseDto.builder()
                                 .nickname(pot.getUser().getNickname())
                                 .role(pot.getUser().getRole())
                                 .build())
@@ -242,7 +242,7 @@ public class PotServiceImpl implements PotService {
                 .build();
 
         return ApplicantResponseDTO.builder()
-                .user(UserResponseDTO.builder()
+                .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname())
                         .role(pot.getUser().getRole())
                         .build())
@@ -363,7 +363,7 @@ public class PotServiceImpl implements PotService {
                     .build();
 
             // 유저 정보를 DTO로 변환
-            UserResponseDTO userDto = UserResponseDTO.builder()
+            UserResponseDto userDto = UserResponseDto.builder()
                     .nickname(pot.getUser().getNickname())
                     .role(pot.getUser().getRole())
                     .build();
@@ -479,7 +479,7 @@ public class PotServiceImpl implements PotService {
                 .build();
 
         return PotAllResponseDTO.PotDetail.builder()
-                .user(UserResponseDTO.builder()
+                .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(pot.getUser().getRole()))
                         .role(pot.getUser().getRole())
                         .build())
@@ -507,7 +507,7 @@ public class PotServiceImpl implements PotService {
                 .collect(Collectors.toList());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
-                .user(UserResponseDTO.builder()
+                .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(pot.getUser().getRole()))
                         .role(pot.getUser().getRole())
                         .build())

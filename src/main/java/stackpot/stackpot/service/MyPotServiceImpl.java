@@ -140,7 +140,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
-                .user(UserResponseDTO.builder()
+                .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname())
                         .role(pot.getUser().getRole())
                         .build())

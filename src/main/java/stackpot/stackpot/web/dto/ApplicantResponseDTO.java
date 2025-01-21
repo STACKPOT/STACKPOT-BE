@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 @Getter
 public class ApplicantResponseDTO {
-    private UserResponseDTO user;
+    private UserResponseDto user;
     private PotResponseDto pot;
     private List<RecruitmentDetailsResponseDTO> recruitmentDetails;
     private List<ApplicantDto> applicant;
