@@ -3,6 +3,7 @@ package stackpot.stackpot.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.domain.Pot;
@@ -15,7 +16,7 @@ import stackpot.stackpot.service.PotService;
 import stackpot.stackpot.web.dto.PotRequestDto;
 import stackpot.stackpot.web.dto.PotResponseDto;
 import stackpot.stackpot.config.security.JwtTokenProvider;
-
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,22 +32,22 @@ public class PotServiceImpl implements PotService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
-    @Override
+
     @Transactional
-    public PotResponseDto createPotWithRecruitments(String token, PotRequestDto requestDto) {
-        // JWT에서 이메일 추출
-        String email = jwtTokenProvider.getEmailFromToken(token);
+    public PotResponseDto createPotWithRecruitments(PotRequestDto requestDto) {
+        // 인증 정보에서 사용자 이메일 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
-        // 2. 이메일로 사용자 로드
+        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        // 3. Pot 엔티티 생성 및 사용자 설정
+        // 팟 생성
         Pot pot = potConverter.toEntity(requestDto, user);
-        pot.setUser(user); // 사용자 정보 설정
-        // 4. Pot 저장
         Pot savedPot = potRepository.save(pot);
-        // RecruitmentDetails 저장 로직
+
+        // 모집 정보 저장
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(recruitmentDto -> PotRecruitmentDetails.builder()
                         .recruitmentRole(recruitmentDto.getRecruitmentRole())
@@ -54,49 +55,50 @@ public class PotServiceImpl implements PotService {
                         .pot(savedPot)
                         .build())
                 .collect(Collectors.toList());
-
         recruitmentDetailsRepository.saveAll(recruitmentDetails);
 
-        // Convert and return response DTO
+        // DTO로 변환 후 반환
         return potConverter.toDto(savedPot, recruitmentDetails);
-
     }
-    @Transactional
-    public PotResponseDto updatePotWithRecruitments(String token, Long potId, PotRequestDto requestDto) {
-        // JWT에서 사용자 이메일 추출
-        String email = jwtTokenProvider.getEmailFromToken(token);
 
-        // 이메일로 사용자 조회
+    @Transactional
+    @Override
+    public PotResponseDto updatePotWithRecruitments(Long potId, PotRequestDto requestDto) {
+        // 인증 정보에서 사용자 이메일 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
         // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("수정할 팟을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
 
-        // 권한 확인
+        // 소유자 확인
         if (!pot.getUser().equals(user)) {
-            throw new IllegalArgumentException("해당 팟을 수정할 권한이 없습니다.");
+            throw new IllegalArgumentException("You do not have permission to update this pot.");
         }
+
+        // 업데이트 로직
+        pot.updateFields(Map.of(
+                "potName", requestDto.getPotName(),
+                "potStartDate", requestDto.getPotStartDate(),
+                "potEndDate", requestDto.getPotEndDate(),
+                "potDuration", requestDto.getPotDuration(),
+                "potLan", requestDto.getPotLan(),
+                "potContent", requestDto.getPotContent(),
+                "potStatus", requestDto.getPotStatus(),
+                "potModeOfOperation", requestDto.getPotModeOfOperation(),
+                "potSummary", requestDto.getPotSummary(),
+                "recruitmentDeadline", requestDto.getRecruitmentDeadline()
+        ));
 
         // 기존 모집 정보 삭제
         recruitmentDetailsRepository.deleteByPot_PotId(potId);
 
-        // 새로운 정보로 업데이트
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("potName", requestDto.getPotName());
-        updates.put("potStartDate", requestDto.getPotStartDate());
-        updates.put("potEndDate", requestDto.getPotEndDate());
-        updates.put("potDuration", requestDto.getPotDuration());
-        updates.put("potLan", requestDto.getPotLan());
-        updates.put("potContent", requestDto.getPotContent());
-        updates.put("potStatus", requestDto.getPotStatus());
-        updates.put("potModeOfOperation", requestDto.getPotModeOfOperation());
-        updates.put("potSummary", requestDto.getPotSummary());
-        updates.put("recruitmentDeadline", requestDto.getRecruitmentDeadline());
-        pot.updateFields(updates);
-
-        // 새로운 모집 정보 추가
+        // 새로운 모집 정보 저장
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(recruitmentDto -> PotRecruitmentDetails.builder()
                         .recruitmentRole(recruitmentDto.getRecruitmentRole())
@@ -106,34 +108,37 @@ public class PotServiceImpl implements PotService {
                 .collect(Collectors.toList());
         recruitmentDetailsRepository.saveAll(recruitmentDetails);
 
-        // 수정된 데이터 반환
+        // DTO로 변환 후 반환
         return potConverter.toDto(pot, recruitmentDetails);
     }
 
 
-    @Override
+
+
     @Transactional
-    public void deletePot(String token, Long potId) {
-        // JWT에서 이메일 추출
-        String email = jwtTokenProvider.getEmailFromToken(token);
+    public void deletePot(Long potId) {
+        // 인증 정보에서 사용자 이메일 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
-        // 이메일로 사용자 로드
+        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        // 팟 로드
+        // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("삭제할 팟이 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
 
-        // 사용자가 팟의 생성자인지 확인
+        // 팟 소유자 확인
         if (!pot.getUser().equals(user)) {
-            throw new IllegalArgumentException("삭제 권한이 없습니다.");
+            throw new IllegalArgumentException("You do not have permission to delete this pot.");
         }
 
-        // 연관된 모집 정보 삭제
+        // 모집 정보 삭제
         recruitmentDetailsRepository.deleteByPot_PotId(potId);
 
         // 팟 삭제
         potRepository.delete(pot);
     }
+
 }
