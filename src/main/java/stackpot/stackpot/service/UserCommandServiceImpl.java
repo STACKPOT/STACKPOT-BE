@@ -26,37 +26,19 @@ public class UserCommandServiceImpl implements UserCommandService{
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        User addUser = UserConverter.toUser(request);
         updateUserData(user, request);
 
         return userRepository.save(user);
     }
 
     private void updateUserData(User user, UserRequestDto.JoinDto request) {
-//        if (addUser.getKakaoId() != null) {
-//            user.setKakaoId(addUser.getKakaoId());
-//        }
-//        if(addUser.getNickname() != null){
-//            user.setNickname(addUser.getNickname());
-//        }
-//        if(addUser.getRole() != null){
-//            user.setRole(addUser.getRole());
-//        }
-//        if(addUser.getInterest() != null){
-//            user.setInterest(addUser.getInterest());
-//        }
-        if (request.getKakaoId() != null) {
-            user.setKakaoId(request.getKakaoId());
-            System.out.println("request.getKakaoId() : " + request.getKakaoId());
-        }
-        if (request.getNickname() != null) {
-            user.setNickname(request.getNickname());
-        }
-        if (request.getRole() != null) {
-            user.setRole(request.getRole());
-        }
-        if (request.getInterest() != null) {
-            user.setInterest(request.getInterest());
-        }
+        // 카카오 id
+        user.setKakaoId(request.getKakaoId());
+        // 닉네임
+        user.setNickname(request.getNickname());
+        // 역할군
+        user.setRole(request.getRole());
+        // 관심사
+        user.setInterest(request.getInterest());
     }
 }

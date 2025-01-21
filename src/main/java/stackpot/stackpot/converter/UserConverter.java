@@ -22,6 +22,7 @@ public class UserConverter {
                 .email(user.getEmail())   // 추가된 코드
                 .kakaoId(user.getKakaoId())
                 .role(user.getRole())
+                .interest(user.getInterest())
                 .userTemperature(user.getUserTemperature())
                 .build();
     }
