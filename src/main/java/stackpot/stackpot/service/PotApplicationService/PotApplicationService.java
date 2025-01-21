@@ -1,12 +1,12 @@
 package stackpot.stackpot.service.PotApplicationService;
 
-import stackpot.stackpot.web.dto.ApplicationRequestDto;
-import stackpot.stackpot.web.dto.ApplicationResponseDto;
+import stackpot.stackpot.web.dto.PotApplicationRequestDto;
+import stackpot.stackpot.web.dto.PotApplicationResponseDto;
 
 import java.util.List;
 
 public interface PotApplicationService {
-    ApplicationResponseDto applyToPot(String token, Long potId, ApplicationRequestDto dto);
+    PotApplicationResponseDto applyToPot(PotApplicationRequestDto dto,Long potId);
 
-    List<ApplicationResponseDto> getApplicationsByPot(Long potId);
+    List<PotApplicationResponseDto> getApplicationsByPot(Long potId);
 }

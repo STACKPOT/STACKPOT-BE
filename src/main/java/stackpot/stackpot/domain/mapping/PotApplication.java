@@ -11,15 +11,16 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class PotApplication extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
-    private Long applicationId;
+    @GeneratedValue(strategy = GenerationType.AUTO) // IDENTITY로 자동 증가 설정
+    @Column(name = "application_id", nullable = false)
+    private Long applicationId; // Primary Key
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -39,8 +40,9 @@ public class PotApplication extends BaseEntity {
     private Pot pot;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
+
     public void setApplicationStatus(ApplicationStatus status) {
         this.status = status;
     }
