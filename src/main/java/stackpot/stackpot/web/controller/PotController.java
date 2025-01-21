@@ -17,37 +17,29 @@ public class PotController {
 
     @PostMapping
     public ResponseEntity<PotResponseDto> createPot(
-            @RequestHeader("Authorization") String token,
+
             @RequestBody @Valid PotRequestDto requestDto) {
-        // Bearer 제거 후 토큰 전달
-        String parsedToken = token.replace("Bearer ", "");
-        PotResponseDto responseDto = potService.createPotWithRecruitments(parsedToken, requestDto);
+        // 팟 생성 로직 호출
+        PotResponseDto responseDto = potService.createPotWithRecruitments(requestDto);
+
         return ResponseEntity.ok(responseDto);
     }
+
     @PatchMapping("/{pot_id}")
     public ResponseEntity<PotResponseDto> updatePot(
-            @RequestHeader("Authorization") String token,
-            @PathVariable("pot_id") Long potId, // 동일하게 이름 매핑
-            @RequestBody @Valid PotRequestDto requestDto) { // 요청 DTO 검증
-        // Bearer 제거
-        String parsedToken = token.replace("Bearer ", "");
-
+            @PathVariable("pot_id") Long potId,
+            @RequestBody @Valid PotRequestDto requestDto) {
         // 팟 수정 로직 호출
-        PotResponseDto responseDto = potService.updatePotWithRecruitments(parsedToken, potId, requestDto);
+        PotResponseDto responseDto = potService.updatePotWithRecruitments(potId, requestDto);
 
         return ResponseEntity.ok(responseDto); // 수정된 팟 정보 반환
     }
 
 
     @DeleteMapping("/{pot_id}")
-    public ResponseEntity<Void> deletePot(
-            @RequestHeader("Authorization") String token,
-            @PathVariable("pot_id") Long potId) { // 동일하게 이름 매핑
-        // Bearer 제거
-        String parsedToken = token.replace("Bearer ", "");
-
+    public ResponseEntity<Void> deletePot(@PathVariable("pot_id") Long potId) {
         // 팟 삭제 로직 호출
-        potService.deletePot(parsedToken, potId);
+        potService.deletePot(potId);
 
         return ResponseEntity.noContent().build();
     }
