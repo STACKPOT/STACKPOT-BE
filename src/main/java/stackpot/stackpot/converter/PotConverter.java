@@ -9,7 +9,7 @@ import stackpot.stackpot.web.dto.PotResponseDto;
 import java.util.List;
 
 public interface PotConverter {
-    Pot toEntity(PotRequestDto dto, User user);
+    Pot toEntity(PotRequestDto dto,User user);
 
     PotResponseDto toDto(Pot entity, List<PotRecruitmentDetails> recruitmentDetails);
 }
