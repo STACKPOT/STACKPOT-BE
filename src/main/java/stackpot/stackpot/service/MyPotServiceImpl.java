@@ -118,7 +118,7 @@ public class MyPotServiceImpl implements MyPotService {
 
         myPotRepository.save(userTodo);
 
-        return myPotTodoConverter.toTodoResultDto(userTodo);
+        return MyPotTodoConverter.toTodoResultDto(userTodo);
     }
 
     // 진행 중인 팟 변환 메서드 (멤버 포함)

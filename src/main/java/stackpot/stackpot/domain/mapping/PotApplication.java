@@ -46,4 +46,7 @@ public class PotApplication extends BaseEntity {
         this.status = status;
     }
 
+    @OneToOne(mappedBy = "potApplication", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PotMember potMember;
+
 }
