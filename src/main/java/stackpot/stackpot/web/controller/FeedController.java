@@ -16,7 +16,9 @@ import stackpot.stackpot.domain.User;
 import stackpot.stackpot.service.FeedService;
 import stackpot.stackpot.web.dto.*;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -58,4 +60,18 @@ public class FeedController {
         FeedResponseDto.FeedDto response = feedConverter.feedDto(feed, 0,0);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    @Operation(summary = "feed 좋아요 추가 api")
+    @PostMapping("/{feedId}/like")
+    public ResponseEntity<?> toggleLike(@PathVariable Long feedId) {
+
+        // 좋아요 토글
+//        boolean isLiked = feedService
+
+//        return ResponseEntity.ok(Map.of(
+//                "liked", isLiked,
+//                "message", isLiked ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다."
+//        ));
+        return null;
+    }
+
 }

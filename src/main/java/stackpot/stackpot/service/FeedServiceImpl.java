@@ -72,4 +72,12 @@ public class FeedServiceImpl implements FeedService {
         return feedRepository.save(feed);
 
     }
+
+    @Override
+    public boolean toggleLike(Long feedId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        return false;
+    }
 }
