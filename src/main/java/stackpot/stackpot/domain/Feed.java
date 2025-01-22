@@ -26,11 +26,9 @@ public class Feed extends BaseEntity{
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false, length = 10)
+//    @Column(nullable = false, length = 10)
     private String mainPart;
 
-    @Column(nullable = false, length = 10)
-    private String interest;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
