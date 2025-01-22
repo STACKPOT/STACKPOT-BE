@@ -10,6 +10,8 @@ import stackpot.stackpot.converter.FeedConverter;
 import stackpot.stackpot.converter.FeedConverterImpl;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.mapping.FeedLike;
+import stackpot.stackpot.repository.FeedLikeRepository;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.FeedRequestDto;
@@ -17,6 +19,7 @@ import stackpot.stackpot.web.dto.FeedResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class FeedServiceImpl implements FeedService {
     private final FeedRepository feedRepository;
     private final FeedConverter feedConverter;
     private final UserRepository userRepository;
+    private final FeedLikeRepository feedLikeRepository;
 
     @Override
     public FeedResponseDto.FeedResponse getPreViewFeeds(String mainPart, String sort, String cursor, int limit) {
@@ -76,8 +80,29 @@ public class FeedServiceImpl implements FeedService {
     @Override
     public boolean toggleLike(Long feedId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String userEmail = authentication.getName();
 
-        return false;
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Optional<FeedLike> existingLike = feedLikeRepository.findByFeedAndUser(feed, user);
+
+        if (existingLike.isPresent()) {
+            // 이미 좋아요가 있다면 삭제 (좋아요 취소)
+            feedLikeRepository.delete(existingLike.get());
+            return false; // 좋아요 취소
+        } else {
+            // 좋아요 추가
+            FeedLike feedLike = FeedLike.builder()
+                    .feed(feed)
+                    .user(user)
+                    .build();
+
+            feedLikeRepository.save(feedLike);
+            return true; // 좋아요 성공
+        }
     }
 }

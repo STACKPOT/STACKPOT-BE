@@ -6,10 +6,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import stackpot.stackpot.domain.Feed;
+import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.mapping.FeedLike;
 
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface FeedRepository extends JpaRepository<Feed, Long> {
 
@@ -33,6 +37,5 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             @Param("sort") String sort,
             @Param("lastCreatedAt") LocalDateTime lastCreatedAt,
             Pageable pageable);
-
 
 }
