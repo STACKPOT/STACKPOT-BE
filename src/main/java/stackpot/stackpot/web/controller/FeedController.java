@@ -9,14 +9,14 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.converter.FeedConverter;
-import stackpot.stackpot.converter.FeedConverterImpl;
-import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.Feed;
-import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Category;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.service.FeedService;
 import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,7 +31,7 @@ public class FeedController {
     @Operation(summary = "피드 미리보기 api")
     @GetMapping("")
     public ResponseEntity<FeedResponseDto.FeedResponse> getPreViewFeeds(
-            @RequestParam(value = "category", required = false, defaultValue = "전체") String category,
+            @RequestParam(value = "category", required = false, defaultValue = "ALL") Category category,
             @RequestParam(value = "sort", required = false, defaultValue = "new") String sort,
             @RequestParam(value = "cursor", required = false) String cursor,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
@@ -58,4 +58,28 @@ public class FeedController {
         FeedResponseDto.FeedDto response = feedConverter.feedDto(feed, 0,0);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    @Operation(summary = "feed 좋아요 추가 api")
+    @PostMapping("/{feedId}/like")
+    public ResponseEntity<?> toggleLike(@PathVariable Long feedId) {
+
+        // 좋아요 토글
+        boolean isLiked = feedService.toggleLike(feedId);
+        return ResponseEntity.ok(Map.of(
+                "liked", isLiked,
+                "message", isLiked ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다."
+        ));
+    }
+
+    @Operation(summary = "feed 저장하기 api")
+    @PostMapping("/{feedId}/save")
+    public ResponseEntity<?> toggleSave(@PathVariable Long feedId) {
+
+        // 좋아요 토글
+        boolean isSaved = feedService.toggleSave(feedId);
+        return ResponseEntity.ok(Map.of(
+                "saved", isSaved,
+                "message", isSaved ? "해당 피드를 저장했습니다." : "해당 피드 저장을 취소했습니다.."
+        ));
+    }
+
 }

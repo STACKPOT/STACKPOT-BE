@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import stackpot.stackpot.domain.enums.Category;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.enums.Visibility;
 
 public class FeedRequestDto {
@@ -16,6 +18,7 @@ public class FeedRequestDto {
     public static class createDto {
         private String title;
         private String content;
+        private Category categor;
         private Visibility visibility;
     }
 }

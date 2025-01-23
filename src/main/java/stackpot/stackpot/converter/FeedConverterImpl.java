@@ -1,12 +1,9 @@
 package stackpot.stackpot.converter;
 
-import lombok.Builder;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.web.dto.FeedRequestDto;
 import stackpot.stackpot.web.dto.FeedResponseDto;
-
-import java.util.List;
 
 @Component
 public class FeedConverterImpl implements FeedConverter{
@@ -16,7 +13,7 @@ public class FeedConverterImpl implements FeedConverter{
         return FeedResponseDto.FeedDto.builder()
                 .id(feed.getFeedId())
                 .writer(feed.getUser().getNickname())
-//                .category(feed.getMainPart())
+                .category(feed.getCategory())
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .popularity(popularity)
@@ -30,6 +27,7 @@ public class FeedConverterImpl implements FeedConverter{
         return Feed.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
+                .category(request.getCategor())
                 .visibility(request.getVisibility())
                 .build();
     }

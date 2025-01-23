@@ -1,6 +1,7 @@
 package stackpot.stackpot.web.dto;
 
 import lombok.*;
+import stackpot.stackpot.domain.enums.Category;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +26,7 @@ public class FeedResponseDto {
     public static class FeedDto {
         private Long id;
         private String writer;
-        private String category;
+        private Category category;
         private String title;
         private String content;
         private int likeCount;

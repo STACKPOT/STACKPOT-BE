@@ -10,13 +10,21 @@ import stackpot.stackpot.converter.FeedConverter;
 import stackpot.stackpot.converter.FeedConverterImpl;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Category;
+import stackpot.stackpot.domain.enums.Role;
+import stackpot.stackpot.domain.mapping.FeedLike;
+import stackpot.stackpot.domain.mapping.FeedSave;
+import stackpot.stackpot.repository.FeedLikeRepository;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
+import stackpot.stackpot.repository.FeedSaveRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.FeedRequestDto;
 import stackpot.stackpot.web.dto.FeedResponseDto;
 
 import java.time.LocalDateTime;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
@@ -25,9 +33,11 @@ public class FeedServiceImpl implements FeedService {
     private final FeedRepository feedRepository;
     private final FeedConverter feedConverter;
     private final UserRepository userRepository;
+    private final FeedLikeRepository feedLikeRepository;
+    private final FeedSaveRepository feedSaveRepository;
 
     @Override
-    public FeedResponseDto.FeedResponse getPreViewFeeds(String mainPart, String sort, String cursor, int limit) {
+    public FeedResponseDto.FeedResponse getPreViewFeeds(Category categor, String sort, String cursor, int limit) {
         // 커서가 없으면 현재 시간 사용
         LocalDateTime lastCreatedAt = cursor != null
                 ? LocalDateTime.parse(cursor)
@@ -37,7 +47,7 @@ public class FeedServiceImpl implements FeedService {
         Pageable pageable = PageRequest.of(0, limit);
 
         // 데이터 조회
-        List<Object[]> feedResults = feedRepository.findFeeds(mainPart, sort, lastCreatedAt, pageable);
+        List<Object[]> feedResults = feedRepository.findFeeds(categor, sort, lastCreatedAt, pageable);
 
         // Feed와 인기 점수를 DTO로 변환
         List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
@@ -71,5 +81,61 @@ public class FeedServiceImpl implements FeedService {
         feed.setUser(user);
         return feedRepository.save(feed);
 
+    }
+
+    @Override
+    public boolean toggleLike(Long feedId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Optional<FeedLike> existingLike = feedLikeRepository.findByFeedAndUser(feed, user);
+
+        if (existingLike.isPresent()) {
+            // 이미 좋아요가 있다면 삭제 (좋아요 취소)
+            feedLikeRepository.delete(existingLike.get());
+            return false; // 좋아요 취소
+        } else {
+            // 좋아요 추가
+            FeedLike feedLike = FeedLike.builder()
+                    .feed(feed)
+                    .user(user)
+                    .build();
+
+            feedLikeRepository.save(feedLike);
+            return true; // 좋아요 성공
+        }
+    }
+
+    @Override
+    public boolean toggleSave(Long feedId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Optional<FeedSave> existingSave = feedSaveRepository.findByFeedAndUser(feed, user);
+
+        if (existingSave.isPresent()) {
+            feedSaveRepository.delete(existingSave.get());
+            return false;
+        } else {
+            FeedSave feedSave = FeedSave.builder()
+                    .feed(feed)
+                    .user(user)
+                    .build();
+
+            feedSaveRepository.save(feedSave);
+            return true; // 좋아요 성공
+        }
     }
 }
