@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.converter.FeedConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.enums.Category;
-import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.service.FeedService;
 import stackpot.stackpot.web.dto.*;
 
@@ -28,21 +27,9 @@ public class FeedController {
     private final FeedConverter feedConverter;
 
 
-    @Operation(summary = "피드 미리보기 api")
-    @GetMapping("")
-    public ResponseEntity<FeedResponseDto.FeedResponse> getPreViewFeeds(
-            @RequestParam(value = "category", required = false, defaultValue = "ALL") Category category,
-            @RequestParam(value = "sort", required = false, defaultValue = "new") String sort,
-            @RequestParam(value = "cursor", required = false) String cursor,
-            @RequestParam(value = "limit", defaultValue = "10") int limit) {
-
-        FeedResponseDto.FeedResponse response = feedService.getPreViewFeeds(category, sort, cursor, limit);
-        return ResponseEntity.ok(response);
-    }
-
     @Operation(summary = "feed 작성 api")
     @PostMapping("")
-    public ResponseEntity<?> signup(@Valid @RequestBody FeedRequestDto.createDto requset,
+    public ResponseEntity<?> createFeeds(@Valid @RequestBody FeedRequestDto.createDto requset,
                                     BindingResult bindingResult) {
         // 유효성 검사 실패 처리
         if (bindingResult.hasErrors()) {
@@ -55,8 +42,58 @@ public class FeedController {
         }
         // 정상 처리
         Feed feed = feedService.createFeed(requset);
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed, 0,0);
+        Long feedId = feed.getFeedId();
+        Long saveCount = feedService.getSaveCount(feedId);
+        Long likeCount = feedService.getLikeCount(feedId);
+
+        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed, likeCount+saveCount,likeCount);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "feed 미리보기 api")
+    @GetMapping("")
+    public ResponseEntity<FeedResponseDto.FeedPreviewList> getPreViewFeeds(
+            @RequestParam(value = "category", required = false, defaultValue = "ALL") Category category,
+            @RequestParam(value = "sort", required = false, defaultValue = "new") String sort,
+            @RequestParam(value = "cursor", required = false) String cursor,
+            @RequestParam(value = "limit", defaultValue = "10") int limit) {
+
+        FeedResponseDto.FeedPreviewList response = feedService.getPreViewFeeds(category, sort, cursor, limit);
+        return ResponseEntity.ok(response);
+    }
+    @Operation(summary = "feed 상세보기 api")
+    @PostMapping("/{feedId}")
+    public ResponseEntity<?> getDetailFeed(@PathVariable Long feedId) {
+
+        Feed feed = feedService.getFeed(feedId);
+        Long saveCount = feedService.getSaveCount(feedId);
+        Long likeCount = feedService.getLikeCount(feedId);
+
+        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed, likeCount+saveCount,likeCount);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "feed 수정 api")
+    @PatchMapping("/{feedId}")
+    public ResponseEntity<?> modifyFeed(@PathVariable Long feedId, @Valid @RequestBody FeedRequestDto.createDto requset,
+                                    BindingResult bindingResult) {
+        // 유효성 검사 실패 처리
+        if (bindingResult.hasErrors()) {
+            // 에러 메시지 수집
+            List<String> errors = bindingResult.getAllErrors()
+                    .stream()
+                    .map(ObjectError::getDefaultMessage)
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(errors);
+        }
+        // 정상 처리
+        Feed feed = feedService.modifyFeed(feedId, requset);
+        Long saveCount = feedService.getSaveCount(feedId);
+        Long likeCount = feedService.getLikeCount(feedId);
+
+        FeedResponseDto.FeedDto response =feedConverter.feedDto(feed, likeCount+saveCount,likeCount);
+
+        return ResponseEntity.ok(response);
     }
     @Operation(summary = "feed 좋아요 추가 api")
     @PostMapping("/{feedId}/like")
@@ -78,7 +115,7 @@ public class FeedController {
         boolean isSaved = feedService.toggleSave(feedId);
         return ResponseEntity.ok(Map.of(
                 "saved", isSaved,
-                "message", isSaved ? "해당 피드를 저장했습니다." : "해당 피드 저장을 취소했습니다.."
+                "message", isSaved ? "해당 피드를 저장했습니다." : "해당 피드 저장을 취소했습니다."
         ));
     }
 

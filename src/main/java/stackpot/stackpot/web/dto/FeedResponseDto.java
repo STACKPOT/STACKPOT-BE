@@ -14,7 +14,7 @@ public class FeedResponseDto {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class FeedResponse {
+    public static class FeedPreviewList {
         private List<FeedDto> feeds;
         private String nextCursor; // 다음 커서 값
     }
@@ -29,9 +29,9 @@ public class FeedResponseDto {
         private Category category;
         private String title;
         private String content;
-        private int likeCount;
+        private Long popularity;
+        private Long likeCount;
         private LocalDateTime createdAt;
-        private int popularity; //
     }
 
 

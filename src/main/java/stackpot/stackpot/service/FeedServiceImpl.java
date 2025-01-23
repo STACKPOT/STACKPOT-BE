@@ -7,11 +7,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.converter.FeedConverter;
-import stackpot.stackpot.converter.FeedConverterImpl;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Category;
-import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.FeedLike;
 import stackpot.stackpot.domain.mapping.FeedSave;
 import stackpot.stackpot.repository.FeedLikeRepository;
@@ -22,7 +20,6 @@ import stackpot.stackpot.web.dto.FeedRequestDto;
 import stackpot.stackpot.web.dto.FeedResponseDto;
 
 import java.time.LocalDateTime;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,7 +34,7 @@ public class FeedServiceImpl implements FeedService {
     private final FeedSaveRepository feedSaveRepository;
 
     @Override
-    public FeedResponseDto.FeedResponse getPreViewFeeds(Category categor, String sort, String cursor, int limit) {
+    public FeedResponseDto.FeedPreviewList getPreViewFeeds(Category categor, String sort, String cursor, int limit) {
         // 커서가 없으면 현재 시간 사용
         LocalDateTime lastCreatedAt = cursor != null
                 ? LocalDateTime.parse(cursor)
@@ -65,7 +62,7 @@ public class FeedServiceImpl implements FeedService {
                 ? null
                 : ((Feed) feedResults.get(feedResults.size() - 1)[0]).getCreatedAt().toString();
 
-        return new FeedResponseDto.FeedResponse(feedDtoList, nextCursor);
+        return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
     }
 
     @Override
@@ -81,6 +78,40 @@ public class FeedServiceImpl implements FeedService {
         feed.setUser(user);
         return feedRepository.save(feed);
 
+    }
+
+    @Override
+    public Feed getFeed(Long feedId) {
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(()->new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
+        return feed;
+    }
+
+    @Override
+    public Feed modifyFeed(long feedId, FeedRequestDto.createDto request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
+
+        if(!feed.getUser().getEmail().equals(email)){
+            throw new SecurityException("해당 피드를 수정할 권한이 없습니다.");
+        }
+
+        if(request.getTitle() != null){
+            feed.setTitle(request.getTitle());
+        }
+        if(request.getContent() != null){
+            feed.setContent(request.getContent());
+        }
+        if(request.getVisibility() != null){
+            feed.setVisibility(request.getVisibility());
+        }
+        if(request.getCategor() != null){
+            feed.setCategory(request.getCategor());
+        }
+        return feedRepository.save(feed);
     }
 
     @Override
@@ -137,5 +168,19 @@ public class FeedServiceImpl implements FeedService {
             feedSaveRepository.save(feedSave);
             return true; // 좋아요 성공
         }
+    }
+
+    @Override
+    public Long getSaveCount(Long feedId) {
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+        return feedSaveRepository.countByFeed(feed);
+    }
+
+    @Override
+    public Long getLikeCount(Long feedId) {
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+        return feedLikeRepository.countByFeed(feed);
     }
 }
