@@ -126,11 +126,9 @@ public class FeedServiceImpl implements FeedService {
         Optional<FeedSave> existingSave = feedSaveRepository.findByFeedAndUser(feed, user);
 
         if (existingSave.isPresent()) {
-            // 이미 좋아요가 있다면 삭제 (좋아요 취소)
             feedSaveRepository.delete(existingSave.get());
-            return false; // 좋아요 취소
+            return false;
         } else {
-            // 좋아요 추가
             FeedSave feedSave = FeedSave.builder()
                     .feed(feed)
                     .user(user)

@@ -77,8 +77,8 @@ public class FeedController {
         // 좋아요 토글
         boolean isSaved = feedService.toggleSave(feedId);
         return ResponseEntity.ok(Map.of(
-                "liked", isSaved,
-                "message", isSaved ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다."
+                "saved", isSaved,
+                "message", isSaved ? "해당 피드를 저장했습니다." : "해당 피드 저장을 취소했습니다.."
         ));
     }
 
