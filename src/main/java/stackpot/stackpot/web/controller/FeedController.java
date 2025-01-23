@@ -10,6 +10,8 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.converter.FeedConverter;
 import stackpot.stackpot.domain.Feed;
+import stackpot.stackpot.domain.enums.Category;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.service.FeedService;
 import stackpot.stackpot.web.dto.*;
 
@@ -29,7 +31,7 @@ public class FeedController {
     @Operation(summary = "피드 미리보기 api")
     @GetMapping("")
     public ResponseEntity<FeedResponseDto.FeedResponse> getPreViewFeeds(
-            @RequestParam(value = "category", required = false, defaultValue = "전체") String category,
+            @RequestParam(value = "category", required = false, defaultValue = "ALL") Category category,
             @RequestParam(value = "sort", required = false, defaultValue = "new") String sort,
             @RequestParam(value = "cursor", required = false) String cursor,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
@@ -65,6 +67,18 @@ public class FeedController {
         return ResponseEntity.ok(Map.of(
                 "liked", isLiked,
                 "message", isLiked ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다."
+        ));
+    }
+
+    @Operation(summary = "feed 저장하기 api")
+    @PostMapping("/{feedId}/save")
+    public ResponseEntity<?> toggleSave(@PathVariable Long feedId) {
+
+        // 좋아요 토글
+        boolean isSaved = feedService.toggleSave(feedId);
+        return ResponseEntity.ok(Map.of(
+                "liked", isSaved,
+                "message", isSaved ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다."
         ));
     }
 

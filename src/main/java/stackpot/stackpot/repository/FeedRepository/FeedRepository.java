@@ -7,6 +7,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Category;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.FeedLike;
 
 
@@ -25,7 +27,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             "ON f.id = FL.feedId " +
             "LEFT JOIN (SELECT fs.feed.id AS feedId, COUNT(fs) AS saveCount FROM FeedSave fs GROUP BY fs.feed.id) FS " +
             "ON f.id = FS.feedId " +
-            "WHERE (:mainPart IS NULL OR :mainPart = '전체' OR f.mainPart = :mainPart) " +
+            "WHERE (:category IS NULL OR :category = '전체' OR f.category = :category) " +
             "AND ((:sort = 'new' AND f.createdAt < :lastCreatedAt) " +
             "     OR (:sort = 'old' AND f.createdAt > :lastCreatedAt)) " +
             "ORDER BY " +
@@ -33,7 +35,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             "CASE WHEN :sort = 'new' THEN f.createdAt END DESC, " +
             "CASE WHEN :sort = 'old' THEN f.createdAt END ASC")
     List<Object[]> findFeeds(
-            @Param("mainPart") String mainPart,
+            @Param("category") Category category,
             @Param("sort") String sort,
             @Param("lastCreatedAt") LocalDateTime lastCreatedAt,
             Pageable pageable);
