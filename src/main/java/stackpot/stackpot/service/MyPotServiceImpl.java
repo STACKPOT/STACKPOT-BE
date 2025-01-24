@@ -187,7 +187,7 @@ public class MyPotServiceImpl implements MyPotService {
         List<RecruitmentDetailsResponseDTO> recruitmentDetails = pot.getRecruitmentDetails().stream()
                 .map(details -> RecruitmentDetailsResponseDTO.builder()
                         .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(details.getRecruitmentRole())
+                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
                         .recruitmentCount(details.getRecruitmentCount())
                         .build())
                 .collect(Collectors.toList());
@@ -195,7 +195,7 @@ public class MyPotServiceImpl implements MyPotService {
         List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
                 .map(member -> PotMemberResponseDTO.builder()
                         .potMemberId(member.getPotMemberId())
-                        .roleName(member.getRoleName())
+                        .roleName(String.valueOf(member.getRoleName()))
 
                         .build())
                 .collect(Collectors.toList());
@@ -203,7 +203,7 @@ public class MyPotServiceImpl implements MyPotService {
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname())
-                        .role(pot.getUser().getRole())
+                        .role(String.valueOf(pot.getUser().getRole()))
                         .build())
                 .pot(PotResponseDto.builder()
                         .potName(pot.getPotName())

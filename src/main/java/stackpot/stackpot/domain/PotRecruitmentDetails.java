@@ -3,6 +3,7 @@ package stackpot.stackpot.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
+import stackpot.stackpot.domain.enums.Role;
 
 @Entity
 @Getter
@@ -21,7 +22,8 @@ public class PotRecruitmentDetails extends BaseEntity {
     @Column(nullable = true, length = 255)
     @Getter
     @Setter
-    private String recruitmentRole;
+    @Enumerated(EnumType.STRING)
+    private Role recruitmentRole;
 
     @Column(nullable = true)
     @Getter

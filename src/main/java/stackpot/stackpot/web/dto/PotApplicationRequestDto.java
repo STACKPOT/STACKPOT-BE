@@ -8,9 +8,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ApplicationRequestDto {
+public class PotApplicationRequestDto {
     @NotBlank(message = "팟 역할은 필수입니다.")
     private String potRole;
 
-    private Boolean liked;
+
 }

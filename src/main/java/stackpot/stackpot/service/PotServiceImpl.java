@@ -9,35 +9,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.domain.mapping.PotApplication;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.repository.PotRepository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
-import stackpot.stackpot.service.PotService;
-import stackpot.stackpot.web.dto.*;
-import stackpot.stackpot.config.security.JwtTokenProvider;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import org.springframework.security.core.context.SecurityContextHolder;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -69,7 +55,7 @@ public class PotServiceImpl implements PotService {
         // 모집 정보 저장
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(recruitmentDto -> PotRecruitmentDetails.builder()
-                        .recruitmentRole(recruitmentDto.getRecruitmentRole())
+                        .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole()))
                         .recruitmentCount(recruitmentDto.getRecruitmentCount())
                         .pot(savedPot)
                         .build())
@@ -120,7 +106,7 @@ public class PotServiceImpl implements PotService {
         // 새로운 모집 정보 저장
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(recruitmentDto -> PotRecruitmentDetails.builder()
-                        .recruitmentRole(recruitmentDto.getRecruitmentRole())
+                        .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole()))
                         .recruitmentCount(recruitmentDto.getRecruitmentCount())
                         .pot(pot)
                         .build())
@@ -180,7 +166,7 @@ public class PotServiceImpl implements PotService {
                 .map(pot -> PotAllResponseDTO.PotDetail.builder()
                         .user(UserResponseDto.builder()
                                 .nickname(pot.getUser().getNickname())
-                                .role(pot.getUser().getRole())
+                                .role(String.valueOf(pot.getUser().getRole()))
                                 .build())
                         .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                         .build())
@@ -197,7 +183,7 @@ public class PotServiceImpl implements PotService {
         List<ApplicantResponseDTO.ApplicantDto> applicantDto = pot.getPotApplication().stream()
                 .map(app -> ApplicantResponseDTO.ApplicantDto.builder()
                         .applicationId(app.getApplicationId())
-                        .potRole(app.getPotRole())
+                        .potRole(String.valueOf(app.getPotRole()))
                         .liked(app.getLiked())
                         .build())
                 .collect(Collectors.toList());
@@ -206,7 +192,7 @@ public class PotServiceImpl implements PotService {
         List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
                 .map(details -> PotRecruitmentResponseDto.builder()
                         .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(details.getRecruitmentRole())
+                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
                         .recruitmentCount(details.getRecruitmentCount())
                         .build())
                 .collect(Collectors.toList());
@@ -231,7 +217,7 @@ public class PotServiceImpl implements PotService {
         return ApplicantResponseDTO.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname())
-                        .role(pot.getUser().getRole())
+                        .role(String.valueOf(pot.getUser().getRole()))
                         .build())
                 .pot(potDto)
                 .applicant(applicantDto)
@@ -285,8 +271,8 @@ public class PotServiceImpl implements PotService {
                 .filter(PotApplication::getLiked)
                 .map(app -> LikedApplicantResponseDTO.builder()
                         .applicationId(app.getApplicationId())
-                        .applicantRole(app.getPotRole())
-                        .potNickname(app.getUser().getNickname() + getVegetableNameByRole(app.getPotRole()))
+                        .applicantRole(String.valueOf(app.getPotRole()))
+                        .potNickname(app.getUser().getNickname() + getVegetableNameByRole(String.valueOf(app.getPotRole())))
                         .liked(app.getLiked())
                         .build())
                 .collect(Collectors.toList());
@@ -327,7 +313,7 @@ public class PotServiceImpl implements PotService {
             List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
                     .map(details -> PotRecruitmentResponseDto.builder()
                             .recruitmentId(details.getRecruitmentId())
-                            .recruitmentRole(details.getRecruitmentRole())
+                            .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
                             .recruitmentCount(details.getRecruitmentCount())
                             .build())
                     .collect(Collectors.toList());
@@ -352,7 +338,7 @@ public class PotServiceImpl implements PotService {
             // 유저 정보를 DTO로 변환
             UserResponseDto userDto = UserResponseDto.builder()
                     .nickname(pot.getUser().getNickname())
-                    .role(pot.getUser().getRole())
+                    .role(String.valueOf(pot.getUser().getRole()))
                     .build();
 
             return PotAllResponseDTO.PotDetail.builder()
@@ -444,7 +430,7 @@ public class PotServiceImpl implements PotService {
         List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
                 .map(details -> PotRecruitmentResponseDto.builder()
                         .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(details.getRecruitmentRole())
+                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
                         .recruitmentCount(details.getRecruitmentCount())
                         .build())
                 .collect(Collectors.toList());
@@ -467,8 +453,8 @@ public class PotServiceImpl implements PotService {
 
         return PotAllResponseDTO.PotDetail.builder()
                 .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(pot.getUser().getRole()))
-                        .role(pot.getUser().getRole())
+                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
+                        .role(String.valueOf(pot.getUser().getRole()))
                         .build())
                 .pot(potDto)
                 .build();
@@ -479,7 +465,7 @@ public class PotServiceImpl implements PotService {
         List<RecruitmentDetailsResponseDTO> recruitmentDetails = pot.getRecruitmentDetails().stream()
                 .map(details -> RecruitmentDetailsResponseDTO.builder()
                         .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(details.getRecruitmentRole())
+                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
                         .recruitmentCount(details.getRecruitmentCount())
                         .build())
                 .collect(Collectors.toList());
@@ -487,15 +473,15 @@ public class PotServiceImpl implements PotService {
         List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
                 .map(member -> PotMemberResponseDTO.builder()
                         .potMemberId(member.getPotMemberId())
-                        .roleName(member.getRoleName())
+                        .roleName(String.valueOf(member.getRoleName()))
 
                         .build())
                 .collect(Collectors.toList());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(pot.getUser().getRole()))
-                        .role(pot.getUser().getRole())
+                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
+                        .role(String.valueOf(pot.getUser().getRole()))
                         .build())
                 .pot(PotResponseDto.builder()
                         .potId(pot.getPotId())
