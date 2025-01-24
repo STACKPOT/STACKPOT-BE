@@ -59,10 +59,12 @@ public class PotApplicationServiceImpl implements PotApplicationService {
         PotApplication savedApplication = potApplicationRepository.save(potApplication);
 
         // 이메일 전송
+        // 이메일 전송
         emailService.sendSupportNotification(
                 pot.getUser().getEmail(),
                 pot.getPotName(),
-                user.getNickname()
+                user.getNickname(),
+                user.getUserIntroduction() // 한 줄 소개 추가
         );
 
         // 저장된 지원 정보를 응답 DTO로 변환
@@ -92,5 +94,7 @@ public class PotApplicationServiceImpl implements PotApplicationService {
                 .map(potApplicationConverter::toDto)
                 .collect(Collectors.toList());
     }
+
+
 
 }
