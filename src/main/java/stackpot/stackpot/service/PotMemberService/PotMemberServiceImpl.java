@@ -3,7 +3,6 @@ package stackpot.stackpot.service.PotMemberService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.converter.PotMemberConverter.PotMemberConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
@@ -14,7 +13,7 @@ import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.PotMemberRequestDto;
-import stackpot.stackpot.web.dto.PotMemberResponseDto;
+import stackpot.stackpot.web.dto.PotMemberAppealResponseDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +31,7 @@ public class PotMemberServiceImpl implements PotMemberService {
 
     @Transactional
     @Override
-    public List<PotMemberResponseDto> addMembersToPot (Long potId, PotMemberRequestDto requestDto) {
+    public List<PotMemberAppealResponseDto> addMembersToPot (Long potId, PotMemberRequestDto requestDto) {
         // 1. 팟 조회
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));

@@ -11,10 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.service.UserCommandService;
@@ -26,6 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/users")
 public class UserController {
 
     private final UserCommandService userCommandService;
@@ -39,7 +37,7 @@ public class UserController {
     }
 
     @Operation(summary = "회원가입 api")
-    @PatchMapping("/users/profile")
+    @PatchMapping("/profile")
     public ResponseEntity<?> signup(@Valid @RequestBody UserRequestDto.JoinDto request,
                                     BindingResult bindingResult) {
         // 유효성 검사 실패 처리
@@ -54,6 +52,14 @@ public class UserController {
         // 정상 처리
         User user = userCommandService.joinUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
+    }
+
+    @Operation(summary = "닉네임 생성")
+    @GetMapping("/nickname")
+    public ResponseEntity<String> nickname(){
+
+        return null;
+//        return ResponseEntity.ok();
     }
 
 }

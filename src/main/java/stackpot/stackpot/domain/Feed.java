@@ -3,10 +3,13 @@ package stackpot.stackpot.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
+import stackpot.stackpot.domain.enums.Category;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.enums.Visibility;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -25,11 +28,9 @@ public class Feed extends BaseEntity{
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false, length = 10)
-    private String mainPart;
-
-    @Column(nullable = false, length = 10)
-    private String interest;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Category category;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

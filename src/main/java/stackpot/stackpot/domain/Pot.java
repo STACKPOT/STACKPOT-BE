@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
 import stackpot.stackpot.domain.enums.PotModeOfOperation;
+import stackpot.stackpot.domain.mapping.PotApplication;
+import stackpot.stackpot.domain.mapping.PotMember;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.List;
 
 @Entity
 @Getter
@@ -21,10 +24,18 @@ public class Pot extends BaseEntity {
     private Long potId;
 
     @Setter
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @OneToMany(mappedBy = "pot")
+    private List<PotRecruitmentDetails> recruitmentDetails;
+
+    @OneToMany(mappedBy = "pot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PotApplication> potApplication;
+
+    @OneToMany(mappedBy = "pot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PotMember> potMembers;
 
     @Column(nullable = false, length = 255)
     private String potName;
