@@ -9,38 +9,25 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.domain.mapping.PotApplication;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.repository.PotRepository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
-import stackpot.stackpot.service.PotService;
-import stackpot.stackpot.web.dto.*;
-import stackpot.stackpot.config.security.JwtTokenProvider;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import org.springframework.security.core.context.SecurityContextHolder;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -69,7 +56,7 @@ public class PotServiceImpl implements PotService {
         // 모집 정보 저장
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(recruitmentDto -> PotRecruitmentDetails.builder()
-                        .recruitmentRole(recruitmentDto.getRecruitmentRole())
+                        .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole()))
                         .recruitmentCount(recruitmentDto.getRecruitmentCount())
                         .pot(savedPot)
                         .build())
@@ -120,7 +107,7 @@ public class PotServiceImpl implements PotService {
         // 새로운 모집 정보 저장
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(recruitmentDto -> PotRecruitmentDetails.builder()
-                        .recruitmentRole(recruitmentDto.getRecruitmentRole())
+                        .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole()))
                         .recruitmentCount(recruitmentDto.getRecruitmentCount())
                         .pot(pot)
                         .build())
@@ -160,7 +147,7 @@ public class PotServiceImpl implements PotService {
     }
 
 
-    //-------------------
+//-------------------
 
     private final PotSummarizationService potSummarizationService;
 
@@ -508,3 +495,5 @@ public class PotServiceImpl implements PotService {
                 .build();
     }
 }
+
+import stackpot.stackpot.config.security.JwtTokenProvider;

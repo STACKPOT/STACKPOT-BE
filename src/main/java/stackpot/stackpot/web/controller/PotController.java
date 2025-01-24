@@ -3,6 +3,7 @@ package stackpot.stackpot.web.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,9 +32,9 @@ public class PotController {
     private final PotService potService1;
 
     private final PotServiceImpl potService;
-
     private final PotRepository potRepository;
 
+    @Operation(summary = "팟 생성하기")
     @PostMapping
     public ResponseEntity<PotResponseDto> createPot(
 
@@ -44,6 +45,7 @@ public class PotController {
         return ResponseEntity.ok(responseDto);
     }
 
+    @Operation(summary = "팟 수정하기")
     @PatchMapping("/{pot_id}")
     public ResponseEntity<PotResponseDto> updatePot(
             @PathVariable("pot_id") Long potId,
@@ -54,7 +56,7 @@ public class PotController {
         return ResponseEntity.ok(responseDto); // 수정된 팟 정보 반환
     }
 
-
+    @Operation(summary = "팟 삭제하기")
     @DeleteMapping("/{pot_id}")
     public ResponseEntity<Void> deletePot(@PathVariable("pot_id") Long potId) {
         // 팟 삭제 로직 호출
@@ -63,7 +65,7 @@ public class PotController {
         return ResponseEntity.noContent().build();
     }
 
-    //----------------------------
+//----------------------------
 
     @Operation(summary = "팟 전체 보기 API", description = "Design, Backend, Frontend, PM으로 필터링 가능합니다. 만약 null인 경우 전체 카테고리에 대해서 조회합니다.")
     @GetMapping

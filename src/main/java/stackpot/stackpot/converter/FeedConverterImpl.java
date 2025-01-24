@@ -9,7 +9,7 @@ import stackpot.stackpot.web.dto.FeedResponseDto;
 public class FeedConverterImpl implements FeedConverter{
 
     @Override
-    public FeedResponseDto.FeedDto feedDto(Feed feed, int popularity, int likeCount) {
+    public FeedResponseDto.FeedDto feedDto(Feed feed, long popularity, long likeCount) {
         return FeedResponseDto.FeedDto.builder()
                 .id(feed.getFeedId())
                 .writer(feed.getUser().getNickname())

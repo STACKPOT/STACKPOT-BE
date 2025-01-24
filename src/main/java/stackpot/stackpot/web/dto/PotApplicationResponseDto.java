@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ApplicationResponseDto {
+public class PotApplicationResponseDto {
     private Long applicationId;
     private String potRole;
     private Boolean liked;
