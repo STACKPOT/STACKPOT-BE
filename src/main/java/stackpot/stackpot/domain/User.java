@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import stackpot.stackpot.domain.common.BaseEntity;
+import stackpot.stackpot.domain.enums.Role;
 
 import java.util.Collection;
 
@@ -32,7 +33,7 @@ public class User extends BaseEntity implements UserDetails{
     private String nickname; // 닉네임
 
     @Column(nullable = true, length = 255)
-    private String role; // 역할
+    private Role role; // 역할
 
     @Column(nullable = true, length = 255)
     private String interest; // 관심사

@@ -2,6 +2,7 @@ package stackpot.stackpot.converter.PotApplicationConverter;
 
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.ApplicationStatus;
@@ -23,7 +24,7 @@ public class PotApplicationConverterImpl implements PotApplicationConverter {
         return PotApplication.builder()
                 .pot(pot)
                 .user(user)
-                .potRole(dto.getPotRole())
+                .potRole(Role.valueOf(dto.getPotRole()))
                 .liked(false) // 기본값 false
                 .status(ApplicationStatus.PENDING) // 지원 상태
                 .appliedAt(LocalDateTime.now()) // 지원 시간
@@ -45,7 +46,7 @@ public class PotApplicationConverterImpl implements PotApplicationConverter {
 
         return PotApplicationResponseDto.builder()
                 .applicationId(entity.getApplicationId())
-                .potRole(entity.getPotRole())
+                .potRole(entity.getPotRole().name())
                 .liked(entity.getLiked())
                 .status(entity.getStatus() != null ? entity.getStatus().name() : "UNKNOWN") // 상태가 null이면 기본값 설정
                 .appliedAt(entity.getAppliedAt()) // null 가능성을 허용

@@ -18,12 +18,28 @@ public class EmailServiceImpl implements EmailService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            message.setSubject("새로운 팟 지원 알림");
-            message.setText(applicantName + " 님이 '" + potName + "' 팟에 지원했습니다!");
+            message.setSubject("[STACKPOT] 새로운 지원자가 있습니다 - '" + potName + "'");
+
+            // 이메일 본문 작성
+            String emailBody = String.format(
+                    "[%s]에 새로운 지원자가 있습니다!\n\n" +
+                            "안녕하세요, STACKPOT에서 알려드립니다.\n\n" +
+                            "회원님이 생성하신 [%s]에 새로운 지원자가 지원했습니다. 아래는 지원자 정보와 관련된 세부 사항입니다:\n\n" +
+                            "- 지원자 이름: %s\n\n" +
+                            "STACKPOT과 함께 성공적인 프로젝트를 만들어가세요!\n\n" +
+                            "감사합니다.\n\n" +
+                            "STACKPOT 드림\n\n" +
+                            "고객센터: stackpot.notice@gmail.com\n" +
+                            "홈페이지: https://www.stackpot.co.kr",
+                    potName, potName, applicantName
+            );
+
+            message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
             // 예외 처리: 이메일 전송 실패 시 로그를 출력
             System.err.println("이메일 전송 실패: " + e.getMessage());
         }
     }
+
 }

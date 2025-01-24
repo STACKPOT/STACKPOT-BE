@@ -5,6 +5,7 @@ import lombok.*;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.common.BaseEntity;
+import stackpot.stackpot.domain.enums.Role;
 
 @Entity
 @Getter
@@ -30,8 +31,9 @@ public class PotMember extends BaseEntity {
     @JoinColumn(name = "application_id", nullable = false)
     private PotApplication potApplication;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private String roleName;
+    private Role roleName;
 
     @Getter
     @Column(nullable = false)

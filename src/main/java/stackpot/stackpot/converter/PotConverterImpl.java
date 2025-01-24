@@ -48,7 +48,7 @@ public class PotConverterImpl implements PotConverter {
                 .recruitmentDeadline(entity.getRecruitmentDeadline())
                 .recruitmentDetails(recruitmentDetails.stream().map(r -> PotRecruitmentResponseDto.builder()
                         .recruitmentId(r.getRecruitmentId())
-                        .recruitmentRole(r.getRecruitmentRole())
+                        .recruitmentRole(String.valueOf(r.getRecruitmentRole()))
                         .recruitmentCount(r.getRecruitmentCount())
                         .build()).collect(Collectors.toList()))
                 .build();
