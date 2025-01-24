@@ -1,8 +1,11 @@
 package stackpot.stackpot.domain.enums;
 
-public enum Role {
+public enum Category {
+
+    ALL,
     BACKEND,
     FRONTEND,
     DESIGN,
-    PLANNING,
+    PLANNING
+
 }
