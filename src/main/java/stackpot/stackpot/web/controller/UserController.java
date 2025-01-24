@@ -12,11 +12,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
+import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.KakaoUserInfoResponseDto;
+import stackpot.stackpot.web.dto.TokenServiceResponse;
 import stackpot.stackpot.web.dto.UserRequestDto;
 
 import java.util.List;
@@ -29,7 +32,9 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserCommandService userCommandService;
+    private final UserRepository userRepository;
     private final KakaoService kakaoService;
+    private final JwtTokenProvider jwtTokenProvider;
     @Operation(summary = "토큰 test api")
     @GetMapping("/login/token")
     public ResponseEntity<String> testEndpoint(Authentication authentication) {
@@ -40,7 +45,7 @@ public class UserController {
     }
 
     @GetMapping("/oauth/kakao")
-    public ResponseEntity<KakaoUserInfoResponseDto> callback(@RequestParam("code") String code) {
+    public ResponseEntity<TokenServiceResponse> callback(@RequestParam("code") String code) {
 
         log.info("Authorization code: {}", code); // 인증 코드 확인
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
@@ -48,7 +53,14 @@ public class UserController {
 
         String email = userInfo.getKakaoAccount().getEmail();// 이메일 가져오기
         log.info("userInfo.getEmail -> ", email);
-        return ResponseEntity.ok(userInfo);
+
+        User user = userCommandService.saveNewUser(email);
+
+        TokenServiceResponse token = jwtTokenProvider.createToken(user);
+        log.info("STACKPOT ACESSTOKEN : " + token.getAccessToken());
+
+
+        return ResponseEntity.ok(token);
     }
 
     @Operation(summary = "회원가입 api")
