@@ -54,7 +54,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
     }
 
-    @Operation(summary = "닉넴임 생성")
+    @Operation(summary = "닉네임 생성")
     @GetMapping("/nickname")
     public ResponseEntity<String> nickname(){
 

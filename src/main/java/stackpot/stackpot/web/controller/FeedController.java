@@ -29,17 +29,7 @@ public class FeedController {
 
     @Operation(summary = "feed 작성 api")
     @PostMapping("")
-    public ResponseEntity<?> createFeeds(@Valid @RequestBody FeedRequestDto.createDto requset,
-                                    BindingResult bindingResult) {
-        // 유효성 검사 실패 처리
-        if (bindingResult.hasErrors()) {
-            // 에러 메시지 수집
-            List<String> errors = bindingResult.getAllErrors()
-                    .stream()
-                    .map(ObjectError::getDefaultMessage)
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
-        }
+    public ResponseEntity<FeedResponseDto.FeedDto> createFeeds(@Valid @RequestBody FeedRequestDto.createDto requset) {
         // 정상 처리
         Feed feed = feedService.createFeed(requset);
         Long feedId = feed.getFeedId();
@@ -63,7 +53,7 @@ public class FeedController {
     }
     @Operation(summary = "feed 상세보기 api")
     @PostMapping("/{feedId}")
-    public ResponseEntity<?> getDetailFeed(@PathVariable Long feedId) {
+    public ResponseEntity<FeedResponseDto.FeedDto> getDetailFeed(@PathVariable Long feedId) {
 
         Feed feed = feedService.getFeed(feedId);
         Long saveCount = feedService.getSaveCount(feedId);
@@ -75,17 +65,7 @@ public class FeedController {
 
     @Operation(summary = "feed 수정 api")
     @PatchMapping("/{feedId}")
-    public ResponseEntity<?> modifyFeed(@PathVariable Long feedId, @Valid @RequestBody FeedRequestDto.createDto requset,
-                                    BindingResult bindingResult) {
-        // 유효성 검사 실패 처리
-        if (bindingResult.hasErrors()) {
-            // 에러 메시지 수집
-            List<String> errors = bindingResult.getAllErrors()
-                    .stream()
-                    .map(ObjectError::getDefaultMessage)
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
-        }
+    public ResponseEntity<FeedResponseDto.FeedDto> modifyFeed(@PathVariable Long feedId, @Valid @RequestBody FeedRequestDto.createDto requset) {
         // 정상 처리
         Feed feed = feedService.modifyFeed(feedId, requset);
         Long saveCount = feedService.getSaveCount(feedId);
@@ -97,7 +77,7 @@ public class FeedController {
     }
     @Operation(summary = "feed 좋아요 추가 api")
     @PostMapping("/{feedId}/like")
-    public ResponseEntity<?> toggleLike(@PathVariable Long feedId) {
+    public ResponseEntity<Map> toggleLike(@PathVariable Long feedId) {
 
         // 좋아요 토글
         boolean isLiked = feedService.toggleLike(feedId);
@@ -109,7 +89,7 @@ public class FeedController {
 
     @Operation(summary = "feed 저장하기 api")
     @PostMapping("/{feedId}/save")
-    public ResponseEntity<?> toggleSave(@PathVariable Long feedId) {
+    public ResponseEntity<Map> toggleSave(@PathVariable Long feedId) {
 
         // 좋아요 토글
         boolean isSaved = feedService.toggleSave(feedId);
