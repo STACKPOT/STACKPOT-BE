@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class PotApplication extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO) // IDENTITY로 자동 증가 설정
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // IDENTITY로 자동 증가 설정
     @Column(name = "application_id", nullable = false)
     private Long applicationId; // Primary Key
 

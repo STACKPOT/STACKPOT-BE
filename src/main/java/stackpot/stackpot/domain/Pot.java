@@ -44,6 +44,7 @@ public class Pot extends BaseEntity {
     @Column(nullable = true, columnDefinition = "TEXT")
     private String potContent;
 
+    @Setter
     @Column(nullable = false, length = 255)
     private String potStatus;
 

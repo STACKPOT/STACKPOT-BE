@@ -15,7 +15,7 @@ spring:
         format_sql: true
         use_sql_comments: true
         hbm2ddl:
-          auto: create
+          auto: update
         default_batch_fetch_size: 1000
   cloud:
     aws:
@@ -50,3 +50,15 @@ spring:
             user-name-attribute: id
   jwt:
     secret: ${JWT_SECRET}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${mail.username}
+    password: ${mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          timeout: 5000
+          starttls:
+            enable: true

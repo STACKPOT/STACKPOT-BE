@@ -34,8 +34,10 @@ public class PotMember extends BaseEntity {
     private String roleName;
 
     @Column(nullable = false)
-    private String owner;
+    private Boolean isOwner;
 
-    @Column(nullable = false)
+    @Setter
+    @Getter
+    @Column(nullable = true)
     private String appealContent;
 }

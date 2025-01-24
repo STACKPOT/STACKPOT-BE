@@ -8,5 +8,5 @@ import java.util.List;
 public interface PotApplicationService {
     PotApplicationResponseDto applyToPot(PotApplicationRequestDto dto,Long potId);
 
-    List<PotApplicationResponseDto> getApplicationsByPot(Long potId);
+    List<PotApplicationResponseDto> getApplicantsByPotId(Long potId);
 }
