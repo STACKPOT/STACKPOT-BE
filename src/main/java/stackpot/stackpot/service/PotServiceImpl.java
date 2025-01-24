@@ -153,11 +153,11 @@ public class PotServiceImpl implements PotService {
 
     @Transactional
     @Override
-    public List<PotAllResponseDTO.PotDetail> getAllPots(String role, Integer page, Integer size) {
+    public List<PotAllResponseDTO.PotDetail> getAllPots(Role role, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Pot> potPage;
 
-        if (role == null || role.isEmpty()) {
+        if (role == null ) {
             potPage = potRepository.findAll(pageable);
         } else {
             potPage = potRepository.findByRecruitmentDetails_RecruitmentRole(role, pageable);
@@ -184,7 +184,7 @@ public class PotServiceImpl implements PotService {
         List<ApplicantResponseDTO.ApplicantDto> applicantDto = pot.getPotApplication().stream()
                 .map(app -> ApplicantResponseDTO.ApplicantDto.builder()
                         .applicationId(app.getApplicationId())
-                        .potRole(app.getPotRole())
+                        .potRole(String.valueOf(app.getPotRole()))
                         .liked(app.getLiked())
                         .build())
                 .collect(Collectors.toList());
@@ -285,7 +285,7 @@ public class PotServiceImpl implements PotService {
         */
     }
 
-    private String getVegetableNameByRole(String role) {
+    private String getVegetableNameByRole(Role role) {
         Map<String, String> roleToVegetableMap = Map.of(
                 "디자이너", " 브로콜리",
                 "기획자", " 당근",
@@ -495,5 +495,3 @@ public class PotServiceImpl implements PotService {
                 .build();
     }
 }
-
-import stackpot.stackpot.config.security.JwtTokenProvider;

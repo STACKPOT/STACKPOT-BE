@@ -29,7 +29,7 @@ public class PotMemberConverterImpl implements PotMemberConverter {
                 .potMemberId(entity.getPotMemberId())
                 .potId(entity.getPot().getPotId())
                 .userId(entity.getUser().getId())
-                .roleName(String.valueOf(entity.getRoleName())) // PotRole 그대로 반환
+                .roleName(entity.getRoleName()) // PotRole 그대로 반환
                 .owner(entity.isOwner())
                 .appealContent(entity.getAppealContent())
                 .build();

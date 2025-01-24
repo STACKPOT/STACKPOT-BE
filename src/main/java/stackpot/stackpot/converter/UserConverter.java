@@ -12,7 +12,7 @@ public class UserConverter {
                 .nickname(request.getNickname())
                 .kakaoId(request.getKakaoId())
                 .interest(request.getInterest())
-                .role(Role.valueOf(request.getRole()))
+                .role(Role.valueOf(String.valueOf(request.getRole())))
                 .build();
     }
 
@@ -22,7 +22,7 @@ public class UserConverter {
                 .nickname(user.getNickname())
                 .email(user.getEmail())   // 추가된 코드
                 .kakaoId(user.getKakaoId())
-                .role(String.valueOf(user.getRole()))
+                .role(user.getRole())
                 .interest(user.getInterest())
                 .userTemperature(user.getUserTemperature())
                 .build();

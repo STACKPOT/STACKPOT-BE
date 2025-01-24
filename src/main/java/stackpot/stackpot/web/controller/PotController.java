@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.service.PotServiceImpl;
 import stackpot.stackpot.web.dto.PotRequestDto;
@@ -70,13 +71,13 @@ public class PotController {
     @Operation(summary = "팟 전체 보기 API", description = "Design, Backend, Frontend, PM으로 필터링 가능합니다. 만약 null인 경우 전체 카테고리에 대해서 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
-            @RequestParam(required = false) String recruitmentRole,
+            @RequestParam(required = false) Role recruitmentRole,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
 
         List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(recruitmentRole, page, size);
 
-        Page<Pot> potPage = (recruitmentRole == null || recruitmentRole.isEmpty())
+        Page<Pot> potPage = (recruitmentRole == null)
                 ? potRepository.findAll(PageRequest.of(page, size))
                 : potRepository.findByRecruitmentDetails_RecruitmentRole(recruitmentRole, PageRequest.of(page, size));
 
