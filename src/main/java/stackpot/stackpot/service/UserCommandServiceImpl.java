@@ -37,7 +37,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Override
-    public UserResponseDto getUserMypages() {
+    public UserResponseDto getMypages() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -53,6 +53,22 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .userTemperature(user.getUserTemperature())
                 .kakaoId(user.getKakaoId())
                 .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
+                .build();
+    }
+
+    @Override
+    public UserResponseDto getUserMypage(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        return UserResponseDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name())) // 닉네임 + 역할
+                .role(user.getRole())
+                .interest(user.getInterest())
+                .userTemperature(user.getUserTemperature())
+                .kakaoId(user.getKakaoId())
+                .userIntroduction(user.getUserIntroduction())
                 .build();
     }
 

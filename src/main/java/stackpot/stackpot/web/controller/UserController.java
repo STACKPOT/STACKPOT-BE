@@ -64,10 +64,17 @@ public class UserController {
     }
 
     @Operation(summary = "마이페이지 사용자 정보 조회 API")
-    @GetMapping("/api/users/mypages")
+    @GetMapping("/mypages")
     public ResponseEntity<ApiResponse<UserResponseDto>> usersMypages(){
-        UserResponseDto userDetails = userCommandService.getUserMypages();
+        UserResponseDto userDetails = userCommandService.getMypages();
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+    @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API")
+    @GetMapping("/{userId}/mypages")
+    public ResponseEntity<ApiResponse<UserResponseDto>> getUserMypage(@PathVariable Long userId) {
+        UserResponseDto response = userCommandService.getUserMypage(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
 }

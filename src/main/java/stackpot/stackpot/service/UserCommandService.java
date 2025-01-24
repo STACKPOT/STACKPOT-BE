@@ -9,5 +9,7 @@ public interface UserCommandService {
 
     public User joinUser(UserRequestDto.JoinDto request);
 
-    public UserResponseDto getUserMypages();
+    UserResponseDto getMypages();
+
+    UserResponseDto getUserMypage(Long userId);
 }
