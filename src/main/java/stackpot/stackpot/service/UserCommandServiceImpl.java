@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.UserRequestDto;
 
@@ -37,7 +38,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 닉네임
         user.setNickname(request.getNickname());
         // 역할군
-        user.setRole(request.getRole());
+        user.setRole(Role.valueOf(request.getRole()));
         // 관심사
         user.setInterest(request.getInterest());
     }

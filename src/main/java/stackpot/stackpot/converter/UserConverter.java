@@ -1,6 +1,7 @@
 package stackpot.stackpot.converter;
 
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.UserRequestDto;
 import stackpot.stackpot.web.dto.UserResponseDto;
 
@@ -11,7 +12,7 @@ public class UserConverter {
                 .nickname(request.getNickname())
                 .kakaoId(request.getKakaoId())
                 .interest(request.getInterest())
-                .role(request.getRole())
+                .role(Role.valueOf(request.getRole()))
                 .build();
     }
 
@@ -21,7 +22,7 @@ public class UserConverter {
                 .nickname(user.getNickname())
                 .email(user.getEmail())   // 추가된 코드
                 .kakaoId(user.getKakaoId())
-                .role(user.getRole())
+                .role(String.valueOf(user.getRole()))
                 .interest(user.getInterest())
                 .userTemperature(user.getUserTemperature())
                 .build();

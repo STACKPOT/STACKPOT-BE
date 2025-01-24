@@ -38,7 +38,7 @@ spring:
             client-authentication-method: client_secret_post
             client-id: ${KAKAO_CLIENT_ID}
             client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: https://stackpot.co.kr/login/oauth2/code/kakao
+            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
             authorization-grant-type: authorization_code
             scope: account_email
             client-name: Kakao
@@ -50,3 +50,15 @@ spring:
             user-name-attribute: id
   jwt:
     secret: ${JWT_SECRET}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${mail.username}
+    password: ${mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          timeout: 5000
+          starttls:
+            enable: true
