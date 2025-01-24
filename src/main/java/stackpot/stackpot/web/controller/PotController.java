@@ -67,18 +67,30 @@ public class PotController {
 
     //----------------------------
 
-    @Operation(summary = "팟 전체 보기 API", description = "Design, Backend, Frontend, PM으로 필터링 가능합니다. 만약 null인 경우 전체 카테고리에 대해서 조회합니다.")
+    //팟 전체 보기
+    @Operation(summary = "팟 전체 조회 API", description = "FRONTEND, BACKEND, PLANNING, DESIGN, Null(ALL)로 필터링할 수 있습니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
-            @RequestParam(required = false) Role recruitmentRole,
+            @RequestParam(required = false) String recruitmentRole,  // 문자열로 받기
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
 
-        List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(recruitmentRole, page, size);
+        Role role = null;
 
-        Page<Pot> potPage = (recruitmentRole == null)
+        // recruitmentRole이 null이 아니고 빈 문자열이 아닌 경우 처리
+        if (recruitmentRole != null && !recruitmentRole.trim().isEmpty()) {
+            try {
+                role = Role.valueOf(recruitmentRole.toUpperCase());  // 문자열을 ENUM으로 변환
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid role value: " + recruitmentRole);
+            }
+        }
+
+        List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(role, page, size);
+
+        Page<Pot> potPage = (role == null)
                 ? potRepository.findAll(PageRequest.of(page, size))
-                : potRepository.findByRecruitmentDetails_RecruitmentRole(recruitmentRole, PageRequest.of(page, size));
+                : potRepository.findByRecruitmentDetails_RecruitmentRole(Role.valueOf(role.name()), PageRequest.of(page, size));
 
         Map<String, Object> response = new HashMap<>();
         response.put("pots", pots);
