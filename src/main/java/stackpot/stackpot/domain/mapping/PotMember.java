@@ -5,6 +5,7 @@ import lombok.*;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.common.BaseEntity;
+import stackpot.stackpot.domain.enums.Role;
 
 @Entity
 @Getter
@@ -31,11 +32,11 @@ public class PotMember extends BaseEntity {
     private PotApplication potApplication;
 
     @Column(nullable = false, length = 10)
-    private String roleName;
+    private Role roleName;
 
     @Column(nullable = false)
     private boolean owner;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String appealContent;
 }

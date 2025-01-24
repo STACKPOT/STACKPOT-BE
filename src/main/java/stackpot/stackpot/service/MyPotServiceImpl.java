@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.UserTodo;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
@@ -116,7 +117,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.groupingBy(UserTodo::getUser))
                 .entrySet().stream()
                 .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname())
+                        .userNickname(pot.getUser().getNickname() + getVegetableNameByRole(pot.getUser().getRole()))
                         .userId(entry.getKey().getId())
                         .todos(entry.getValue().stream()
                                 .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
@@ -169,7 +170,7 @@ public class MyPotServiceImpl implements MyPotService {
 
         return groupedByUser.entrySet().stream()
                 .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname())
+                        .userNickname(pot.getUser().getNickname() + getVegetableNameByRole(pot.getUser().getRole()))
                         .userId(entry.getKey().getId())
                         .todos(entry.getValue().stream()
                                 .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
@@ -202,8 +203,12 @@ public class MyPotServiceImpl implements MyPotService {
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname())
+                        .email(pot.getUser().getEmail())
+                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(pot.getUser().getRole()))
                         .role(pot.getUser().getRole())
+                        .interest(pot.getUser().getInterest())
+                        .userTemperature(pot.getUser().getUserTemperature())
+                        .kakaoId(pot.getUser().getKakaoId())
                         .build())
                 .pot(PotResponseDto.builder()
                         .potName(pot.getPotName())
@@ -213,6 +218,17 @@ public class MyPotServiceImpl implements MyPotService {
                         .build())
                 .potMembers(potMembers)
                 .build();
+    }
+
+    private String getVegetableNameByRole(Role role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근",
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯"
+        );
+
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 
 
