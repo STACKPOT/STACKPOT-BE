@@ -1,5 +1,7 @@
 package stackpot.stackpot.web.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -63,6 +65,7 @@ public class PotController {
 
     //----------------------------
 
+    @Operation(summary = "팟 전체 보기 API", description = "Design, Backend, Frontend, PM으로 필터링 가능합니다. 만약 null인 경우 전체 카테고리에 대해서 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
             @RequestParam(required = false) String recruitmentRole,
@@ -85,6 +88,7 @@ public class PotController {
     }
 
     // 특정 팟의 상세정보 조회
+    @Operation(summary = "특정 팟의 상세정보 조회 API", description = "potId를 통해 특정 팟에 대한 상세정보를 조회할 수 있습니다. ")
     @GetMapping("/{pot_id}")
     public ResponseEntity<ApiResponse<ApplicantResponseDTO>> getPotDetails(@PathVariable("pot_id") Long potId) {
         ApplicantResponseDTO potDetails = potService1.getPotDetails(potId);
