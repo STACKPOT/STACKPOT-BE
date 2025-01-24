@@ -96,6 +96,7 @@ public class PotController {
     }
 
     // 특정 팟 지원자의 좋아요 상태 변경
+    @Operation(summary = "특정 팟 지원자의 '마음에 들어요' 상태 변경 API", description = "지원자의 아이디와 liked 값을 true, false (Boolean)로 request 해 주시면 지원자의 liked 상태값이 해당 값에 맞춰 변경됩니다.")
     @PatchMapping("/{pot_id}/applications/like")
     public ResponseEntity<ApiResponse<Void>> patchLikes(
             @PathVariable("pot_id") Long potId,
@@ -105,6 +106,7 @@ public class PotController {
     }
 
     // 특정 팟의 좋아요한 지원자 목록 조회
+    @Operation(summary = "특정 팟의 '마음에 들어요' 지원자들 목록 조회 API", description = "지원자의 id, pot 지원 역할, 지원 역할에 따른 팟에서의 nickname, like 상태 값을 반환합니다. ")
     @GetMapping("/{pot_id}/applications/like")
     public ResponseEntity<ApiResponse<List<LikedApplicantResponseDTO>>> getLikedApplicants(
             @PathVariable("pot_id") Long potId) {
@@ -113,6 +115,7 @@ public class PotController {
     }
 
     // 사용자가 지원한 팟 조회
+    @Operation(summary = "사용자가 지원한 팟 조회 API")
     @GetMapping("/apply")
     public ResponseEntity<ApiResponse<List<PotAllResponseDTO.PotDetail>>> getAppliedPots() {
         List<PotAllResponseDTO.PotDetail> appliedPots = potService1.getAppliedPots();
@@ -120,20 +123,23 @@ public class PotController {
     }
 
     // 사용자가 만든 팟 조회
+    @Operation(summary = "사용자가 만든 팟 조회 API", description = "모집 중인 나의 팟, 진행 중인 나의 팟, 끓인 나의 팟을 구분하여 리스트 형식으로 전달합니다. 진행 중인 팟의 경우 멤버들의 사진이 보여야 하기에 potMembers 정보를 함께 전달합니다.")
     @GetMapping("/my-pots")
     public ResponseEntity<ApiResponse<List<PotAllResponseDTO>>> getMyPots() {
         List<PotAllResponseDTO> myPots = potService1.getMyPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(myPots));
     }
 
-    // 사용자가 만든 팟 다 끓이기
+    /*// 사용자가 만든 팟 다 끓이기
     @PatchMapping("/{pot_id}/complete")
     public ResponseEntity<ApiResponse<Void>> patchPotStatus(@PathVariable("pot_id") Long potId) {
         potService1.patchPotStatus(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
-    }
+    }*/
+
 
     // Pot 내용 AI 요약
+    @Operation(summary = "Pot 내용 AI 요약 API", description = "팟의 구인글 내용을 활용해 작성됩니다.")
     @GetMapping("/{pot_id}/summary")
     public ResponseEntity<ApiResponse<PotSummaryResponseDTO>> getPotSummary(@PathVariable("pot_id") Long potId) {
         PotSummaryResponseDTO summary = potService1.getPotSummary(potId);

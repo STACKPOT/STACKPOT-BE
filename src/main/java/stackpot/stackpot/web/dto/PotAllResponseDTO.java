@@ -23,6 +23,5 @@ public class PotAllResponseDTO {
     public static class PotDetail {
         private UserResponseDto user;
         private PotResponseDto pot;
-        private List<RecruitmentDetailsResponseDTO> recruitmentDetails;
     }
 }

@@ -1,10 +1,9 @@
 package stackpot.stackpot.web.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import stackpot.stackpot.domain.enums.TodoStatus;
+
+import java.util.List;
 
 @Getter
 @Builder
@@ -12,8 +11,20 @@ import stackpot.stackpot.domain.enums.TodoStatus;
 @AllArgsConstructor
 public class MyPotTodoResponseDTO {
 
-        private Long potId;
-        private Long todoId;
-        private String content;
-        private TodoStatus status;
+        private String userNickname;
+        private Long userId;
+        private List<TodoDetailDTO> todos;
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @Builder
+        public static class TodoDetailDTO {
+                private Long todoId;
+                private String content;
+                private TodoStatus status;
+        }
 }
+
+

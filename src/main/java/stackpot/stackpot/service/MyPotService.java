@@ -12,6 +12,11 @@ public interface MyPotService {
     List<MyPotResponseDTO> getMyOnGoingPots();
 
     // 사용자의 특정 팟에서의 생성
-    MyPotTodoResponseDTO postTodo(Long potId, MyPotTodoRequestDTO requestDTO);
+    List<MyPotTodoResponseDTO> postTodo(Long potId, MyPotTodoRequestDTO requestDTO);
+
+
+    List<MyPotTodoResponseDTO> getTodo(Long potId);
+
+    List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> requestList);
 
 }

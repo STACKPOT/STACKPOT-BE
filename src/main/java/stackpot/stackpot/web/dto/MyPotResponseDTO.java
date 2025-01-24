@@ -18,7 +18,6 @@ public class MyPotResponseDTO {
     public static class OngoingPotsDetail {
         private UserResponseDto user;
         private PotResponseDto pot;
-        private List<RecruitmentDetailsResponseDTO> recruitmentDetails;
         private List<PotMemberResponseDTO> potMembers;
     }
 }
