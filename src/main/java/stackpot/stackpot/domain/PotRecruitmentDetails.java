@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
 
-import java.time.LocalDate;
-
 @Entity
 @Getter
 @Builder
@@ -16,12 +14,18 @@ public class PotRecruitmentDetails extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
+    @Getter
+    @Setter
     private Long recruitmentId;
 
     @Column(nullable = true, length = 255)
+    @Getter
+    @Setter
     private String recruitmentRole;
 
     @Column(nullable = true)
+    @Getter
+    @Setter
     private Integer recruitmentCount;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -27,14 +27,14 @@ public class PotMember extends BaseEntity {
     private User user;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pot_application_id", nullable = false)
+    @JoinColumn(name = "application_id", nullable = false)
     private PotApplication potApplication;
 
     @Column(nullable = false, length = 10)
     private String roleName;
 
     @Column(nullable = false)
-    private String owner;
+    private boolean owner;
 
     @Column(nullable = false)
     private String appealContent;

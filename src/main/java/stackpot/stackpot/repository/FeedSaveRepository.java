@@ -14,5 +14,8 @@ import java.util.Optional;
 public interface FeedSaveRepository extends JpaRepository<FeedSave, Long> {
     // 특정 사용자가 특정 게시물에 좋아요를 눌렀는지 확인
     Optional<FeedSave> findByFeedAndUser(Feed feed, User user);
+
+    @Query("SELECT COUNT(fl) FROM FeedSave fl WHERE fl.feed = :feed")
+    Long countByFeed(@Param("feed") Feed feed);
 }
 

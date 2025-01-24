@@ -8,7 +8,7 @@ import stackpot.stackpot.web.dto.FeedResponseDto;
 import java.util.List;
 
 public interface FeedConverter {
-    FeedResponseDto.FeedDto feedDto(Feed feed, int popularity, int likeCount);
+    FeedResponseDto.FeedDto feedDto(Feed feed, long popularity, long likeCount);
     Feed toFeed(FeedRequestDto.createDto request);
 
 }
