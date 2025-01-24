@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.Authentication;
+import stackpot.stackpot.domain.User;
 import stackpot.stackpot.web.dto.TokenServiceResponse;
 
 import java.security.Key;
@@ -20,27 +21,27 @@ public class JwtTokenProvider {
     
     @Value("${jwt.secret}")
     private String secretKey;
-    private final long validityInMilliseconds = 3600000; // 1시간
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60; 	//1시간
+    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24; // 1일
     private final UserDetailsService  userDetailsService;
 
     // JWT 생성 (이메일 포함)
-    public TokenServiceResponse createToken(String email) {
-        Claims claims = Jwts.claims().setSubject(email);
+    public TokenServiceResponse createToken(User user) {
+        Claims claims = Jwts.claims().setSubject(user.getEmail());
 
         Date now = new Date();
-        Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         String accessToken = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(validity)
+                .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
 
         String refreshToken = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(validity)
+                .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
         return TokenServiceResponse.of(accessToken, refreshToken);
