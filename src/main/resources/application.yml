@@ -30,6 +30,17 @@ spring:
       credentials:
         accessKey: ${AWS_ACCESS_KEY_ID}
         secretKey: ${AWS_SECRET_ACCESS_KEY}
-
   jwt:
     secret: ${JWT_SECRET}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${mail.username}
+    password: ${mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          timeout: 5000
+          starttls:
+            enable: true
