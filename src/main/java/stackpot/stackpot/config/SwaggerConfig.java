@@ -9,11 +9,13 @@ import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+
+
 @Configuration
 public class SwaggerConfig {
 
     @Bean
-    public OpenAPI StackPotAPI() {
+    public OpenAPI stackPotAPI() {
         Info info = new Info()
                 .title("StackPot API")
                 .description("StackPotAPI API 명세서")
@@ -21,8 +23,9 @@ public class SwaggerConfig {
 
         String jwtSchemeName = "JWT TOKEN";
 
-        // API 요청헤더에 인증정보 포함
+        // API 요청 헤더에 인증 정보 포함
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
+
         // SecuritySchemes 등록
         Components components = new Components()
                 .addSecuritySchemes(jwtSchemeName, new SecurityScheme()
@@ -32,9 +35,10 @@ public class SwaggerConfig {
                         .bearerFormat("JWT"));
 
         return new OpenAPI()
-                .addServersItem(new Server().url(""))
-                .info(info)
-                .addSecurityItem(securityRequirement)
-                .components(components);
+                .info(info) // API 정보 설정
+                .addServersItem(new Server().url("http://localhost:8080").description("Dev server")) // 서버 URL 설정
+                .addServersItem(new Server().url("https://api.stackpot.co.kr").description("Production server")) // 서버 URL 설정
+                .addSecurityItem(securityRequirement) // SecurityRequirement 추가
+                .components(components); // SecuritySchemes 등록
     }
 }

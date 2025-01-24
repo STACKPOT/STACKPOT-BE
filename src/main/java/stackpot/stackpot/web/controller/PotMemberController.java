@@ -20,6 +20,15 @@ public class PotMemberController {
 
     private final PotMemberService potMemberService;
 
+    @Operation(summary = "팟 멤버 정보 가져오기( KAKAOID, 닉네임)")
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PotMemberAppealResponseDto>>> getPotMembers(
+            @PathVariable("pot_id") Long potId) {
+        potMemberService.validateIsOwner(potId); // 팟 생성자 검증 추가
+        List<PotMemberAppealResponseDto> response = potMemberService.getPotMembers(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
     @Operation(summary = "팟 시작하기")
     @PostMapping
     public ResponseEntity<ApiResponse<List<PotMemberAppealResponseDto>>> addPotMembers(

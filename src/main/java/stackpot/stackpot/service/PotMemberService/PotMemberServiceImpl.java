@@ -2,6 +2,9 @@ package stackpot.stackpot.service.PotMemberService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.converter.PotMemberConverter.PotMemberConverter;
 import stackpot.stackpot.domain.Pot;
@@ -29,6 +32,17 @@ public class PotMemberServiceImpl implements PotMemberService {
     private final PotMemberRepository potMemberRepository;
     private final PotMemberConverter potMemberConverter;
 
+    @Transactional
+    @Override
+    public List<PotMemberAppealResponseDto> getPotMembers(Long potId) {
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
+        List<PotMember> potMembers = potMemberRepository.findByPotId(potId);
+        return potMembers.stream()
+                .map(potMemberConverter::toDto)
+                .collect(Collectors.toList());
+    }
     @Transactional
     @Override
     public List<PotMemberAppealResponseDto> addMembersToPot (Long potId, PotMemberRequestDto requestDto) {
@@ -75,5 +89,17 @@ public class PotMemberServiceImpl implements PotMemberService {
         // 3. 어필 내용 업데이트
         potMember.setAppealContent(appealContent);
         potMemberRepository.save(potMember); // 변경 사항 저장
+    }
+    @Override
+    public void validateIsOwner(Long potId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
+        if (!pot.getUser().getEmail().equals(email)) {
+            throw new AccessDeniedException("해당 작업은 팟 생성자만 수행할 수 있습니다.");
+        }
     }
 }
