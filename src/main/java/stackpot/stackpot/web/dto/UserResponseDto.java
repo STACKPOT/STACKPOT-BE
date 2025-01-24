@@ -10,10 +10,11 @@ import stackpot.stackpot.domain.enums.Role;
 @Setter
 @Builder
 public class UserResponseDto {
-    private String email; // 이메일
-    private String nickname; // 닉네임
-    private Role role; // 역할
-    private String interest; // 관심사
+    private String email;         // 이메일
+    private String nickname;      // 닉네임
+    private Role role;            // 역할
+    private String interest;      // 관심사
     private Integer userTemperature; // 유저 온도
-    private String kakaoId;
+    private String kakaoId;        // 카카오 아이디
+    private String userIntroduction; // 한 줄 소개 추가
 }
