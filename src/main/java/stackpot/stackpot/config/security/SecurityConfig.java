@@ -22,7 +22,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomOAuth2UserService customOAuth2UserService;
+//    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() { // security를 적용하지 않을 리소스
@@ -40,38 +40,38 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvid
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .sessionManagement(
                     session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .oauth2Login(
-                    oauth -> oauth.userInfoEndpoint(config -> config.userService(customOAuth2UserService))
-                                                .successHandler(successHandler(jwtTokenProvider)))
+//            .oauth2Login(
+//                    oauth -> oauth.userInfoEndpoint(config -> config.userService(customOAuth2UserService))
+//                                                .successHandler(successHandler(jwtTokenProvider)))
             .authorizeHttpRequests(request -> request
-                            .requestMatchers("/", "/home", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs/**").permitAll()
+                            .requestMatchers("/", "/home", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs/**","users/oauth/kakao").permitAll()
                             .anyRequest().authenticated()
-            )
-            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+            );
+//            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
     return http.build();
 }
 //    @Bean
 //    public PasswordEncoder passwordEncoder() {
 //        return new BCryptPasswordEncoder();
 //    }
-    @Bean
-    public AuthenticationSuccessHandler successHandler(JwtTokenProvider jwtTokenProvider) {
-        return (request, response, authentication) -> {
-            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-            String email = (String) oAuth2User.getAttributes().get("email");
-
-            // JWT 토큰 생성
-            TokenServiceResponse token = jwtTokenProvider.createToken(email);
-            System.out.println("STACKPOT TOKEN : " + token.getAccessToken());
-
-            // 응답에 JWT 추가
-            response.setHeader("Authorization", "Bearer " + token.getAccessToken());
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-
-            // JSON 응답 반환
-            response.getWriter().write("{\"accessTokendf\": \"" + token.getAccessToken() + "\"}");
-            response.getWriter().flush();
-        };
-    }
+//    @Bean
+//    public AuthenticationSuccessHandler successHandler(JwtTokenProvider jwtTokenProvider) {
+//        return (request, response, authentication) -> {
+//            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+//            String email = (String) oAuth2User.getAttributes().get("email");
+//
+//            // JWT 토큰 생성
+//            TokenServiceResponse token = jwtTokenProvider.createToken(email);
+//            System.out.println("STACKPOT TOKEN : " + token.getAccessToken());
+//
+//            // 응답에 JWT 추가
+//            response.setHeader("Authorization", "Bearer " + token.getAccessToken());
+//            response.setContentType("application/json");
+//            response.setCharacterEncoding("UTF-8");
+//
+//            // JSON 응답 반환
+//            response.getWriter().write("{\"accessTokendf\": \"" + token.getAccessToken() + "\"}");
+//            response.getWriter().flush();
+//        };
+//    }
 }
