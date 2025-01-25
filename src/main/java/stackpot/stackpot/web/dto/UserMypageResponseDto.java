@@ -34,7 +34,6 @@ public class UserMypageResponseDto {
         private String potEndDate;
         private String potSummary;
         private List<PotRecruitmentResponseDto> recruitmentDetails;
-        private PotMemberSummaryResponseDTO memberSummary;
     }
 
     @Getter

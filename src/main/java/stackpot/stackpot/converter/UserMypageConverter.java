@@ -5,8 +5,6 @@ import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.repository.FeedLikeRepository;
-import stackpot.stackpot.web.dto.PotMemberResponseDTO;
-import stackpot.stackpot.web.dto.PotMemberSummaryResponseDTO;
 import stackpot.stackpot.web.dto.PotRecruitmentResponseDto;
 import stackpot.stackpot.web.dto.UserMypageResponseDto;
 
@@ -42,10 +40,6 @@ public class UserMypageConverter {
                         Collectors.counting()
                 ));
 
-        // PotMemberSummaryResponseDTO 생성
-        PotMemberSummaryResponseDTO memberSummary = PotMemberSummaryResponseDTO.builder()
-                .roleCounts(roleSummary)
-                .build();
 
         return UserMypageResponseDto.CompletedPotDto.builder()
                 .potId(pot.getPotId())
@@ -60,7 +54,6 @@ public class UserMypageConverter {
                                 .recruitmentCount(detail.getRecruitmentCount())
                                 .build())
                         .collect(Collectors.toList()))
-                .memberSummary(memberSummary)
                 .build();
     }
 

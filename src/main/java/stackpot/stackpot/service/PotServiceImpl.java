@@ -293,21 +293,12 @@ public class PotServiceImpl implements PotService {
 
         // Pot 리스트를 PotAllResponseDTO.PotDetail로 변환
         return appliedPots.stream().map(pot -> {
-            // 모집 정보를 DTO로 변환
-            List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
-                    .map(details -> PotRecruitmentResponseDto.builder()
-                            .recruitmentId(details.getRecruitmentId())
-                            .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
-                            .recruitmentCount(details.getRecruitmentCount())
-                            .build())
-                    .collect(Collectors.toList());
-
-
             // 유저 정보를 DTO로 변환
             UserResponseDto userDto = UserResponseDto.builder()
                     .nickname(pot.getUser().getNickname())
                     .role(pot.getUser().getRole())
                     .build();
+
 
             return PotAllResponseDTO.PotDetail.builder()
                     .user(userDto)
@@ -414,13 +405,6 @@ public class PotServiceImpl implements PotService {
 
     // 진행 중인 팟 변환 메서드 (멤버 포함)
     private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
-        List<PotRecruitmentResponseDto> recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(details -> PotRecruitmentResponseDto.builder()
-                        .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
-                        .recruitmentCount(details.getRecruitmentCount())
-                        .build())
-                .collect(Collectors.toList());
 
         List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
                 .map(member -> PotMemberResponseDTO.builder()
@@ -428,6 +412,9 @@ public class PotServiceImpl implements PotService {
                         .roleName(member.getRoleName())
                         .build())
                 .collect(Collectors.toList());
+
+        System.out.println("Recruitment Details: " + pot.getRecruitmentDetails());
+        System.out.println("Pot Members: " + pot.getPotMembers());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDto.builder()
