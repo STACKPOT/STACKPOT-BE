@@ -152,21 +152,21 @@ public class PotServiceImpl implements PotService {
 
     @Transactional
     @Override
-    public List<PotAllResponseDTO.PotDetail> getAllPots(String role, Integer page, Integer size) {
+    public List<PotAllResponseDTO.PotDetail> getAllPots(Role role, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Pot> potPage;
 
-        if (role == null || role.isEmpty()) {
+        if (role == null) {
             potPage = potRepository.findAll(pageable);
         } else {
-            potPage = potRepository.findByRecruitmentDetails_RecruitmentRole(role.trim().toUpperCase(), pageable);
+            potPage = potRepository.findByRecruitmentDetails_RecruitmentRole(role, pageable);
         }
 
         return potPage.getContent().stream()
                 .map(pot -> PotAllResponseDTO.PotDetail.builder()
                         .user(UserResponseDto.builder()
                                 .nickname(pot.getUser().getNickname())
-                                .role(pot.getUser().getRole().name())  // ENUM → String 변환
+                                .role(String.valueOf(pot.getUser().getRole()))  // ENUM → String 변환
                                 .build())
                         .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                         .build())
