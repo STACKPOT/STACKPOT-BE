@@ -11,7 +11,7 @@ import java.util.List;
 public interface PotService {
     PotResponseDto createPotWithRecruitments(PotRequestDto requestDto);
     PotResponseDto updatePotWithRecruitments(Long potId, PotRequestDto requestDto);
-
+    List<CompletedPotResponseDto> getMyCompletedPots();
     void deletePot(Long potId);
 
     //---------------
