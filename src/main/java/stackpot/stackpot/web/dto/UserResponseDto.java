@@ -16,4 +16,5 @@ public class UserResponseDto {
     private String interest; // 관심사
     private Integer userTemperature; // 유저 온도
     private String kakaoId;
+    private String userIntroduction;
 }

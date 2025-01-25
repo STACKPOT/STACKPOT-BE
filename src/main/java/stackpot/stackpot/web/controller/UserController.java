@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
+import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
@@ -21,6 +22,7 @@ import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.KakaoUserInfoResponseDto;
 import stackpot.stackpot.web.dto.TokenServiceResponse;
 import stackpot.stackpot.web.dto.UserRequestDto;
+import stackpot.stackpot.web.dto.UserResponseDto;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -88,5 +90,20 @@ public class UserController {
         return null;
 //        return ResponseEntity.ok();
     }
+
+    @Operation(summary = "마이페이지 사용자 정보 조회 API")
+    @GetMapping("/mypages")
+    public ResponseEntity<ApiResponse<UserResponseDto>> usersMypages(){
+        UserResponseDto userDetails = userCommandService.getMypages();
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+    @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API")
+    @GetMapping("/{userId}/mypages")
+    public ResponseEntity<ApiResponse<UserResponseDto>> getUserMypage(@PathVariable Long userId) {
+        UserResponseDto response = userCommandService.getUserMypage(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
 
 }

@@ -83,7 +83,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.groupingBy(UserTodo::getUser))
                 .entrySet().stream()
                 .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname())
+                        .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(String.valueOf(entry.getKey().getRole())))
                         .userId(entry.getKey().getId())
                         .todos(entry.getValue().stream()
                                 .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
@@ -117,7 +117,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.groupingBy(UserTodo::getUser))
                 .entrySet().stream()
                 .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname())
+                        .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(String.valueOf(entry.getKey().getRole())))
                         .userId(entry.getKey().getId())
                         .todos(entry.getValue().stream()
                                 .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
@@ -170,7 +170,7 @@ public class MyPotServiceImpl implements MyPotService {
 
         return groupedByUser.entrySet().stream()
                 .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname())
+                        .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(String.valueOf(entry.getKey().getRole())))
                         .userId(entry.getKey().getId())
                         .todos(entry.getValue().stream()
                                 .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
@@ -203,7 +203,7 @@ public class MyPotServiceImpl implements MyPotService {
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname())
+                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
                         .role(pot.getUser().getRole())
                         .build())
                 .pot(PotResponseDto.builder()
@@ -217,6 +217,15 @@ public class MyPotServiceImpl implements MyPotService {
                 .build();
     }
 
-
+    // 역할에 따른 채소명을 반환하는 메서드
+    private String getVegetableNameByRole(String role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯",
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근"
+        );
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
+    }
 
 }

@@ -10,8 +10,10 @@ import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.UserRequestDto;
+import stackpot.stackpot.web.dto.UserResponseDto;
 
 import java.util.Date;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -59,5 +61,52 @@ public class UserCommandServiceImpl implements UserCommandService{
         user.setInterest(request.getInterest());
         //한줄 소개
         user.setUserIntroduction(user.getRole()+"에 관심있는 "+user.getNickname()+"입니다.");
+    }
+
+    @Override
+    public UserResponseDto getMypages() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        // User 정보를 UserResponseDto로 변환
+        return UserResponseDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
+                .role(user.getRole())
+                .interest(user.getInterest())
+                .userTemperature(user.getUserTemperature())
+                .kakaoId(user.getKakaoId())
+                .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
+                .build();
+    }
+
+    @Override
+    public UserResponseDto getUserMypage(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        return UserResponseDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name())) // 닉네임 + 역할
+                .role(user.getRole())
+                .interest(user.getInterest())
+                .userTemperature(user.getUserTemperature())
+                .kakaoId(user.getKakaoId())
+                .userIntroduction(user.getUserIntroduction())
+                .build();
+    }
+
+    // 역할에 따른 채소명을 반환하는 메서드
+    private String getVegetableNameByRole(String role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯",
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근"
+        );
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 }
