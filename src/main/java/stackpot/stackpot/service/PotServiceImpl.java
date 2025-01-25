@@ -199,7 +199,7 @@ public class PotServiceImpl implements PotService {
 
         return ApplicantResponseDTO.builder()
                 .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname())
+                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
                         .role(pot.getUser().getRole())
                         .build())
                 .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
