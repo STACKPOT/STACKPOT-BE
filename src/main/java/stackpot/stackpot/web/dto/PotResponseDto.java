@@ -14,8 +14,8 @@ import java.util.List;
 public class PotResponseDto {
     private Long potId;
     private String potName;
-    private LocalDate potStartDate;
-    private LocalDate potEndDate;
+    private String potStartDate;
+    private String potEndDate;
     private String potDuration;
     private String potLan;
     private String potContent;
@@ -24,5 +24,4 @@ public class PotResponseDto {
     private String potSummary;
     private LocalDate recruitmentDeadline;
     private List<PotRecruitmentResponseDto> recruitmentDetails;
-    private Integer dDay;
 }

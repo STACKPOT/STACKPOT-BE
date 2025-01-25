@@ -12,15 +12,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
+import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.UserCommandService;
-import stackpot.stackpot.web.dto.KakaoUserInfoResponseDto;
-import stackpot.stackpot.web.dto.TokenServiceResponse;
-import stackpot.stackpot.web.dto.UserRequestDto;
+import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -88,5 +87,29 @@ public class UserController {
         return null;
 //        return ResponseEntity.ok();
     }
+
+    @Operation(summary = "마이페이지 사용자 정보 조회 API")
+    @GetMapping("/mypages")
+    public ResponseEntity<ApiResponse<UserResponseDto>> usersMypages(){
+        UserResponseDto userDetails = userCommandService.getMypages();
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+    @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API")
+    @GetMapping("/{userId}/mypages")
+    public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(@PathVariable Long userId) {
+        UserMypageResponseDto response = userCommandService.getUserMypage(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @PatchMapping("/profile/update")
+    @Operation(summary = "사용자 프로필 수정 API", description = "사용자의 역할, 관심사, 한 줄 소개를 수정합니다.")
+    public ResponseEntity<ApiResponse<UserResponseDto>> updateUserProfile(
+            @RequestBody @Valid UserUpdateRequestDto requestDto) {
+
+        UserResponseDto updatedUser = userCommandService.updateUserProfile(requestDto);
+        return ResponseEntity.ok(ApiResponse.onSuccess(updatedUser));
+    }
+
 
 }
