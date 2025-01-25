@@ -72,7 +72,7 @@ public class PotController {
         return ResponseEntity.noContent().build();
     }
 
-//----------------------------
+    //----------------------------
 
     @Operation(
             summary = "팟 전체 보기 API",

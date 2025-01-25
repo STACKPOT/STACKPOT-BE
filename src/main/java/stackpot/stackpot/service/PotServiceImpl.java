@@ -90,7 +90,6 @@ public class PotServiceImpl implements PotService {
         // 업데이트 로직
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
-                "potStartDate", requestDto.getPotStartDate(),
                 "potEndDate", requestDto.getPotEndDate(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),

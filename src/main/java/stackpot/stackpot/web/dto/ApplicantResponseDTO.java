@@ -11,7 +11,6 @@ import java.util.List;
 public class ApplicantResponseDTO {
     private UserResponseDto user;
     private PotResponseDto pot;
-    private List<RecruitmentDetailsResponseDTO> recruitmentDetails;
     private List<ApplicantDto> applicant;
 
     @Getter
