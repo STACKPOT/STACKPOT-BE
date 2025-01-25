@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
@@ -25,6 +26,7 @@ public class MyPotServiceImpl implements MyPotService {
     private final PotRepository potRepository;
     private final MyPotRepository myPotRepository;
     private final UserRepository userRepository;
+    private final PotConverter potConverter;
 
 
     @Override
@@ -239,13 +241,7 @@ public class MyPotServiceImpl implements MyPotService {
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
                         .role(pot.getUser().getRole())
                         .build())
-                .pot(PotResponseDto.builder()
-                        .potName(pot.getPotName())
-                        .potStartDate(pot.getPotStartDate())
-                        .potEndDate(pot.getPotEndDate())
-                        .potStatus(pot.getPotStatus())
-                        .recruitmentDetails(recruitmentDetails)
-                        .build())
+                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .potMembers(potMembers)
                 .build();
     }

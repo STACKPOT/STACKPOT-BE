@@ -198,29 +198,12 @@ public class PotServiceImpl implements PotService {
                         .build())
                 .collect(Collectors.toList());
 
-        // Pot 정보를 DTO로 변환
-        PotResponseDto potDto = PotResponseDto.builder()
-                .potId(pot.getPotId())
-                .potName(pot.getPotName())
-                .potStartDate(pot.getPotStartDate())
-                .potEndDate(pot.getPotEndDate())
-                .potDuration(pot.getPotDuration())
-                .potLan(pot.getPotLan())
-                .potContent(pot.getPotContent())
-                .potStatus(pot.getPotStatus())
-                .potSummary(pot.getPotSummary())
-                .recruitmentDeadline(pot.getRecruitmentDeadline())
-                .recruitmentDetails(recruitmentDetailsDto)
-                .potModeOfOperation(pot.getPotModeOfOperation().name())
-                .dDay(Math.toIntExact(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline())))
-                .build();
-
         return ApplicantResponseDTO.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname())
                         .role(pot.getUser().getRole())
                         .build())
-                .pot(potDto)
+                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .applicant(applicantDto)
                 .build();
     }
@@ -319,22 +302,6 @@ public class PotServiceImpl implements PotService {
                             .build())
                     .collect(Collectors.toList());
 
-            // Pot 정보를 DTO로 변환
-            PotResponseDto potDto = PotResponseDto.builder()
-                    .potId(pot.getPotId())
-                    .potName(pot.getPotName())
-                    .potStartDate(pot.getPotStartDate())
-                    .potEndDate(pot.getPotEndDate())
-                    .potDuration(pot.getPotDuration())
-                    .potLan(pot.getPotLan())
-                    .potContent(pot.getPotContent())
-                    .potStatus(pot.getPotStatus())
-                    .potSummary(pot.getPotSummary())
-                    .recruitmentDeadline(pot.getRecruitmentDeadline())
-                    .recruitmentDetails(recruitmentDetailsDto)
-                    .potModeOfOperation(pot.getPotModeOfOperation().name())
-                    .dDay(Math.toIntExact(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline())))
-                    .build();
 
             // 유저 정보를 DTO로 변환
             UserResponseDto userDto = UserResponseDto.builder()
@@ -344,7 +311,7 @@ public class PotServiceImpl implements PotService {
 
             return PotAllResponseDTO.PotDetail.builder()
                     .user(userDto)
-                    .pot(potDto)
+                    .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                     .build();
         }).collect(Collectors.toList());
     }
@@ -436,28 +403,12 @@ public class PotServiceImpl implements PotService {
                         .build())
                 .collect(Collectors.toList());
 
-        PotResponseDto potDto = PotResponseDto.builder()
-                .potId(pot.getPotId())
-                .potName(pot.getPotName())
-                .potStartDate(pot.getPotStartDate())
-                .potEndDate(pot.getPotEndDate())
-                .potDuration(pot.getPotDuration())
-                .potLan(pot.getPotLan())
-                .potContent(pot.getPotContent())
-                .potStatus(pot.getPotStatus())
-                .potSummary(pot.getPotSummary())
-                .recruitmentDeadline(pot.getRecruitmentDeadline())
-                .recruitmentDetails(recruitmentDetailsDto)
-                .potModeOfOperation(pot.getPotModeOfOperation().name())
-                .dDay(Math.toIntExact(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline())))
-                .build();
-
         return PotAllResponseDTO.PotDetail.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
                         .role(pot.getUser().getRole())
                         .build())
-                .pot(potDto)
+                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .build();
     }
 
@@ -483,14 +434,7 @@ public class PotServiceImpl implements PotService {
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
                         .role(pot.getUser().getRole())
                         .build())
-                .pot(PotResponseDto.builder()
-                        .potId(pot.getPotId())
-                        .potName(pot.getPotName())
-                        .potStartDate(pot.getPotStartDate())
-                        .potEndDate(pot.getPotEndDate())
-                        .potStatus(pot.getPotStatus())
-                        .recruitmentDetails(recruitmentDetails)
-                        .build())
+                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .potMembers(potMembers)
                 .build();
     }

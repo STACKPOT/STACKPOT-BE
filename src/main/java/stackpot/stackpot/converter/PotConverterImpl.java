@@ -12,8 +12,12 @@ import stackpot.stackpot.web.dto.PotRecruitmentResponseDto;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.time.format.DateTimeFormatter;
+
 @Component
 public class PotConverterImpl implements PotConverter {
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
     @Override
     public Pot toEntity(PotRequestDto requestDto, User user) {
@@ -37,8 +41,8 @@ public class PotConverterImpl implements PotConverter {
         return PotResponseDto.builder()
                 .potId(entity.getPotId())
                 .potName(entity.getPotName())
-                .potStartDate(entity.getPotStartDate())
-                .potEndDate(entity.getPotEndDate())
+                .potStartDate(formatDate(entity.getPotStartDate()))
+                .potEndDate(formatDate(entity.getPotEndDate()))
                 .potDuration(entity.getPotDuration())
                 .potLan(entity.getPotLan())
                 .potContent(entity.getPotContent())
@@ -53,4 +57,9 @@ public class PotConverterImpl implements PotConverter {
                         .build()).collect(Collectors.toList()))
                 .build();
     }
+
+    private String formatDate(java.time.LocalDate date) {
+        return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
+    }
+
 }
