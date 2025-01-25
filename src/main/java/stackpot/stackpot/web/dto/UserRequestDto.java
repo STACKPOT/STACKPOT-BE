@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import stackpot.stackpot.domain.enums.Role;
 
 public class UserRequestDto {
 
@@ -15,7 +16,7 @@ public class UserRequestDto {
     @NoArgsConstructor
     public static class JoinDto {
         @NotBlank(message = "Role은 공백일 수 없습니다.")
-        String role;
+        Role role;
         @NotBlank(message = "Interest는 공백일 수 없습니다.")
         String interest;
         @NotBlank(message = "Nickname은 공백일 수 없습니다.")

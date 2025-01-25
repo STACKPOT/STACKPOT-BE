@@ -1,5 +1,6 @@
 package stackpot.stackpot.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import stackpot.stackpot.domain.enums.Category;
 
@@ -31,7 +32,7 @@ public class FeedResponseDto {
         private String content;
         private Long popularity;
         private Long likeCount;
-        private LocalDateTime createdAt;
+        private String createdAt;
     }
 
 

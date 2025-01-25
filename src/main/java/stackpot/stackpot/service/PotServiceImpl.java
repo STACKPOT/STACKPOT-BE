@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
 public class PotServiceImpl implements PotService {
@@ -146,17 +147,17 @@ public class PotServiceImpl implements PotService {
     }
 
 
-    //-------------------
+//-------------------
 
     private final PotSummarizationService potSummarizationService;
 
     @Transactional
     @Override
-    public List<PotAllResponseDTO.PotDetail> getAllPots(String role, Integer page, Integer size) {
+    public List<PotAllResponseDTO.PotDetail> getAllPots(Role role, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Pot> potPage;
 
-        if (role == null || role.isEmpty()) {
+        if (role == null) {
             potPage = potRepository.findAll(pageable);
         } else {
             potPage = potRepository.findByRecruitmentDetails_RecruitmentRole(role, pageable);
@@ -165,8 +166,8 @@ public class PotServiceImpl implements PotService {
         return potPage.getContent().stream()
                 .map(pot -> PotAllResponseDTO.PotDetail.builder()
                         .user(UserResponseDto.builder()
-                                .nickname(pot.getUser().getNickname())
-                                .role(String.valueOf(pot.getUser().getRole()))
+                                .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
+                                .role(pot.getUser().getRole())  // ENUM → String 변환
                                 .build())
                         .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                         .build())
@@ -197,29 +198,12 @@ public class PotServiceImpl implements PotService {
                         .build())
                 .collect(Collectors.toList());
 
-        // Pot 정보를 DTO로 변환
-        PotResponseDto potDto = PotResponseDto.builder()
-                .potId(pot.getPotId())
-                .potName(pot.getPotName())
-                .potStartDate(pot.getPotStartDate())
-                .potEndDate(pot.getPotEndDate())
-                .potDuration(pot.getPotDuration())
-                .potLan(pot.getPotLan())
-                .potContent(pot.getPotContent())
-                .potStatus(pot.getPotStatus())
-                .potSummary(pot.getPotSummary())
-                .recruitmentDeadline(pot.getRecruitmentDeadline())
-                .recruitmentDetails(recruitmentDetailsDto)
-                .potModeOfOperation(pot.getPotModeOfOperation().name())
-                .dDay(Math.toIntExact(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline())))
-                .build();
-
         return ApplicantResponseDTO.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname())
-                        .role(String.valueOf(pot.getUser().getRole()))
+                        .role(pot.getUser().getRole())
                         .build())
-                .pot(potDto)
+                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .applicant(applicantDto)
                 .build();
     }
@@ -271,7 +255,7 @@ public class PotServiceImpl implements PotService {
                 .filter(PotApplication::getLiked)
                 .map(app -> LikedApplicantResponseDTO.builder()
                         .applicationId(app.getApplicationId())
-                        .applicantRole(String.valueOf(app.getPotRole()))
+                        .applicantRole(app.getPotRole())
                         .potNickname(app.getUser().getNickname() + getVegetableNameByRole(String.valueOf(app.getPotRole())))
                         .liked(app.getLiked())
                         .build())
@@ -286,10 +270,10 @@ public class PotServiceImpl implements PotService {
 
     private String getVegetableNameByRole(String role) {
         Map<String, String> roleToVegetableMap = Map.of(
-                "디자이너", " 브로콜리",
-                "기획자", " 당근",
-                "백앤드", " 양파",
-                "프론트앤드", " 버섯"
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근",
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯"
         );
 
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
@@ -309,41 +293,16 @@ public class PotServiceImpl implements PotService {
 
         // Pot 리스트를 PotAllResponseDTO.PotDetail로 변환
         return appliedPots.stream().map(pot -> {
-            // 모집 정보를 DTO로 변환
-            List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
-                    .map(details -> PotRecruitmentResponseDto.builder()
-                            .recruitmentId(details.getRecruitmentId())
-                            .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
-                            .recruitmentCount(details.getRecruitmentCount())
-                            .build())
-                    .collect(Collectors.toList());
-
-            // Pot 정보를 DTO로 변환
-            PotResponseDto potDto = PotResponseDto.builder()
-                    .potId(pot.getPotId())
-                    .potName(pot.getPotName())
-                    .potStartDate(pot.getPotStartDate())
-                    .potEndDate(pot.getPotEndDate())
-                    .potDuration(pot.getPotDuration())
-                    .potLan(pot.getPotLan())
-                    .potContent(pot.getPotContent())
-                    .potStatus(pot.getPotStatus())
-                    .potSummary(pot.getPotSummary())
-                    .recruitmentDeadline(pot.getRecruitmentDeadline())
-                    .recruitmentDetails(recruitmentDetailsDto)
-                    .potModeOfOperation(pot.getPotModeOfOperation().name())
-                    .dDay(Math.toIntExact(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline())))
-                    .build();
-
             // 유저 정보를 DTO로 변환
             UserResponseDto userDto = UserResponseDto.builder()
                     .nickname(pot.getUser().getNickname())
-                    .role(String.valueOf(pot.getUser().getRole()))
+                    .role(pot.getUser().getRole())
                     .build();
+
 
             return PotAllResponseDTO.PotDetail.builder()
                     .user(userDto)
-                    .pot(potDto)
+                    .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                     .build();
         }).collect(Collectors.toList());
     }
@@ -360,21 +319,21 @@ public class PotServiceImpl implements PotService {
         // 사용자가 만든 팟 조회
         List<Pot> myPots = potRepository.findByUserId(user.getId());
 
-        // 모집중인 팟 리스트
+        // 모집중인 팟 리스트 (recruiting 상태 필터링)
         List<PotAllResponseDTO.PotDetail> recruitingPots = myPots.stream()
-                .filter(pot -> "ongoing".equals(pot.getPotStatus()))
+                .filter(pot -> "RECRUITING".equalsIgnoreCase(pot.getPotStatus()))  // 소문자 비교
                 .map(this::convertToPotDetail)
                 .collect(Collectors.toList());
 
-        // 진행 중인 팟 리스트 변환 (멤버 정보 포함)
+        // 진행 중인 팟 리스트 (ongoing 상태 필터링)
         List<MyPotResponseDTO.OngoingPotsDetail> ongoingPots = myPots.stream()
-                .filter(pot -> "recruiting".equals(pot.getPotStatus()))
+                .filter(pot -> "ONGOING".equalsIgnoreCase(pot.getPotStatus()))  // 소문자 비교
                 .map(this::convertToOngoingPotDetail)
                 .collect(Collectors.toList());
 
         // 끓인 팟 리스트
         List<PotAllResponseDTO.PotDetail> completedPots = myPots.stream()
-                .filter(pot -> "completed".equals(pot.getPotStatus()))
+                .filter(pot -> "COMPLETED".equals(pot.getPotStatus()))
                 .map(this::convertToPotDetail)
                 .collect(Collectors.toList());
 
@@ -427,69 +386,35 @@ public class PotServiceImpl implements PotService {
 
     // Pot을 PotAllResponseDTO.PotDetail로 변환하는 메서드
     private PotAllResponseDTO.PotDetail convertToPotDetail(Pot pot) {
-        List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
-                .map(details -> PotRecruitmentResponseDto.builder()
-                        .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
-                        .recruitmentCount(details.getRecruitmentCount())
-                        .build())
-                .collect(Collectors.toList());
-
-        PotResponseDto potDto = PotResponseDto.builder()
-                .potId(pot.getPotId())
-                .potName(pot.getPotName())
-                .potStartDate(pot.getPotStartDate())
-                .potEndDate(pot.getPotEndDate())
-                .potDuration(pot.getPotDuration())
-                .potLan(pot.getPotLan())
-                .potContent(pot.getPotContent())
-                .potStatus(pot.getPotStatus())
-                .potSummary(pot.getPotSummary())
-                .recruitmentDeadline(pot.getRecruitmentDeadline())
-                .recruitmentDetails(recruitmentDetailsDto)
-                .potModeOfOperation(pot.getPotModeOfOperation().name())
-                .dDay(Math.toIntExact(ChronoUnit.DAYS.between(LocalDate.now(), pot.getRecruitmentDeadline())))
-                .build();
 
         return PotAllResponseDTO.PotDetail.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
-                        .role(String.valueOf(pot.getUser().getRole()))
+                        .role(pot.getUser().getRole())
                         .build())
-                .pot(potDto)
+                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .build();
     }
 
     // 진행 중인 팟 변환 메서드 (멤버 포함)
     private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
-        List<RecruitmentDetailsResponseDTO> recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(details -> RecruitmentDetailsResponseDTO.builder()
-                        .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
-                        .recruitmentCount(details.getRecruitmentCount())
-                        .build())
-                .collect(Collectors.toList());
 
         List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
                 .map(member -> PotMemberResponseDTO.builder()
                         .potMemberId(member.getPotMemberId())
-                        .roleName(String.valueOf(member.getRoleName()))
-
+                        .roleName(member.getRoleName())
                         .build())
                 .collect(Collectors.toList());
+
+        System.out.println("Recruitment Details: " + pot.getRecruitmentDetails());
+        System.out.println("Pot Members: " + pot.getPotMembers());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
-                        .role(String.valueOf(pot.getUser().getRole()))
+                        .role(pot.getUser().getRole())
                         .build())
-                .pot(PotResponseDto.builder()
-                        .potId(pot.getPotId())
-                        .potName(pot.getPotName())
-                        .potStartDate(pot.getPotStartDate())
-                        .potEndDate(pot.getPotEndDate())
-                        .potStatus(pot.getPotStatus())
-                        .build())
+                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .potMembers(potMembers)
                 .build();
     }

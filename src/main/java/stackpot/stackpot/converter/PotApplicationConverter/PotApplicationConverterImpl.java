@@ -10,6 +10,7 @@ import stackpot.stackpot.web.dto.PotApplicationRequestDto;
 import stackpot.stackpot.web.dto.PotApplicationResponseDto;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Component
 public class PotApplicationConverterImpl implements PotApplicationConverter {
@@ -52,7 +53,19 @@ public class PotApplicationConverterImpl implements PotApplicationConverter {
                 .appliedAt(entity.getAppliedAt()) // null 가능성을 허용
                 .potId(entity.getPot().getPotId()) // Pot 엔티티에서 potId 가져오기
                 .userId(entity.getUser().getId()) // User 엔티티에서 id 가져오기
+                .userNickname(entity.getUser().getNickname() + getVegetableNameByRole(String.valueOf(entity.getUser().getRole())))
                 .build();
+    }
+
+    private String getVegetableNameByRole(String role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근",
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯"
+        );
+
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 
 }

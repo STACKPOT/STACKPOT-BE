@@ -6,6 +6,8 @@ import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.mapping.PotMember;
+import stackpot.stackpot.web.dto.PotAllMemRequestDto;
+import stackpot.stackpot.web.dto.PotApplicationRequestDto;
 import stackpot.stackpot.web.dto.PotMemberAppealResponseDto;
 
 @Component
@@ -24,17 +26,36 @@ public class PotMemberConverterImpl implements PotMemberConverter {
     }
 
     @Override
+
     public PotMemberAppealResponseDto toDto(PotMember entity) {
+        String roleName = entity.getRoleName() != null ? entity.getRoleName().name() : "멤버";
+        String nicknameWithRole = entity.getUser().getNickname() + roleName ;
+
         return PotMemberAppealResponseDto.builder()
                 .potMemberId(entity.getPotMemberId())
                 .potId(entity.getPot().getPotId())
                 .userId(entity.getUser().getId())
-                .roleName(String.valueOf(entity.getRoleName())) // PotRole 그대로 반환
-                .owner(entity.isOwner())
+                .roleName(roleName)
+                .nickname(nicknameWithRole)
+                .isOwner(entity.isOwner())
                 .appealContent(entity.getAppealContent())
                 .build();
     }
 
+    private String mapRoleName(String potRole) {
+        switch (potRole) {
+            case "BACKEND":
+                return "양파";
+            case "FRONTEND":
+                return "버섯";
+            case "DESIGN":
+                return "브로콜리";
+            case "PLANNING":
+                return "당근";
+            default:
+                return "멤버";
+        }
+    }
 
 
 

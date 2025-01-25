@@ -18,4 +18,7 @@ import java.util.Optional;
 public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     @Query("SELECT pm.user.id FROM PotMember pm WHERE pm.pot.potId = :potId")
     List<Long> findUserIdsByPotId(@Param("potId") Long potId);
+    @Query("SELECT pm FROM PotMember pm WHERE pm.pot.potId = :potId")
+    List<PotMember> findByPotId(@Param("potId") Long potId);
+
 }

@@ -9,4 +9,5 @@ import stackpot.stackpot.web.dto.PotMemberAppealResponseDto;
 public interface PotMemberConverter {
     PotMember toEntity(User user, Pot pot, PotApplication application, Boolean isOwner);
     PotMemberAppealResponseDto toDto(PotMember entity);
+
 }
