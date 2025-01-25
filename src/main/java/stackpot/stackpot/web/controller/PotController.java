@@ -35,8 +35,14 @@ public class PotController {
     private final PotServiceImpl potService;
     private final PotRepository potRepository;
 
-    @Operation(summary = "팟 생성하기")
-    @PostMapping
+    @Operation(
+            summary = "팟 생성하기",
+            description = """
+        - potStatus: RECRUITING / ONGOING / COMPLETED
+        - potModeOfOperation: ONLINE / OFFLINE / HYBRID
+        - Role: FRONTEND / BACKEND / DESIGN / PLANNING
+    """
+    )    @PostMapping
     public ResponseEntity<PotResponseDto> createPot(
 
             @RequestBody @Valid PotRequestDto requestDto) {
@@ -68,7 +74,14 @@ public class PotController {
 
 //----------------------------
 
-    @Operation(summary = "팟 전체 보기 API", description = "Design, Backend, Frontend, PM으로 필터링 가능합니다. 만약 null인 경우 전체 카테고리에 대해서 조회합니다.")
+    @Operation(
+            summary = "팟 전체 보기 API",
+            description = """
+        - Role: FRONTEND / BACKEND / DESIGN / PLANNING / (NULL)
+        만약 null인 경우 모든 role에 대해서 조회합니다.   
+    """
+    )
+
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
             @RequestParam(required = false) String recruitmentRole,

@@ -328,21 +328,21 @@ public class PotServiceImpl implements PotService {
         // 사용자가 만든 팟 조회
         List<Pot> myPots = potRepository.findByUserId(user.getId());
 
-        // 모집중인 팟 리스트
+        // 모집중인 팟 리스트 (recruiting 상태 필터링)
         List<PotAllResponseDTO.PotDetail> recruitingPots = myPots.stream()
-                .filter(pot -> "ongoing".equals(pot.getPotStatus()))
+                .filter(pot -> "RECRUITING".equalsIgnoreCase(pot.getPotStatus()))  // 소문자 비교
                 .map(this::convertToPotDetail)
                 .collect(Collectors.toList());
 
-        // 진행 중인 팟 리스트 변환 (멤버 정보 포함)
+        // 진행 중인 팟 리스트 (ongoing 상태 필터링)
         List<MyPotResponseDTO.OngoingPotsDetail> ongoingPots = myPots.stream()
-                .filter(pot -> "recruiting".equals(pot.getPotStatus()))
+                .filter(pot -> "ONGOING".equalsIgnoreCase(pot.getPotStatus()))  // 소문자 비교
                 .map(this::convertToOngoingPotDetail)
                 .collect(Collectors.toList());
 
         // 끓인 팟 리스트
         List<PotAllResponseDTO.PotDetail> completedPots = myPots.stream()
-                .filter(pot -> "completed".equals(pot.getPotStatus()))
+                .filter(pot -> "COMPLETED".equals(pot.getPotStatus()))
                 .map(this::convertToPotDetail)
                 .collect(Collectors.toList());
 

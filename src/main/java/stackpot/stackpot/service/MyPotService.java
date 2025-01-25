@@ -19,4 +19,7 @@ public interface MyPotService {
 
     List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> requestList);
 
+    List<MyPotTodoResponseDTO> completeTodo(Long potId, Long todoId);
+
+
 }

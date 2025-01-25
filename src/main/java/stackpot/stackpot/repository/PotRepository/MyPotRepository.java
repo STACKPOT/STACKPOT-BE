@@ -12,5 +12,5 @@ import java.util.Optional;
 public interface MyPotRepository extends JpaRepository<UserTodo, Long> {
     List<UserTodo> findByPot_PotId(Long potId);
     List<UserTodo> findByPotAndUser(Pot pot, User user);
-
+    Optional<UserTodo> findByTodoIdAndPot_PotId(Long todoId, Long potId);
 }

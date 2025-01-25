@@ -27,7 +27,13 @@ public class MyPotController {
     }
 
     // 팟에서의 투두 생성
-    @Operation(summary = "Todo 생성 API", description = "status는 NOT_STARTED와 COMPLETED로 구분되며, 생성의 경우 NOT_STARTED로 전달해 주시면 됩니다.")
+    @Operation(
+            summary = "Todo 생성 API",
+            description = """
+        - Status: NOT_STARTED / COMPLETED
+        * 생성의 경우 NOT_STARTED로 전달해 주시면 됩니다.
+    """
+    )
     @PostMapping("/my-pots/{pot_id}/todos")
     public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> postMyTodo(
             @PathVariable("pot_id") Long potId,
@@ -52,6 +58,16 @@ public class MyPotController {
             @RequestBody List<MyPotTodoUpdateRequestDTO> requestList) {
 
         List<MyPotTodoResponseDTO> response = myPotService.updateTodos(potId, requestList);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "Todo 완료 API", description = "todo의 status를 COMPLETED로 변경합니다.")
+    @PatchMapping("/my-pots/{pot_id}/todos/{todo_id}")
+    public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> completeTodo(
+            @PathVariable("pot_id") Long potId,
+            @PathVariable("todo_id") Long todoId) {
+
+        List<MyPotTodoResponseDTO> response = myPotService.completeTodo(potId, todoId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

@@ -9,6 +9,7 @@ import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
+import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.UserTodo;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
@@ -215,6 +216,52 @@ public class MyPotServiceImpl implements MyPotService {
                                     .collect(Collectors.toList()))
                             .build();
                 })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public List<MyPotTodoResponseDTO> completeTodo(Long potId, Long todoId) {
+        // 현재 로그인한 사용자 확인
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        // 해당 팟이 존재하는지 확인
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+
+        // 해당 투두가 존재하는지 확인 및 소유자 검증
+        UserTodo userTodo = myPotRepository.findByTodoIdAndPot_PotId(todoId, potId)
+                .orElseThrow(() -> new IllegalArgumentException("Todo not found for given potId and todoId"));
+
+        if (!userTodo.getUser().equals(user)) {
+            throw new SecurityException("You are not authorized to update this todo");
+        }
+
+        // To-Do 상태 업데이트
+        userTodo.setStatus(TodoStatus.COMPLETED);
+        myPotRepository.save(userTodo);
+
+        // 특정 팟의 모든 To-Do 조회 후 반환
+        List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
+
+        return potTodos.stream()
+                .collect(Collectors.groupingBy(UserTodo::getUser))
+                .entrySet().stream()
+                .map(entry -> MyPotTodoResponseDTO.builder()
+                        .userNickname(entry.getKey().getNickname())
+                        .userId(entry.getKey().getId())
+                        .todos(entry.getValue().stream()
+                                .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                        .todoId(todo.getTodoId())
+                                        .content(todo.getContent())
+                                        .status(todo.getStatus())
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .build())
                 .collect(Collectors.toList());
     }
 
