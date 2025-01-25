@@ -78,7 +78,7 @@ public class PotController {
             summary = "팟 전체 보기 API",
             description = """
         - Role: FRONTEND / BACKEND / DESIGN / PLANNING / (NULL)
-        만약 null인 경우 모든 role에 대해서 조회합니다.   
+        만약 null인 경우 모든 role에 대해서 조회합니다.    
     """
     )
 
