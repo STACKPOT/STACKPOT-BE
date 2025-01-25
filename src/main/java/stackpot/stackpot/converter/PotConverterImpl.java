@@ -5,11 +5,10 @@ import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.PotModeOfOperation;
-import stackpot.stackpot.web.dto.PotRequestDto;
-import stackpot.stackpot.web.dto.PotResponseDto;
-import stackpot.stackpot.web.dto.PotRecruitmentResponseDto;
+import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import java.time.format.DateTimeFormatter;
@@ -62,4 +61,28 @@ public class PotConverterImpl implements PotConverter {
         return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
     }
 
+    @Override
+
+    public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts) {
+        return CompletedPotResponseDto.builder()
+                .potId(pot.getPotId())
+                .potName(pot.getPotName())
+                .potStartDate(pot.getPotStartDate())
+                .potEndDate(pot.getPotEndDate())
+                .potDuration(pot.getPotDuration())
+                .potLan(pot.getPotLan())
+                .potContent(pot.getPotContent())
+                .potStatus(pot.getPotStatus())
+                .potModeOfOperation(pot.getPotModeOfOperation())
+                .potSummary(pot.getPotSummary())
+                .recruitmentDeadline(pot.getRecruitmentDeadline())
+                .recruitmentDetails(pot.getRecruitmentDetails().stream()
+                        .map(rd -> RecruitmentDetailResponseDto.builder()
+                                .recruitmentRole(String.valueOf(rd.getRecruitmentRole()))
+                                .recruitmentCount(rd.getRecruitmentCount())
+                                .build())
+                        .collect(Collectors.toList()))
+                .roleCounts(roleCounts)
+                .build();
+    }
 }

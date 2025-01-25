@@ -2,6 +2,7 @@ package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+@Tag(name = "Pot  Management", description = "팟 관리 API")
 @RestController
 @RequestMapping("/pots")
 @RequiredArgsConstructor
@@ -71,8 +72,13 @@ public class PotController {
 
         return ResponseEntity.noContent().build();
     }
-
-    //----------------------------
+    @GetMapping("/completed")
+    @Operation(summary = "나의 끓인 팟 정보 가져오기", description = "potStatus가 COMPLETED인 팟의 목록을 가져옵니다.")
+    public ResponseEntity<ApiResponse<List<CompletedPotResponseDto>>> getMyCompletedPots() {
+        List<CompletedPotResponseDto> response = potService.getMyCompletedPots();
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+    //-------------------
 
     @Operation(
             summary = "팟 전체 보기 API",

@@ -42,6 +42,7 @@ public class PotMemberConverterImpl implements PotMemberConverter {
                 .build();
     }
 
+
     private String mapRoleName(String potRole) {
         switch (potRole) {
             case "BACKEND":
