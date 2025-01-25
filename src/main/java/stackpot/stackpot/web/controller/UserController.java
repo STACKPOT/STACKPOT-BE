@@ -19,10 +19,7 @@ import stackpot.stackpot.domain.User;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.UserCommandService;
-import stackpot.stackpot.web.dto.KakaoUserInfoResponseDto;
-import stackpot.stackpot.web.dto.TokenServiceResponse;
-import stackpot.stackpot.web.dto.UserRequestDto;
-import stackpot.stackpot.web.dto.UserResponseDto;
+import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -100,8 +97,8 @@ public class UserController {
 
     @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API")
     @GetMapping("/{userId}/mypages")
-    public ResponseEntity<ApiResponse<UserResponseDto>> getUserMypage(@PathVariable Long userId) {
-        UserResponseDto response = userCommandService.getUserMypage(userId);
+    public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(@PathVariable Long userId) {
+        UserMypageResponseDto response = userCommandService.getUserMypage(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

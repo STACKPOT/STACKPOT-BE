@@ -6,13 +6,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.converter.UserConverter;
+import stackpot.stackpot.converter.UserMypageConverter;
+import stackpot.stackpot.domain.Feed;
+import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
+import stackpot.stackpot.repository.FeedRepository.FeedRepository;
+import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
+import stackpot.stackpot.web.dto.UserMypageResponseDto;
 import stackpot.stackpot.web.dto.UserRequestDto;
 import stackpot.stackpot.web.dto.UserResponseDto;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -20,6 +27,9 @@ import java.util.Map;
 public class UserCommandServiceImpl implements UserCommandService{
 
     private final UserRepository userRepository;
+    private final PotRepository potRepository;
+    private final FeedRepository feedRepository;
+    private final UserMypageConverter userMypageConverter;
 
     @Override
     @Transactional
@@ -83,20 +93,19 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .build();
     }
 
-    @Override
-    public UserResponseDto getUserMypage(Long userId) {
+    @Transactional
+    public UserMypageResponseDto getUserMypage(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
-        return UserResponseDto.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name())) // 닉네임 + 역할
-                .role(user.getRole())
-                .interest(user.getInterest())
-                .userTemperature(user.getUserTemperature())
-                .kakaoId(user.getKakaoId())
-                .userIntroduction(user.getUserIntroduction())
-                .build();
+        // COMPLETED 상태의 팟 조회
+        List<Pot> completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
+
+        // 사용자의 피드 조회
+        List<Feed> userFeeds = feedRepository.findByUser_Id(userId);
+
+        // 컨버터를 사용하여 변환 (좋아요 개수 포함)
+        return userMypageConverter.toDto(user, completedPots, userFeeds);
     }
 
     // 역할에 따른 채소명을 반환하는 메서드

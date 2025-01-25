@@ -1,6 +1,7 @@
 package stackpot.stackpot.service;
 
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.web.dto.UserMypageResponseDto;
 import stackpot.stackpot.web.dto.UserRequestDto;
 import stackpot.stackpot.web.dto.UserResponseDto;
 
@@ -11,5 +12,5 @@ public interface UserCommandService {
 
     UserResponseDto getMypages();
 
-    UserResponseDto getUserMypage(Long userId);
+    UserMypageResponseDto getUserMypage(Long userId);
 }

@@ -40,4 +40,6 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             @Param("lastCreatedAt") LocalDateTime lastCreatedAt,
             Pageable pageable);
 
+    List<Feed> findByUser_Id(Long userId);
+
 }
