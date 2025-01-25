@@ -24,5 +24,4 @@ public class PotResponseDto {
     private String potSummary;
     private LocalDate recruitmentDeadline;
     private List<PotRecruitmentResponseDto> recruitmentDetails;
-    private Integer dDay;
 }
