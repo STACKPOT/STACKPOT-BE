@@ -8,6 +8,8 @@ import stackpot.stackpot.repository.FeedLikeRepository;
 import stackpot.stackpot.web.dto.PotRecruitmentResponseDto;
 import stackpot.stackpot.web.dto.UserMypageResponseDto;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -69,8 +71,8 @@ public class UserMypageConverter {
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .category(feed.getCategory())
-                . likeCount(feedLikeRepository.countByFeed(feed))
-                .createdAt(feed.getCreatedAt())
+                .likeCount(feedLikeRepository.countByFeed(feed))
+                .createdAt(formatLocalDateTime(feed.getCreatedAt()))
                 .build();
     }
 
@@ -86,5 +88,11 @@ public class UserMypageConverter {
 
     private String formatDate(java.time.LocalDate date) {
         return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
+    }
+
+    // 날짜 포맷 적용 메서드
+    private String formatLocalDateTime(LocalDateTime dateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일 H:mm");
+        return (dateTime != null) ? dateTime.format(formatter) : "날짜 없음";
     }
 }

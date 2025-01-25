@@ -45,7 +45,7 @@ public class UserMypageResponseDto {
         private String content;
         private Category category;
         private Long likeCount;
-        private LocalDateTime createdAt;
+        private String createdAt;
     }
 }
 
