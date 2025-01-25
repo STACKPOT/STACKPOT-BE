@@ -159,14 +159,14 @@ public class PotServiceImpl implements PotService {
         if (role == null || role.isEmpty()) {
             potPage = potRepository.findAll(pageable);
         } else {
-            potPage = potRepository.findByRecruitmentDetails_RecruitmentRole(role, pageable);
+            potPage = potRepository.findByRecruitmentDetails_RecruitmentRole(role.trim().toUpperCase(), pageable);
         }
 
         return potPage.getContent().stream()
                 .map(pot -> PotAllResponseDTO.PotDetail.builder()
                         .user(UserResponseDto.builder()
                                 .nickname(pot.getUser().getNickname())
-                                .role(String.valueOf(pot.getUser().getRole()))
+                                .role(pot.getUser().getRole().name())  // ENUM → String 변환
                                 .build())
                         .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                         .build())
@@ -192,7 +192,7 @@ public class PotServiceImpl implements PotService {
         List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
                 .map(details -> PotRecruitmentResponseDto.builder()
                         .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
+                        .recruitmentRole(details.getRecruitmentRole().name())  // ENUM -> String 변환
                         .recruitmentCount(details.getRecruitmentCount())
                         .build())
                 .collect(Collectors.toList());
@@ -313,7 +313,7 @@ public class PotServiceImpl implements PotService {
             List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
                     .map(details -> PotRecruitmentResponseDto.builder()
                             .recruitmentId(details.getRecruitmentId())
-                            .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
+                            .recruitmentRole(details.getRecruitmentRole().name())
                             .recruitmentCount(details.getRecruitmentCount())
                             .build())
                     .collect(Collectors.toList());
@@ -462,8 +462,8 @@ public class PotServiceImpl implements PotService {
 
     // 진행 중인 팟 변환 메서드 (멤버 포함)
     private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
-        List<RecruitmentDetailsResponseDTO> recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(details -> RecruitmentDetailsResponseDTO.builder()
+        List<PotRecruitmentResponseDto> recruitmentDetails = pot.getRecruitmentDetails().stream()
+                .map(details -> PotRecruitmentResponseDto.builder()
                         .recruitmentId(details.getRecruitmentId())
                         .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
                         .recruitmentCount(details.getRecruitmentCount())
@@ -474,7 +474,6 @@ public class PotServiceImpl implements PotService {
                 .map(member -> PotMemberResponseDTO.builder()
                         .potMemberId(member.getPotMemberId())
                         .roleName(String.valueOf(member.getRoleName()))
-
                         .build())
                 .collect(Collectors.toList());
 
@@ -489,6 +488,7 @@ public class PotServiceImpl implements PotService {
                         .potStartDate(pot.getPotStartDate())
                         .potEndDate(pot.getPotEndDate())
                         .potStatus(pot.getPotStatus())
+                        .recruitmentDetails(recruitmentDetails)
                         .build())
                 .potMembers(potMembers)
                 .build();

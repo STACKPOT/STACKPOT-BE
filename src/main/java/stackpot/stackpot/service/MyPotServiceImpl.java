@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.UserTodo;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
@@ -184,10 +185,10 @@ public class MyPotServiceImpl implements MyPotService {
 
     // 진행 중인 팟 변환 메서드 (멤버 포함)
     private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
-        List<RecruitmentDetailsResponseDTO> recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(details -> RecruitmentDetailsResponseDTO.builder()
+        List<PotRecruitmentResponseDto> recruitmentDetails = pot.getRecruitmentDetails().stream()
+                .map(details -> PotRecruitmentResponseDto.builder()
                         .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
+                        .recruitmentRole(details.getRecruitmentRole().name())
                         .recruitmentCount(details.getRecruitmentCount())
                         .build())
                 .collect(Collectors.toList());
@@ -210,6 +211,7 @@ public class MyPotServiceImpl implements MyPotService {
                         .potStartDate(pot.getPotStartDate())
                         .potEndDate(pot.getPotEndDate())
                         .potStatus(pot.getPotStatus())
+                        .recruitmentDetails(recruitmentDetails)
                         .build())
                 .potMembers(potMembers)
                 .build();
