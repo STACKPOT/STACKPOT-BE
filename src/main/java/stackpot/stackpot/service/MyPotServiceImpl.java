@@ -16,8 +16,7 @@ import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,26 +30,34 @@ public class MyPotServiceImpl implements MyPotService {
 
 
     @Override
-    public List<MyPotResponseDTO> getMyOnGoingPots() {
+    public Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> getMyOnGoingPots() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        // 사용자가 만든 팟 조회
-        List<Pot> myPots = potRepository.findByUserId(user.getId());
+        // 1. 내가 PotMember로 참여 중이고 상태가 'ONGOING'인 팟 조회
+        List<Pot> ongoingMemberPots = potRepository.findByPotMembers_UserIdAndPotStatus(user.getId(), "ONGOING");
 
-        // 진행 중인 팟 리스트 변환 (멤버 정보 포함)
-        List<MyPotResponseDTO.OngoingPotsDetail> ongoingPots = myPots.stream()
-                .filter(pot -> "recruiting".equals(pot.getPotStatus()))
+        // 2. 내가 만든 팟 중 상태가 'ONGOING'인 팟 조회
+        List<Pot> ongoingOwnedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "ONGOING");
+
+        // Pot 리스트를 DTO로 변환
+        List<MyPotResponseDTO.OngoingPotsDetail> memberPotsDetails = ongoingMemberPots.stream()
                 .map(this::convertToOngoingPotDetail)
                 .collect(Collectors.toList());
 
-        // MyPotResponseDTO로 변환하여 반환
-        return List.of(MyPotResponseDTO.builder()
-                .ongoingPots(ongoingPots)
-                .build());
+        List<MyPotResponseDTO.OngoingPotsDetail> ownedPotsDetails = ongoingOwnedPots.stream()
+                .map(this::convertToOngoingPotDetail)
+                .collect(Collectors.toList());
+
+        // 결과를 분류하여 반환
+        Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> result = new HashMap<>();
+        result.put("joinedOngoingPots", memberPotsDetails);
+        result.put("ownedOngoingPots", ownedPotsDetails);
+
+        return result;
     }
 
 
@@ -265,21 +272,12 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
-    // 진행 중인 팟 변환 메서드 (멤버 포함)
     private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
-        List<PotRecruitmentResponseDto> recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(details -> PotRecruitmentResponseDto.builder()
-                        .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(details.getRecruitmentRole().name())
-                        .recruitmentCount(details.getRecruitmentCount())
-                        .build())
-                .collect(Collectors.toList());
-
         List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
                 .map(member -> PotMemberResponseDTO.builder()
                         .potMemberId(member.getPotMemberId())
                         .roleName(member.getRoleName())
-
+                        .appealContent(member.getAppealContent())
                         .build())
                 .collect(Collectors.toList());
 
@@ -288,7 +286,7 @@ public class MyPotServiceImpl implements MyPotService {
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
                         .role(pot.getUser().getRole())
                         .build())
-                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
+                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))
                 .potMembers(potMembers)
                 .build();
     }
@@ -303,5 +301,6 @@ public class MyPotServiceImpl implements MyPotService {
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
+
 
 }

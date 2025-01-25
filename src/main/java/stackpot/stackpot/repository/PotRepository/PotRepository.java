@@ -21,5 +21,6 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
     List<Pot> findByPotApplication_User_Id(Long userId);
     List<Pot> findByUserId(Long userId);
     Page<Pot> findAll(Pageable pageable);
-    List<Pot> findByUserIdAndPotStatus(Long userId, String potStatus);
+    List<Pot> findByPotMembers_UserIdAndPotStatus(Long userId, String status);
+    List<Pot> findByUserIdAndPotStatus(Long userId, String status);
 }

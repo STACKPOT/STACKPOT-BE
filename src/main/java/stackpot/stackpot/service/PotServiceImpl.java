@@ -386,13 +386,6 @@ public class PotServiceImpl implements PotService {
 
     // Pot을 PotAllResponseDTO.PotDetail로 변환하는 메서드
     private PotAllResponseDTO.PotDetail convertToPotDetail(Pot pot) {
-        List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
-                .map(details -> PotRecruitmentResponseDto.builder()
-                        .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
-                        .recruitmentCount(details.getRecruitmentCount())
-                        .build())
-                .collect(Collectors.toList());
 
         return PotAllResponseDTO.PotDetail.builder()
                 .user(UserResponseDto.builder()
