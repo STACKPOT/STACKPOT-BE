@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
 public class PotServiceImpl implements PotService {
@@ -146,7 +147,7 @@ public class PotServiceImpl implements PotService {
     }
 
 
-    //-------------------
+//-------------------
 
     private final PotSummarizationService potSummarizationService;
 
@@ -192,7 +193,7 @@ public class PotServiceImpl implements PotService {
         List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
                 .map(details -> PotRecruitmentResponseDto.builder()
                         .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(details.getRecruitmentRole().name())  // ENUM -> String 변환
+                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
                         .recruitmentCount(details.getRecruitmentCount())
                         .build())
                 .collect(Collectors.toList());
@@ -313,7 +314,7 @@ public class PotServiceImpl implements PotService {
             List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
                     .map(details -> PotRecruitmentResponseDto.builder()
                             .recruitmentId(details.getRecruitmentId())
-                            .recruitmentRole(details.getRecruitmentRole().name())
+                            .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
                             .recruitmentCount(details.getRecruitmentCount())
                             .build())
                     .collect(Collectors.toList());

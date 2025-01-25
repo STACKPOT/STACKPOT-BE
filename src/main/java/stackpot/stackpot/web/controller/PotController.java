@@ -66,7 +66,7 @@ public class PotController {
         return ResponseEntity.noContent().build();
     }
 
-    //----------------------------
+//----------------------------
 
     @Operation(summary = "팟 전체 보기 API", description = "Design, Backend, Frontend, PM으로 필터링 가능합니다. 만약 null인 경우 전체 카테고리에 대해서 조회합니다.")
     @GetMapping

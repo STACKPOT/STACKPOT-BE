@@ -54,7 +54,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 닉네임
         user.setNickname(request.getNickname());
         // 역할군
-        user.setRole(Role.valueOf(request.getRole()));
+        user.setRole(Role.valueOf(String.valueOf(request.getRole())));
         // 관심사
         user.setInterest(request.getInterest());
         //한줄 소개

@@ -5,6 +5,7 @@ import lombok.*;
 import stackpot.stackpot.domain.common.BaseEntity;
 import stackpot.stackpot.domain.enums.Role;
 
+
 @Entity
 @Getter
 @Builder

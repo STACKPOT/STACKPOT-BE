@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PotRepository extends JpaRepository<Pot, Long> {
-    Page<Pot> findByRecruitmentDetails_RecruitmentRole(Role role, Pageable pageable);
+    Page<Pot> findByRecruitmentDetails_RecruitmentRole(Role recruitmentRole, Pageable pageable);
     Optional<Pot> findPotWithRecruitmentDetailsByPotId(Long potId);
     List<Pot> findByPotApplication_User_Id(Long userId);
     List<Pot> findByUserId(Long userId);
