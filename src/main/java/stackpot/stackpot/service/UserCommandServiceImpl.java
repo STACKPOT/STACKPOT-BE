@@ -17,6 +17,7 @@ import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.UserMypageResponseDto;
 import stackpot.stackpot.web.dto.UserRequestDto;
 import stackpot.stackpot.web.dto.UserResponseDto;
+import stackpot.stackpot.web.dto.UserUpdateRequestDto;
 
 import java.util.Date;
 import java.util.List;
@@ -106,6 +107,40 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         // 컨버터를 사용하여 변환 (좋아요 개수 포함)
         return userMypageConverter.toDto(user, completedPots, userFeeds);
+    }
+
+    @Transactional
+    public UserResponseDto updateUserProfile(UserUpdateRequestDto requestDto) {
+        // 현재 로그인한 사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        // 업데이트할 필드 적용
+        if (requestDto.getRole() != null) {
+            user.setRole(requestDto.getRole());
+        }
+        if (requestDto.getInterest() != null && !requestDto.getInterest().isEmpty()) {
+            user.setInterest(requestDto.getInterest());
+        }
+        if (requestDto.getUserIntroduction() != null && !requestDto.getUserIntroduction().isEmpty()) {
+            user.setUserIntroduction(requestDto.getUserIntroduction());
+        }
+
+        // 저장 후 DTO로 변환하여 반환
+        userRepository.save(user);
+
+        return UserResponseDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
+                .role(user.getRole())
+                .interest(user.getInterest())
+                .userTemperature(user.getUserTemperature())
+                .kakaoId(user.getKakaoId())
+                .userIntroduction(user.getUserIntroduction())
+                .build();
     }
 
     // 역할에 따른 채소명을 반환하는 메서드
