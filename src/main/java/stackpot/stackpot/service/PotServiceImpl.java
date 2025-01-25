@@ -166,8 +166,8 @@ public class PotServiceImpl implements PotService {
         return potPage.getContent().stream()
                 .map(pot -> PotAllResponseDTO.PotDetail.builder()
                         .user(UserResponseDto.builder()
-                                .nickname(pot.getUser().getNickname())
-                                .role(String.valueOf(pot.getUser().getRole()))  // ENUM → String 변환
+                                .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
+                                .role(pot.getUser().getRole())  // ENUM → String 변환
                                 .build())
                         .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                         .build())
@@ -218,7 +218,7 @@ public class PotServiceImpl implements PotService {
         return ApplicantResponseDTO.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname())
-                        .role(String.valueOf(pot.getUser().getRole()))
+                        .role(pot.getUser().getRole())
                         .build())
                 .pot(potDto)
                 .applicant(applicantDto)
@@ -272,7 +272,7 @@ public class PotServiceImpl implements PotService {
                 .filter(PotApplication::getLiked)
                 .map(app -> LikedApplicantResponseDTO.builder()
                         .applicationId(app.getApplicationId())
-                        .applicantRole(String.valueOf(app.getPotRole()))
+                        .applicantRole(app.getPotRole())
                         .potNickname(app.getUser().getNickname() + getVegetableNameByRole(String.valueOf(app.getPotRole())))
                         .liked(app.getLiked())
                         .build())
@@ -287,10 +287,10 @@ public class PotServiceImpl implements PotService {
 
     private String getVegetableNameByRole(String role) {
         Map<String, String> roleToVegetableMap = Map.of(
-                "디자이너", " 브로콜리",
-                "기획자", " 당근",
-                "백앤드", " 양파",
-                "프론트앤드", " 버섯"
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근",
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯"
         );
 
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
@@ -339,7 +339,7 @@ public class PotServiceImpl implements PotService {
             // 유저 정보를 DTO로 변환
             UserResponseDto userDto = UserResponseDto.builder()
                     .nickname(pot.getUser().getNickname())
-                    .role(String.valueOf(pot.getUser().getRole()))
+                    .role(pot.getUser().getRole())
                     .build();
 
             return PotAllResponseDTO.PotDetail.builder()
@@ -455,7 +455,7 @@ public class PotServiceImpl implements PotService {
         return PotAllResponseDTO.PotDetail.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
-                        .role(String.valueOf(pot.getUser().getRole()))
+                        .role(pot.getUser().getRole())
                         .build())
                 .pot(potDto)
                 .build();
@@ -474,14 +474,14 @@ public class PotServiceImpl implements PotService {
         List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
                 .map(member -> PotMemberResponseDTO.builder()
                         .potMemberId(member.getPotMemberId())
-                        .roleName(String.valueOf(member.getRoleName()))
+                        .roleName(member.getRoleName())
                         .build())
                 .collect(Collectors.toList());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDto.builder()
                         .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
-                        .role(String.valueOf(pot.getUser().getRole()))
+                        .role(pot.getUser().getRole())
                         .build())
                 .pot(PotResponseDto.builder()
                         .potId(pot.getPotId())
