@@ -82,17 +82,29 @@ public class MyPotServiceImpl implements MyPotService {
         return potTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser))
                 .entrySet().stream()
-                .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(String.valueOf(entry.getKey().getRole())))
-                        .userId(entry.getKey().getId())
-                        .todos(entry.getValue().stream()
-                                .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
-                                        .todoId(todo.getTodoId())
-                                        .content(todo.getContent())
-                                        .status(todo.getStatus())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build())
+                .map(entry -> {
+                    // 해당 유저의 pot에서 potMember 역할 찾기
+                    String roleName = entry.getValue().stream()
+                            .findFirst()
+                            .flatMap(todo -> todo.getPot().getPotMembers().stream()
+                                    .filter(member -> member.getUser().equals(entry.getKey()))
+                                    .map(member -> member.getRoleName().name())  // ENUM -> String 변환
+                                    .findFirst()
+                            )
+                            .orElse("UNKNOWN");  // 기본값 설정
+
+                    return MyPotTodoResponseDTO.builder()
+                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
+                            .userId(entry.getKey().getId())
+                            .todos(entry.getValue().stream()
+                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                            .todoId(todo.getTodoId())
+                                            .content(todo.getContent())
+                                            .status(todo.getStatus())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -112,21 +124,30 @@ public class MyPotServiceImpl implements MyPotService {
         // 특정 팟의 모든 To-Do 조회
         List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
 
-        // 사용자별로 그룹화하여 반환
+        // 특정 팟의 모든 To-Do 조회
         return potTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser))
                 .entrySet().stream()
-                .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(String.valueOf(entry.getKey().getRole())))
-                        .userId(entry.getKey().getId())
-                        .todos(entry.getValue().stream()
-                                .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
-                                        .todoId(todo.getTodoId())
-                                        .content(todo.getContent())
-                                        .status(todo.getStatus())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build())
+                .map(entry -> {
+                    // 해당 유저의 pot에서 potMember 역할 찾기
+                    String roleName = pot.getPotMembers().stream()
+                            .filter(member -> member.getUser().equals(entry.getKey()))
+                            .map(member -> member.getRoleName().name())  // Enum을 String으로 변환
+                            .findFirst()
+                            .orElse("UNKNOWN");  // 기본값을 String으로 설정
+
+                    return MyPotTodoResponseDTO.builder()
+                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
+                            .userId(entry.getKey().getId())
+                            .todos(entry.getValue().stream()
+                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                            .todoId(todo.getTodoId())
+                                            .content(todo.getContent())
+                                            .status(todo.getStatus())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -169,17 +190,29 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
         return groupedByUser.entrySet().stream()
-                .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(String.valueOf(entry.getKey().getRole())))
-                        .userId(entry.getKey().getId())
-                        .todos(entry.getValue().stream()
-                                .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
-                                        .todoId(todo.getTodoId())
-                                        .content(todo.getContent())
-                                        .status(todo.getStatus())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build())
+                .map(entry -> {
+                    // 해당 유저의 pot에서 potMember 역할 찾기
+                    String roleName = entry.getValue().stream()
+                            .findFirst()
+                            .flatMap(todo -> todo.getPot().getPotMembers().stream()
+                                    .filter(member -> member.getUser().equals(entry.getKey()))
+                                    .map(member -> member.getRoleName().name())  // ENUM -> String 변환
+                                    .findFirst()
+                            )
+                            .orElse("UNKNOWN");  // 기본값 설정
+
+                    return MyPotTodoResponseDTO.builder()
+                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
+                            .userId(entry.getKey().getId())
+                            .todos(entry.getValue().stream()
+                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                            .todoId(todo.getTodoId())
+                                            .content(todo.getContent())
+                                            .status(todo.getStatus())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 

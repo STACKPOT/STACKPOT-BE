@@ -16,7 +16,7 @@ public class TodoCleanupService {
 
     private final TodoRepository todoRepository;
 
-    // 매일 자정(00:00:00)에 실행
+    // 매일 오전 3시 (03:00:00)에 실행
     @Scheduled(cron = "0 0 3 * * ?")
     @Transactional  // 트랜잭션 추가
     public void deleteOldTodos() {
