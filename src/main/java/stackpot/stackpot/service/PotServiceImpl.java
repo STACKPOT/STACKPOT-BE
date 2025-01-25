@@ -17,6 +17,7 @@ import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotApplication;
+import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
@@ -38,7 +39,7 @@ public class PotServiceImpl implements PotService {
     private final PotConverter potConverter;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-
+    private final PotMemberRepository potMemberRepository;
     @Transactional
     public PotResponseDto createPotWithRecruitments(PotRequestDto requestDto) {
         // 인증 정보에서 사용자 이메일 가져오기
@@ -51,6 +52,8 @@ public class PotServiceImpl implements PotService {
 
         // 팟 생성
         Pot pot = potConverter.toEntity(requestDto, user);
+        // 2. 팟 상태를 "ing"로 설정
+        pot.setPotStatus("RECRUITING");
         Pot savedPot = potRepository.save(pot);
 
         // 모집 정보 저장
@@ -90,7 +93,6 @@ public class PotServiceImpl implements PotService {
         // 업데이트 로직
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
-                "potStartDate", requestDto.getPotStartDate(),
                 "potEndDate", requestDto.getPotEndDate(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),
@@ -118,7 +120,33 @@ public class PotServiceImpl implements PotService {
         return potConverter.toDto(pot, recruitmentDetails);
     }
 
+    @Transactional
+    @Override
+    public List<CompletedPotResponseDto> getMyCompletedPots() {
+        // 현재 인증된 사용자 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
+        // 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 사용자가 생성하거나 참여한 COMPLETED 상태의 팟 가져오기
+        List<Pot> completedPots = potRepository.findCompletedPotsByCreatorOrMember(user.getId());
+
+        // 역할별 인원 조회 및 DTO 변환
+        return completedPots.stream()
+                .map(pot -> {
+                    List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
+                    Map<String, Integer> roleCountsMap = roleCounts.stream()
+                            .collect(Collectors.toMap(
+                                    roleCount -> ((Role) roleCount[0]).name(),
+                                    roleCount -> ((Long) roleCount[1]).intValue()
+                            ));
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+                })
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public void deletePot(Long potId) {
@@ -200,7 +228,7 @@ public class PotServiceImpl implements PotService {
 
         return ApplicantResponseDTO.builder()
                 .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname())
+                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
                         .role(pot.getUser().getRole())
                         .build())
                 .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용

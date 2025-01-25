@@ -2,6 +2,7 @@ package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 //import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+@Tag(name = "User Management", description = "유저 관리 API")
 @Slf4j
 @RestController
 @RequiredArgsConstructor

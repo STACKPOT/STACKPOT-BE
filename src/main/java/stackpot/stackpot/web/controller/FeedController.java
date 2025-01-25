@@ -1,6 +1,7 @@
 package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/feeds")
 @RequiredArgsConstructor
+@Tag(name = "Feed Management", description = "피드 관리 API")
 public class FeedController {
 
     private final FeedService feedService;

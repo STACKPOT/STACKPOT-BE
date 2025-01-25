@@ -32,6 +32,7 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = true, length = 255)
     private String nickname; // 닉네임
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = true, length = 255)
     private Role role; // 역할
 

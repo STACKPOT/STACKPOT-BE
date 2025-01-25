@@ -18,6 +18,7 @@ import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.PotMemberRequestDto;
 import stackpot.stackpot.web.dto.PotMemberAppealResponseDto;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,7 +52,10 @@ public class PotMemberServiceImpl implements PotMemberService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
 
         // 2. 팟 상태를 "ing"로 설정
-        pot.setPotStatus("ing");
+        pot.setPotStatus("ONGOING");
+
+        // 3. 팟의 시작 날짜를 현재 날짜로 설정
+        pot.setPotStartDate(LocalDate.now()); // 필드 이름에 따라 메서드 호출
         potRepository.save(pot); // 변경 사항 저장
 
 
