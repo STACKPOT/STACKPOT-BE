@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.converter.TaskboardConverter;
 import stackpot.stackpot.domain.Pot;
@@ -80,13 +83,18 @@ public class MyPotServiceImpl implements MyPotService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
+        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // 해당 Pot 존재 여부 확인
+        // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
+        // 소유자 확인
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
 
         // To-Do 생성
         UserTodo userTodo = UserTodo.builder()
@@ -107,14 +115,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .entrySet().stream()
                 .map(entry -> {
                     // 해당 유저의 pot에서 potMember 역할 찾기
-                    String roleName = entry.getValue().stream()
-                            .findFirst()
-                            .flatMap(todo -> todo.getPot().getPotMembers().stream()
-                                    .filter(member -> member.getUser().equals(entry.getKey()))
-                                    .map(member -> member.getRoleName().name())  // ENUM -> String 변환
-                                    .findFirst()
-                            )
-                            .orElse("UNKNOWN");  // 기본값 설정
+                    String roleName = getUserRoleInPot(entry.getKey(), pot);
 
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
@@ -137,12 +138,18 @@ public class MyPotServiceImpl implements MyPotService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
+        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // 해당 Pot 존재 여부 확인
+        // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        // 소유자 확인
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
 
         // 특정 팟의 모든 To-Do 조회
         List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
@@ -153,11 +160,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .entrySet().stream()
                 .map(entry -> {
                     // 해당 유저의 pot에서 potMember 역할 찾기
-                    String roleName = pot.getPotMembers().stream()
-                            .filter(member -> member.getUser().equals(entry.getKey()))
-                            .map(member -> member.getRoleName().name())  // Enum을 String으로 변환
-                            .findFirst()
-                            .orElse("UNKNOWN");  // 기본값을 String으로 설정
+                    String roleName = getUserRoleInPot(entry.getKey(), pot); // 기본값을 String으로 설정
 
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
@@ -181,12 +184,18 @@ public class MyPotServiceImpl implements MyPotService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
+        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // 해당 Pot 존재 여부 확인
+        // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        // 소유자 확인
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
 
         // 특정 팟에 속한 모든 투두 리스트 조회 (사용자별)
         List<UserTodo> userTodos = myPotRepository.findByPotAndUser(pot, user);
@@ -215,14 +224,7 @@ public class MyPotServiceImpl implements MyPotService {
         return groupedByUser.entrySet().stream()
                 .map(entry -> {
                     // 해당 유저의 pot에서 potMember 역할 찾기
-                    String roleName = entry.getValue().stream()
-                            .findFirst()
-                            .flatMap(todo -> todo.getPot().getPotMembers().stream()
-                                    .filter(member -> member.getUser().equals(entry.getKey()))
-                                    .map(member -> member.getRoleName().name())  // ENUM -> String 변환
-                                    .findFirst()
-                            )
-                            .orElse("UNKNOWN");  // 기본값 설정
+                    String roleName = getUserRoleInPot(entry.getKey(), pot);
 
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
@@ -246,19 +248,20 @@ public class MyPotServiceImpl implements MyPotService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
+        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // 해당 팟이 존재하는지 확인
+        // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         // 해당 투두가 존재하는지 확인 및 소유자 검증
         UserTodo userTodo = myPotRepository.findByTodoIdAndPot_PotId(todoId, potId)
-                .orElseThrow(() -> new IllegalArgumentException("Todo not found for given potId and todoId"));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.USER_TODO_NOT_FOUND));
 
         if (!userTodo.getUser().equals(user)) {
-            throw new SecurityException("You are not authorized to update this todo");
+            throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED);
         }
 
         // To-Do 상태 업데이트
@@ -271,17 +274,23 @@ public class MyPotServiceImpl implements MyPotService {
         return potTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser))
                 .entrySet().stream()
-                .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname())
-                        .userId(entry.getKey().getId())
-                        .todos(entry.getValue().stream()
-                                .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
-                                        .todoId(todo.getTodoId())
-                                        .content(todo.getContent())
-                                        .status(todo.getStatus())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build())
+                .map(entry -> {
+                    // 소유자인지 확인하고 적절한 역할 적용
+                    String roleName = getUserRoleInPot(entry.getKey(), pot);
+                    String userNicknameWithRole = entry.getKey().getNickname() + getVegetableNameByRole(roleName);
+
+                    return MyPotTodoResponseDTO.builder()
+                            .userNickname(userNicknameWithRole)
+                            .userId(entry.getKey().getId())
+                            .todos(entry.getValue().stream()
+                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                            .todoId(todo.getTodoId())
+                                            .content(todo.getContent())
+                                            .status(todo.getStatus())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -330,7 +339,7 @@ public class MyPotServiceImpl implements MyPotService {
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
+                        .nickname(pot.getUser().getNickname())
                         .role(pot.getUser().getRole())
                         .build())
                 .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))
@@ -393,8 +402,22 @@ public class MyPotServiceImpl implements MyPotService {
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 
-    private void updateUserData(Taskboard taskboard, MyPotTaskRequestDto.create request) {
 
+    private String getUserRoleInPot(User user, Pot pot) {
+        if (pot.getUser().equals(user)) {
+            // 소유자인 경우, 사용자의 역할을 직접 가져옴
+            return pot.getUser().getRole().name();
+        } else {
+            // 참여자인 경우, potMember에서 역할을 가져옴
+            return pot.getPotMembers().stream()
+                    .filter(member -> member.getUser().equals(user))
+                    .map(member -> member.getRoleName().name())  // ENUM -> String 변환
+                    .findFirst()
+                    .orElse("UNKNOWN");  // 기본값 설정
+        }
+    }
+
+    private void updateUserData(Taskboard taskboard, MyPotTaskRequestDto.create request) {
         if(request.getTitle() !=null){
             taskboard.setTitle(request.getTitle());
         }

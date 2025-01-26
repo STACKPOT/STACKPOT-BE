@@ -10,8 +10,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.ApplicationHandler;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.PotConverter;
+import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
@@ -23,6 +28,8 @@ import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,7 +53,7 @@ public class PotServiceImpl implements PotService {
 
         // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 팟 생성
         Pot pot = potConverter.toEntity(requestDto, user);
@@ -77,15 +84,15 @@ public class PotServiceImpl implements PotService {
 
         // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         // 소유자 확인
         if (!pot.getUser().equals(user)) {
-            throw new IllegalArgumentException("You do not have permission to update this pot.");
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
         // 업데이트 로직
@@ -160,15 +167,15 @@ public class PotServiceImpl implements PotService {
 
         // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         // 팟 소유자 확인
         if (!pot.getUser().equals(user)) {
-            throw new IllegalArgumentException("You do not have permission to delete this pot.");
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
         // 모집 정보 삭제
@@ -197,10 +204,7 @@ public class PotServiceImpl implements PotService {
 
         return potPage.getContent().stream()
                 .map(pot -> PotAllResponseDTO.PotDetail.builder()
-                        .user(UserResponseDto.builder()
-                                .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
-                                .role(pot.getUser().getRole())  // ENUM → String 변환
-                                .build())
+                        .user(UserConverter.toDto(pot.getUser()))
                         .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                         .build())
                 .collect(Collectors.toList());
@@ -210,7 +214,7 @@ public class PotServiceImpl implements PotService {
     @Override
     public ApplicantResponseDTO getPotDetails(Long potId) {
         Pot pot = potRepository.findPotWithRecruitmentDetailsByPotId(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         // 지원자 정보를 DTO로 변환
         List<ApplicantResponseDTO.ApplicantDto> applicantDto = pot.getPotApplication().stream()
@@ -221,20 +225,9 @@ public class PotServiceImpl implements PotService {
                         .build())
                 .collect(Collectors.toList());
 
-        // 모집 정보를 DTO로 변환
-        List<PotRecruitmentResponseDto> recruitmentDetailsDto = pot.getRecruitmentDetails().stream()
-                .map(details -> PotRecruitmentResponseDto.builder()
-                        .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
-                        .recruitmentCount(details.getRecruitmentCount())
-                        .build())
-                .collect(Collectors.toList());
 
         return ApplicantResponseDTO.builder()
-                .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname())
-                        .role(pot.getUser().getRole())
-                        .build())
+                .user(UserConverter.toDto(pot.getUser()))
                 .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .applicant(applicantDto)
                 .build();
@@ -247,14 +240,14 @@ public class PotServiceImpl implements PotService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         // 팟 생성자 확인
         if (!pot.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("Only the pot owner can modify likes.");
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
         PotApplication application = pot.getPotApplication().stream()
@@ -273,14 +266,14 @@ public class PotServiceImpl implements PotService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         // 팟 생성자 확인
         if (!pot.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("Only the pot owner can view liked applicants.");
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
         return pot.getPotApplication().stream()
@@ -292,12 +285,6 @@ public class PotServiceImpl implements PotService {
                         .liked(app.getLiked())
                         .build())
                 .collect(Collectors.toList());
-        /*pot role
-            브로콜리 : 디자이너
-            당근 : 기획자
-            양파 : 백앤드
-            버섯 : 프론트앤드
-        */
     }
 
     private String getVegetableNameByRole(String role) {
@@ -318,25 +305,22 @@ public class PotServiceImpl implements PotService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 사용자가 지원한 팟 조회
         List<Pot> appliedPots = potRepository.findByPotApplication_User_Id(user.getId());
-
-        // Pot 리스트를 PotAllResponseDTO.PotDetail로 변환
-        return appliedPots.stream().map(pot -> {
-            // 유저 정보를 DTO로 변환
-            UserResponseDto userDto = UserResponseDto.builder()
-                    .nickname(pot.getUser().getNickname())
-                    .role(pot.getUser().getRole())
-                    .build();
+        if (appliedPots.isEmpty()) {
+            throw new ApplicationHandler(ErrorStatus.APPLICATION_NOT_FOUND);
+        }
 
 
-            return PotAllResponseDTO.PotDetail.builder()
-                    .user(userDto)
-                    .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
-                    .build();
-        }).collect(Collectors.toList());
+        return appliedPots.stream()
+                .map(pot -> PotAllResponseDTO.PotDetail.builder()
+                        .user(UserConverter.toDto(pot.getUser()))
+                        .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))
+                        .build()
+                )
+                .collect(Collectors.toList());
     }
 
     // 사용자가 만든 팟 조회
@@ -346,7 +330,7 @@ public class PotServiceImpl implements PotService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 사용자가 만든 팟 조회
         List<Pot> myPots = potRepository.findByUserId(user.getId());
@@ -383,18 +367,18 @@ public class PotServiceImpl implements PotService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         // 팟 생성자 확인
         if (!pot.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("Only the pot owner can modify pot status.");
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
         // 팟 상태를 "complete"으로 변경
-        pot.setPotStatus("complete");
+        pot.setPotStatus("COMPLETED");
 
         // 변경된 상태 저장
         potRepository.save(pot);
@@ -403,7 +387,7 @@ public class PotServiceImpl implements PotService {
     @Override
     public PotSummaryResponseDTO getPotSummary(Long potId) {
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         String prompt = "구인글에 내용을 우리 프로젝트를 소개하는 400자로 정리해줘. " +
                 "기획 배경, 주요기능, 어떤 언어와 프레임워크 사용했는지 등등 구체적인게 들어있으면 더 좋아.\n" +
@@ -420,10 +404,7 @@ public class PotServiceImpl implements PotService {
     private PotAllResponseDTO.PotDetail convertToPotDetail(Pot pot) {
 
         return PotAllResponseDTO.PotDetail.builder()
-                .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
-                        .role(pot.getUser().getRole())
-                        .build())
+                .user(UserConverter.toDto(pot.getUser()))
                 .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .build();
     }
@@ -438,14 +419,9 @@ public class PotServiceImpl implements PotService {
                         .build())
                 .collect(Collectors.toList());
 
-        System.out.println("Recruitment Details: " + pot.getRecruitmentDetails());
-        System.out.println("Pot Members: " + pot.getPotMembers());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
-                .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
-                        .role(pot.getUser().getRole())
-                        .build())
+                .user(UserConverter.toDto(pot.getUser()))
                 .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
                 .potMembers(potMembers)
                 .build();

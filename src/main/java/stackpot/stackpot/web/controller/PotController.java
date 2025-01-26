@@ -9,6 +9,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.EnumHandler;
+import stackpot.stackpot.apiPayload.exception.handler.RecruitmentHandler;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.enums.Role;
@@ -82,7 +85,6 @@ public class PotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-
     //-------------------
 
     @Operation(
@@ -92,32 +94,37 @@ public class PotController {
         만약 null인 경우 모든 role에 대해서 조회합니다.    
     """
     )
-
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
             @RequestParam(required = false) String recruitmentRole,
-            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
+
+        if (page < 1) {
+            throw new EnumHandler(ErrorStatus.INVALID_PAGE);
+        }
 
         Role roleEnum = null;
         if (recruitmentRole != null && !recruitmentRole.isEmpty()) {
             try {
                 roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid recruitment role provided: " + recruitmentRole);
+                throw new RecruitmentHandler(ErrorStatus.INVALID_ROLE);
             }
         }
 
-        List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(roleEnum, page, size);
+        int adjustedPage = page - 1;
+
+        List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(roleEnum, adjustedPage, size);
 
         Page<Pot> potPage = (roleEnum == null)
-                ? potRepository.findAll(PageRequest.of(page, size))
-                : potRepository.findByRecruitmentDetails_RecruitmentRole(roleEnum, PageRequest.of(page, size));
+                ? potRepository.findAll(PageRequest.of(adjustedPage, size))
+                : potRepository.findByRecruitmentDetails_RecruitmentRole(roleEnum, PageRequest.of(adjustedPage, size));
 
         Map<String, Object> response = new HashMap<>();
         response.put("pots", pots);
         response.put("totalPages", potPage.getTotalPages());
-        response.put("currentPage", potPage.getNumber());
+        response.put("currentPage", potPage.getNumber() + 1);
         response.put("totalElements", potPage.getTotalElements());
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
@@ -165,13 +172,6 @@ public class PotController {
         List<PotAllResponseDTO> myPots = potService1.getMyPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(myPots));
     }
-
-    /*// 사용자가 만든 팟 다 끓이기
-    @PatchMapping("/{pot_id}/complete")
-    public ResponseEntity<ApiResponse<Void>> patchPotStatus(@PathVariable("pot_id") Long potId) {
-        potService1.patchPotStatus(potId);
-        return ResponseEntity.ok(ApiResponse.onSuccess(null));
-    }*/
 
 
     // Pot 내용 AI 요약

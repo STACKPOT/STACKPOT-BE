@@ -67,6 +67,11 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(generalException,errorReasonHttpStatus,null,request);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException e, WebRequest request) {
+        return handleExceptionInternalFalse(e, ErrorStatus.INVALID_ROLE, HttpHeaders.EMPTY, HttpStatus.BAD_REQUEST, request, e.getMessage());
+    }
+
     private ResponseEntity<Object> handleExceptionInternal(Exception e, ErrorReasonDTO reason,
                                                            HttpHeaders headers, HttpServletRequest request) {
 

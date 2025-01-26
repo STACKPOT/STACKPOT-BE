@@ -19,3 +19,4 @@ public class PotApplicationResponseDto {
     private Long userId;
     private String userNickname;
 }
+

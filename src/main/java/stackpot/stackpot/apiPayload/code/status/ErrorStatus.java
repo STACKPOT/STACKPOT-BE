@@ -15,7 +15,29 @@ public enum ErrorStatus implements BaseErrorCode {
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
-    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "등록된 사용자가 없습니다."),;
+    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4004", "등록된 사용자가 없습니다."),
+
+    // Pot 관련 에러
+    POT_NOT_FOUND(HttpStatus.NOT_FOUND, "POT4004", "팟이 존재하지 않습니다."),
+    POT_FORBIDDEN(HttpStatus.FORBIDDEN, "POT4003", "팟 생성자가 아닙니다."),
+
+    // 모집 관련 에러
+    RECRUITMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "RECRUITMENT4004", "모집 내역이 없습니다."),
+
+    // 지원 관련 에러
+    APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "APPLICATION4004", "지원 내역이 없습니다."),
+
+    // 페이지 관련 에러
+    INVALID_PAGE(HttpStatus.BAD_REQUEST, "PAGE4000", "Page는 1이상입니다."),
+
+    // 투두 관련 에러 코드
+    USER_TODO_NOT_FOUND(HttpStatus.BAD_REQUEST,"TODO4004", "해당 Pot ID 및 Todo ID에 대한 투두를 찾을 수 없습니다."),
+    USER_TODO_UNAUTHORIZED(HttpStatus.FORBIDDEN,"TODO4003", "해당 투두에 대한 수정 권한이 없습니다."),
+
+    // Enum 관련 에러
+    INVALID_POT_STATUS(HttpStatus.BAD_REQUEST, "POT_STATUS4000", "Pot Status 형식이 올바르지 않습니다 (RECRUITING / ONGOING / COMPLETED)"),
+    INVALID_POT_MODE_OF_OPERATION(HttpStatus.BAD_REQUEST, "MODE_OF_OPERATION4000", "Pot ModeOfOperation 형식이 올바르지 않습니다 (ONLINE / OFFLINE / HYBRID)"),
+    INVALID_ROLE(HttpStatus.BAD_REQUEST, "ROLE4000", "Role 형식이 올바르지 않습니다 (FRONTEND / DESIGN / BACKEND / PLANNING)");
 
 
     private final HttpStatus httpStatus;
