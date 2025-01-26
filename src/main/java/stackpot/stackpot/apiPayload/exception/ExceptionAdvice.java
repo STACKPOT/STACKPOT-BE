@@ -2,6 +2,7 @@ package stackpot.stackpot.apiPayload.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -16,15 +17,15 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.ErrorReasonDTO;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.web.controller.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-//@RestControllerAdvice(annotations = {RestController.class})
+@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {UserController.class, PotController.class, FeedController.class, MyPotController.class, PotApplicationController.class, PotMemberController.class})
 public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 
 
@@ -64,6 +65,11 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity onThrowException(GeneralException generalException, HttpServletRequest request) {
         ErrorReasonDTO errorReasonHttpStatus = generalException.getErrorReasonHttpStatus();
         return handleExceptionInternal(generalException,errorReasonHttpStatus,null,request);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException e, WebRequest request) {
+        return handleExceptionInternalFalse(e, ErrorStatus.INVALID_ROLE, HttpHeaders.EMPTY, HttpStatus.BAD_REQUEST, request, e.getMessage());
     }
 
     private ResponseEntity<Object> handleExceptionInternal(Exception e, ErrorReasonDTO reason,

@@ -2,24 +2,21 @@ package stackpot.stackpot.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import stackpot.stackpot.converter.UserConverter;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
-import stackpot.stackpot.web.dto.UserMypageResponseDto;
-import stackpot.stackpot.web.dto.UserRequestDto;
-import stackpot.stackpot.web.dto.UserResponseDto;
-import stackpot.stackpot.web.dto.UserUpdateRequestDto;
+import stackpot.stackpot.web.dto.*;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +28,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     private final PotRepository potRepository;
     private final FeedRepository feedRepository;
     private final UserMypageConverter userMypageConverter;
+    private final PotSummarizationService potSummarizationService;
 
     @Override
     @Transactional
@@ -40,7 +38,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         updateUserData(user, request);
 
@@ -67,7 +65,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 닉네임
         user.setNickname(request.getNickname());
         // 역할군
-        user.setRole(Role.valueOf(String.valueOf(request.getRole())));
+        user.setRole(request.getRole());
         // 관심사
         user.setInterest(request.getInterest());
         //한줄 소개
@@ -80,7 +78,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // User 정보를 UserResponseDto로 변환
         return UserResponseDto.builder()
@@ -95,19 +93,31 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Transactional
-    public UserMypageResponseDto getUserMypage(Long userId) {
+    public UserMypageResponseDto getUserMypage(Long userId, String dataType) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // COMPLETED 상태의 팟 조회
-        List<Pot> completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
+        List<Pot> completedPots = List.of();
+        List<Feed> feeds = List.of();
 
-        // 사용자의 피드 조회
-        List<Feed> userFeeds = feedRepository.findByUser_Id(userId);
+        if (dataType == null || dataType.isBlank()) {
+            // 모든 데이터 반환 (pot + feed)
+            completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
+            feeds = feedRepository.findByUser_Id(userId);
+        } else if ("pot".equalsIgnoreCase(dataType)) {
+            // 팟 정보만 반환
+            completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
+        } else if ("feed".equalsIgnoreCase(dataType)) {
+            // 피드 정보만 반환
+            feeds = feedRepository.findByUser_Id(userId);
+        } else {
+            throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
+        }
 
-        // 컨버터를 사용하여 변환 (좋아요 개수 포함)
-        return userMypageConverter.toDto(user, completedPots, userFeeds);
+        return userMypageConverter.toDto(user, completedPots, feeds);
     }
+
+
 
     @Transactional
     public UserResponseDto updateUserProfile(UserUpdateRequestDto requestDto) {
@@ -116,7 +126,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 업데이트할 필드 적용
         if (requestDto.getRole() != null) {
@@ -141,6 +151,16 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .kakaoId(user.getKakaoId())
                 .userIntroduction(user.getUserIntroduction())
                 .build();
+    }
+
+    @Override
+    public String createNickname() {
+        String prompt = "“재미있고 긍정적인 형용사와 명사를 결합한 문구를 만들어 주세요. 형식은 ‘형용사 명사’입니다"
+                + "예를 들어, ‘잘 자라는 양파’, ‘힘이 넘치는 버섯’ 같은 느낌으로 작성해 주세요.”";
+
+        String nickname = potSummarizationService.summarizeText(prompt, 15);
+
+        return nickname;
     }
 
     // 역할에 따른 채소명을 반환하는 메서드

@@ -12,7 +12,9 @@ public interface UserCommandService {
 
     UserResponseDto getMypages();
 
-    UserMypageResponseDto getUserMypage(Long userId);
+    UserMypageResponseDto getUserMypage(Long userId, String dataType);
 
     UserResponseDto updateUserProfile(UserUpdateRequestDto requestDto);
+
+    String createNickname();
 }

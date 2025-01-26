@@ -81,12 +81,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
     }
 
-    @Operation(summary = "닉네임 생성")
+    @Operation(summary = "닉네임 생성 [질문 수정 필요]")
     @GetMapping("/nickname")
-    public ResponseEntity<String> nickname(){
+    public ResponseEntity<ApiResponse<String>> nickname(){
+        String nickName = userCommandService.createNickname();
 
-        return null;
-//        return ResponseEntity.ok();
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
     @Operation(summary = "마이페이지 사용자 정보 조회 API")
@@ -96,10 +97,12 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
-    @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API")
+    @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
     @GetMapping("/{userId}/mypages")
-    public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(@PathVariable Long userId) {
-        UserMypageResponseDto response = userCommandService.getUserMypage(userId);
+    public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String dataType) {
+        UserMypageResponseDto response = userCommandService.getUserMypage(userId, dataType);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
