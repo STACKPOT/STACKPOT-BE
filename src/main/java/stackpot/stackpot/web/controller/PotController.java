@@ -84,6 +84,7 @@ public class PotController {
         CursorPageResponse<CompletedPotResponseDto> response = potService.getMyCompletedPots(cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
     //-------------------
 
     @Operation(

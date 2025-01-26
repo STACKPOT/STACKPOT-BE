@@ -135,7 +135,7 @@ public class PotServiceImpl implements PotService {
 
         // 사용자 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 사용자가 참여하거나 생성한 COMPLETED 상태의 팟 가져오기
         List<Pot> pots = potRepository.findCompletedPotsByCursor(user.getId(), cursor, size + 1);
