@@ -5,12 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
@@ -19,7 +17,6 @@ import stackpot.stackpot.web.dto.UserRequestDto;
 import stackpot.stackpot.web.dto.UserResponseDto;
 import stackpot.stackpot.web.dto.UserUpdateRequestDto;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +64,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 닉네임
         user.setNickname(request.getNickname());
         // 역할군
-        user.setRole(Role.valueOf(String.valueOf(request.getRole())));
+        user.setRole(request.getRole());
         // 관심사
         user.setInterest(request.getInterest());
         //한줄 소개

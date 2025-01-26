@@ -1,5 +1,7 @@
 package stackpot.stackpot.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.PotRequestDto;
 import stackpot.stackpot.web.dto.PotResponseDto;
@@ -11,7 +13,7 @@ import java.util.List;
 public interface PotService {
     PotResponseDto createPotWithRecruitments(PotRequestDto requestDto);
     PotResponseDto updatePotWithRecruitments(Long potId, PotRequestDto requestDto);
-    List<CompletedPotResponseDto> getMyCompletedPots();
+    CursorPageResponse<CompletedPotResponseDto> getMyCompletedPots(Long cursor, int size);
     void deletePot(Long potId);
 
     //---------------

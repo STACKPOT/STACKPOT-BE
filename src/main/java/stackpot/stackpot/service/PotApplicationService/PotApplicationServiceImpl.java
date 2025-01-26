@@ -80,11 +80,19 @@ public class PotApplicationServiceImpl implements PotApplicationService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
+        // 사용자 정보 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
         // 팟 조회
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
 
 
+
+        // 소유자 확인
+        if (!pot.getUser().equals(user)) {
+            throw new IllegalArgumentException("해당 팟 지원자 목록을 볼 수 있는 권한이 없습니다.");
+        }
 
         // 지원자 목록 조회
         List<PotApplication> applications = potApplicationRepository.findByPot_PotId(potId);
