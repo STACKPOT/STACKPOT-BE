@@ -7,13 +7,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
-import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
-import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
@@ -22,7 +19,6 @@ import stackpot.stackpot.web.dto.UserRequestDto;
 import stackpot.stackpot.web.dto.UserResponseDto;
 import stackpot.stackpot.web.dto.UserUpdateRequestDto;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +38,6 @@ public class UserCommandServiceImpl implements UserCommandService{
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
@@ -71,7 +66,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 닉네임
         user.setNickname(request.getNickname());
         // 역할군
-        user.setRole(Role.valueOf(String.valueOf(request.getRole())));
+        user.setRole(request.getRole());
         // 관심사
         user.setInterest(request.getInterest());
         //한줄 소개
@@ -83,7 +78,6 @@ public class UserCommandServiceImpl implements UserCommandService{
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
@@ -98,7 +92,6 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
                 .build();
     }
-
 
     @Transactional
     public UserMypageResponseDto getUserMypage(Long userId, String dataType) {

@@ -28,7 +28,8 @@ import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ public class PotServiceImpl implements PotService {
     private final PotRepository potRepository;
     private final PotRecruitmentDetailsRepository recruitmentDetailsRepository;
     private final PotConverter potConverter;
+    private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final PotMemberRepository potMemberRepository;
     @Transactional
@@ -96,6 +98,7 @@ public class PotServiceImpl implements PotService {
         // 업데이트 로직
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
+//                "potStartDate", requestDto.getPotStartDate(),
                 "potEndDate", requestDto.getPotEndDate(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),
@@ -125,7 +128,7 @@ public class PotServiceImpl implements PotService {
 
     @Transactional
     @Override
-    public List<CompletedPotResponseDto> getMyCompletedPots() {
+    public CursorPageResponse<CompletedPotResponseDto> getMyCompletedPots(Long cursor, int size) {
         // 현재 인증된 사용자 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -134,11 +137,14 @@ public class PotServiceImpl implements PotService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // 사용자가 생성하거나 참여한 COMPLETED 상태의 팟 가져오기
-        List<Pot> completedPots = potRepository.findCompletedPotsByCreatorOrMember(user.getId());
+        // 사용자가 참여하거나 생성한 COMPLETED 상태의 팟 가져오기
+        List<Pot> pots = potRepository.findCompletedPotsByCursor(user.getId(), cursor, size + 1);
 
-        // 역할별 인원 조회 및 DTO 변환
-        return completedPots.stream()
+        // 커서 및 데이터 반환
+        List<Pot> result = pots.size() > size ? pots.subList(0, size) : pots;
+        Long nextCursor = result.isEmpty() ? null : result.get(result.size() - 1).getPotId();
+
+        List<CompletedPotResponseDto> content = result.stream()
                 .map(pot -> {
                     List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
                     Map<String, Integer> roleCountsMap = roleCounts.stream()
@@ -149,6 +155,8 @@ public class PotServiceImpl implements PotService {
                     return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
                 })
                 .collect(Collectors.toList());
+
+        return new CursorPageResponse<>(content, nextCursor, pots.size() > size);
     }
 
     @Transactional
