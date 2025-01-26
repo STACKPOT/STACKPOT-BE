@@ -30,6 +30,7 @@ public class TaskboardConverterImpl implements TaskboardConverter{
                 .title(taskboard.getTitle())
                 .description(taskboard.getDescription())
                 .status(taskboard.getStatus())
+                .potId(taskboard.getPot().getPotId())
                 .build();
     }
     @Override

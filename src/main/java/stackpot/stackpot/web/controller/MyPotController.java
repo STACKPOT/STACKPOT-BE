@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
@@ -65,45 +66,51 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-//
-//    @Operation(summary = "[미완성] mypotTask 불러오기 API")
-//    @GetMapping("/my-pots/{pot_id}/tasks")
-//    public ResponseEntity<?> getPotTask(@PathVariable("pot_id") Long potId) {
-//
-//        return null;
-//    }
-//
-//    @Operation(summary = "mypotTask 상세보기 API")
-//    @GetMapping("/my-pots/{pot_id}/tasks/{task_id}")
-//    public ResponseEntity<?> getPotDetailTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
-//
-//        return null;
-//    }
-//
-//    @Operation(summary = "mypotTask 수정하기 API")
-//    @PostMapping("/my-pots/{pot_id}/tasks/{task_id}")
-//    public ResponseEntity<?> modifyPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) { // 바디 추가
-//
-//        return null;
-//    }
-//
-//    @Operation(summary = "mypotTask 삭제하기 API")
-//    @PostMapping("/my-pots/{pot_id}/tasks/{task_id}") //deletet???
-//    public ResponseEntity<?> deletetPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
-//
-//        return null;
-//    }
-//
-    @Operation(summary = "mypotTask 생성하기 API")
+    @Operation(summary = "mypotTask 생성 API")
     @PostMapping("/my-pots/{pot_id}/tasks")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> createPotTask(@PathVariable("pot_id") Long potId,
-                                           @Valid @RequestBody MyPotTaskRequestDto.create request) {
-        MyPotTaskResponseDto reaponse = myPotService.creatTask(potId, request);
+                                                                           @RequestBody @Valid MyPotTaskRequestDto.create request) {
+        MyPotTaskResponseDto response = myPotService.creatTask(potId, request);
 
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+    @Operation(summary = "mypotTask 상세보기 API")
+    @GetMapping("/my-pots/{pot_id}/tasks/{task_id}")
+    public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> getPotDetailTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(reaponse));
+        MyPotTaskResponseDto response = myPotService.viewDetailTask(taskId);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
+        @Operation(summary = "[미완성] mypotTask 불러오기 API")
+        @GetMapping("/my-pots/{pot_id}/tasks")
+        public ResponseEntity<?> getPotTask(@PathVariable("pot_id") Long potId) {
+
+            return null;
+        }
+
+    @Operation(summary = "mypotTask 수정 API")
+    @PatchMapping("/my-pots/{pot_id}/tasks/{task_id}")
+    public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> modifyPotTask(@PathVariable("task_id") Long taskId, @RequestBody @Valid MyPotTaskRequestDto.create request) {
+        MyPotTaskResponseDto response = myPotService.modfiyTask(taskId, request);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "mypotTask 삭제 API")
+    @DeleteMapping("/my-pots/{pot_id}/tasks/{task_id}")
+    public ResponseEntity<?> deletetPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
+        try {
+            myPotService.deleteTaskboard(potId, taskId);
+            return ResponseEntity.ok(ApiResponse.onSuccess("할일이 삭제되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while deleting the taskboard and associated tasks.");
+        }
+    }
     @Operation(summary = "Todo 완료 API", description = "todo의 status를 COMPLETED로 변경합니다.")
     @PatchMapping("/my-pots/{pot_id}/todos/{todo_id}")
     public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> completeTodo(

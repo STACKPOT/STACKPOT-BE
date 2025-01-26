@@ -24,4 +24,7 @@ public interface MyPotService {
     List<MyPotTodoResponseDTO> completeTodo(Long potId, Long todoId);
 
     MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request);
+    MyPotTaskResponseDto viewDetailTask(Long taskId);
+    MyPotTaskResponseDto modfiyTask(Long taskId, MyPotTaskRequestDto.create request);
+    void deleteTaskboard(Long potId, Long taskboardId);
 }

@@ -19,7 +19,7 @@ public class MyPotTaskResponseDto {
     private String description;
     private TaskboardStatus status;
     private LocalDateTime endDate;
-    private Pot pot;
+    private Long potId;
     private List<Participant> participants;
 
 
