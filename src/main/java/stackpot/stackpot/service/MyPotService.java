@@ -1,6 +1,7 @@
 package stackpot.stackpot.service;
 
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.mapping.UserTodo;
 import stackpot.stackpot.web.dto.*;
 
@@ -22,4 +23,5 @@ public interface MyPotService {
 
     List<MyPotTodoResponseDTO> completeTodo(Long potId, Long todoId);
 
+    MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request);
 }

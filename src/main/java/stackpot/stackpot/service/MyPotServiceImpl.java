@@ -6,13 +6,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.converter.PotConverter;
+import stackpot.stackpot.converter.TaskboardConverter;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.enums.TodoStatus;
+import stackpot.stackpot.domain.mapping.PotMember;
+import stackpot.stackpot.domain.mapping.Task;
 import stackpot.stackpot.domain.mapping.UserTodo;
+import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
+import stackpot.stackpot.repository.TaskRepository;
+import stackpot.stackpot.repository.TaskboardRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
@@ -27,6 +33,10 @@ public class MyPotServiceImpl implements MyPotService {
     private final MyPotRepository myPotRepository;
     private final UserRepository userRepository;
     private final PotConverter potConverter;
+    private final TaskboardConverter taskboardConverter;
+    private final TaskboardRepository taskboardRepository;
+    private final PotMemberRepository potMemberRepository;
+    private final TaskRepository taskRepository;
 
 
     @Override
@@ -272,6 +282,40 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
+
+    @Override
+    public MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request) {
+
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+
+        Taskboard taskboard = taskboardConverter.toTaskboard(pot, request);
+        taskboardRepository.save(taskboard);
+
+        List<PotMember> participants = potMemberRepository.findAllById(request.getParticipants());
+
+        if (participants.isEmpty()) {
+            throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
+        }
+
+        List<Task> tasks = participants.stream()
+                .map(participant -> Task.builder()
+                        .taskboard(taskboard)
+                        .potMember(participant)
+                        .build())
+                .collect(Collectors.toList());
+
+        taskRepository.saveAll(tasks);
+
+        List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
+
+        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
+        response.setParticipants(participantDtos);
+
+
+        return response;
+    }
+
     private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
         List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
                 .map(member -> PotMemberResponseDTO.builder()
@@ -301,6 +345,8 @@ public class MyPotServiceImpl implements MyPotService {
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
+
+
 
 
 }
