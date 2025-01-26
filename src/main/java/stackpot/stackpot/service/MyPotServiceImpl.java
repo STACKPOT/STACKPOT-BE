@@ -9,15 +9,23 @@ import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.converter.PotConverter;
+import stackpot.stackpot.converter.TaskboardConverter;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.TodoStatus;
+import stackpot.stackpot.domain.mapping.PotMember;
+import stackpot.stackpot.domain.mapping.Task;
 import stackpot.stackpot.domain.mapping.UserTodo;
+import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
+import stackpot.stackpot.repository.TaskRepository;
+import stackpot.stackpot.repository.TaskboardRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +39,10 @@ public class MyPotServiceImpl implements MyPotService {
     private final MyPotRepository myPotRepository;
     private final UserRepository userRepository;
     private final PotConverter potConverter;
+    private final TaskboardConverter taskboardConverter;
+    private final TaskboardRepository taskboardRepository;
+    private final PotMemberRepository potMemberRepository;
+    private final TaskRepository taskRepository;
 
 
     @Override
@@ -282,6 +294,40 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
+
+    @Override
+    public MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request) {
+
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+
+        Taskboard taskboard = taskboardConverter.toTaskboard(pot, request);
+        taskboardRepository.save(taskboard);
+
+        List<PotMember> participants = potMemberRepository.findAllById(request.getParticipants());
+
+        if (participants.isEmpty()) {
+            throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
+        }
+        createAndSaveTasks(taskboard, participants);
+        List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
+
+        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
+        response.setParticipants(participantDtos);
+        return response;
+    }
+
+    @Override
+    public MyPotTaskResponseDto viewDetailTask(Long taskboardId) {
+
+        Taskboard taskboard = taskboardRepository.findById(taskboardId)
+                .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskboardId));
+
+        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
+
+        return response;
+    }
+
     private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
         List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
                 .map(member -> PotMemberResponseDTO.builder()
@@ -301,6 +347,50 @@ public class MyPotServiceImpl implements MyPotService {
                 .build();
     }
 
+
+    @Override
+    public MyPotTaskResponseDto modfiyTask(Long taskId, MyPotTaskRequestDto.create request) {
+
+        Taskboard taskboard = taskboardRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskId));
+
+        updateUserData(taskboard, request);
+
+        List<PotMember> participants = new ArrayList<>();
+        if (request.getParticipants() != null && !request.getParticipants().isEmpty()) {
+            participants = potMemberRepository.findAllById(request.getParticipants());
+            if (participants.isEmpty()) {
+                throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
+            }
+        }
+        createAndSaveTasks(taskboard, participants);
+        List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
+
+        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
+        response.setParticipants(participantDtos);
+
+        return response;
+    }
+
+    @Transactional
+    @Override
+    public void deleteTaskboard(Long potId, Long taskboardId) {
+        Taskboard taskboard = taskboardRepository.findById(taskboardId)
+                .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskboardId));
+
+//        // Taskboard가 해당 Pot에 속해 있는지 확인
+//        if (!taskboard.getPot().getId().equals(potId)) {
+//            throw new IllegalArgumentException("The taskboard does not belong to the specified pot.");
+//        }
+
+        // Taskboard에 연결된 Task 삭제
+        List<Task> tasks = taskRepository.findByTaskboard(taskboard);
+        taskRepository.deleteAll(tasks);
+
+        // Taskboard 삭제
+        taskboardRepository.delete(taskboard);
+    }
+
     // 역할에 따른 채소명을 반환하는 메서드
     private String getVegetableNameByRole(String role) {
         Map<String, String> roleToVegetableMap = Map.of(
@@ -311,6 +401,7 @@ public class MyPotServiceImpl implements MyPotService {
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
+
 
     private String getUserRoleInPot(User user, Pot pot) {
         if (pot.getUser().equals(user)) {
@@ -326,5 +417,29 @@ public class MyPotServiceImpl implements MyPotService {
         }
     }
 
+    private void updateUserData(Taskboard taskboard, MyPotTaskRequestDto.create request) {
+        if(request.getTitle() !=null){
+            taskboard.setTitle(request.getTitle());
+        }
+        if(request.getDescription()!=null){
+            taskboard.setDescription(request.getDescription());
+        }
+        if(request.getDeadline()!=null){
+            taskboard.setEndDate(request.getDeadline());
+        }
+        if(request.getTaskboardStatus()!=null){
+            taskboard.setStatus(request.getTaskboardStatus());
+        }
+    }
 
+    private List<Task> createAndSaveTasks(Taskboard taskboard, List<PotMember> participants) {
+        List<Task> tasks = participants.stream()
+                .map(participant -> Task.builder()
+                        .taskboard(taskboard)
+                        .potMember(participant)
+                        .build())
+                .collect(Collectors.toList());
+
+        return taskRepository.saveAll(tasks);
+    }
 }
