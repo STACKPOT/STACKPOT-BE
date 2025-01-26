@@ -25,7 +25,7 @@ public class MyPotController {
 
     // 사용자가 만든 진행 중인 팟 조회
     @Operation(summary = "사용자의 팟 목록 조회 API", description = "사용자가 생성했거나, 참여하고 있으며 진행 중(ONGOING)인 팟들 리스트를 조회합니다. \n")
-    @GetMapping("/mypots/ongoing")
+    @GetMapping("/my-pots")
     public ResponseEntity<ApiResponse<Map<String, List<MyPotResponseDTO.OngoingPotsDetail>>>> getMyOngoingPots() {
         Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> response = myPotService.getMyOnGoingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
