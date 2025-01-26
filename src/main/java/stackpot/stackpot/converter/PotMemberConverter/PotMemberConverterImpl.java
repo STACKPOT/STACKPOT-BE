@@ -3,11 +3,8 @@ package stackpot.stackpot.converter.PotMemberConverter;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.mapping.PotMember;
-import stackpot.stackpot.web.dto.PotAllMemRequestDto;
-import stackpot.stackpot.web.dto.PotApplicationRequestDto;
 import stackpot.stackpot.web.dto.PotMemberAppealResponseDto;
 
 @Component
@@ -29,7 +26,7 @@ public class PotMemberConverterImpl implements PotMemberConverter {
 
     public PotMemberAppealResponseDto toDto(PotMember entity) {
         String roleName = entity.getRoleName() != null ? entity.getRoleName().name() : "멤버";
-        String nicknameWithRole = entity.getUser().getNickname() + roleName ;
+        String nicknameWithRole = entity.getUser().getNickname() + " "+mapRoleName(roleName) ;
 
         return PotMemberAppealResponseDto.builder()
                 .potMemberId(entity.getPotMemberId())

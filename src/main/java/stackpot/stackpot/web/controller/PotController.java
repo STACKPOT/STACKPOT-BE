@@ -1,23 +1,20 @@
 package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
-import stackpot.stackpot.service.PotServiceImpl;
-import stackpot.stackpot.web.dto.PotRequestDto;
-import stackpot.stackpot.web.dto.PotResponseDto;
-import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.service.PotService;
+import stackpot.stackpot.service.PotServiceImpl;
 import stackpot.stackpot.web.dto.*;
 
 import java.util.HashMap;
@@ -73,11 +70,19 @@ public class PotController {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/completed")
-    @Operation(summary = "나의 끓인 팟 정보 가져오기", description = "potStatus가 COMPLETED인 팟의 목록을 가져옵니다.")
-    public ResponseEntity<ApiResponse<List<CompletedPotResponseDto>>> getMyCompletedPots() {
-        List<CompletedPotResponseDto> response = potService.getMyCompletedPots();
+    @Operation(summary = "나의 끓인 팟 정보 가져오기", description = "potStatus가 COMPLETED인 팟의 목록을 커서 기반 페이지네이션으로 가져옵니다.",
+            parameters = {
+                    @Parameter(name = "cursor", description = "현재 페이지의 마지막 potId 값", example = "10"),
+                    @Parameter(name = "size", description = "한 페이지에 가져올 데이터 개수", example = "3")
+            })
+    public ResponseEntity<ApiResponse<CursorPageResponse<CompletedPotResponseDto>>> getMyCompletedPots(
+            @RequestParam(value = "cursor", required = false) Long cursor,
+            @RequestParam(value = "size", defaultValue = "3") int size) {
+        CursorPageResponse<CompletedPotResponseDto> response = potService.getMyCompletedPots(cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
+
     //-------------------
 
     @Operation(
