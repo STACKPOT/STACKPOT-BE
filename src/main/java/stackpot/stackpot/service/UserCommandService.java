@@ -15,4 +15,6 @@ public interface UserCommandService {
     UserMypageResponseDto getUserMypage(Long userId);
 
     UserResponseDto updateUserProfile(UserUpdateRequestDto requestDto);
+
+    String createNickname();
 }

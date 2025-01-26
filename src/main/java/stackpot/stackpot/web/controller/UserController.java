@@ -81,12 +81,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
     }
 
-    @Operation(summary = "닉네임 생성")
+    @Operation(summary = "닉네임 생성 [질문 수정 필요]")
     @GetMapping("/nickname")
-    public ResponseEntity<String> nickname(){
+    public ResponseEntity<ApiResponse<String>> nickname(){
+        String nickName = userCommandService.createNickname();
 
-        return null;
-//        return ResponseEntity.ok();
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
     @Operation(summary = "마이페이지 사용자 정보 조회 API")
