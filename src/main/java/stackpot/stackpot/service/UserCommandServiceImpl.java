@@ -94,8 +94,8 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .build();
     }
 
-    @Transactional
-    public UserMypageResponseDto getUserMypage(Long userId) {
+    /*@Transactional
+    public UserMypageResponseDto getUserMypage(Long userId, String dataType) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
@@ -107,7 +107,34 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         // 컨버터를 사용하여 변환 (좋아요 개수 포함)
         return userMypageConverter.toDto(user, completedPots, userFeeds);
+    }*/
+
+    @Transactional
+    public UserMypageResponseDto getUserMypage(Long userId, String dataType) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        List<Pot> completedPots = List.of();
+        List<Feed> feeds = List.of();
+
+        if (dataType == null || dataType.isBlank()) {
+            // 모든 데이터 반환 (pot + feed)
+            completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
+            feeds = feedRepository.findByUser_Id(userId);
+        } else if ("pot".equalsIgnoreCase(dataType)) {
+            // 팟 정보만 반환
+            completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
+        } else if ("feed".equalsIgnoreCase(dataType)) {
+            // 피드 정보만 반환
+            feeds = feedRepository.findByUser_Id(userId);
+        } else {
+            throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
+        }
+
+        return userMypageConverter.toDto(user, completedPots, feeds);
     }
+
+
 
     @Transactional
     public UserResponseDto updateUserProfile(UserUpdateRequestDto requestDto) {
