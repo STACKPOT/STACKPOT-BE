@@ -40,7 +40,7 @@ public class FeedController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "feed 미리보기 api")
+    @Operation(summary = "feed 미리보기 api ( 수정 필요 )")
     @GetMapping("")
     public ResponseEntity<FeedResponseDto.FeedPreviewList> getPreViewFeeds(
             @RequestParam(value = "category", required = false, defaultValue = "ALL") Category category,

@@ -55,4 +55,40 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
+
+    @Operation(summary = "[미완성] mypotTask 불러오기 API")
+    @GetMapping("/my-pots/{pot_id}/tasks")
+    public ResponseEntity<?> getPotTask(@PathVariable("pot_id") Long potId) {
+
+        return null;
+    }
+
+    @Operation(summary = "mypotTask 상세보기 API")
+    @GetMapping("/my-pots/{pot_id}/tasks/{task_id}")
+    public ResponseEntity<?> getPotDetailTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
+
+        return null;
+    }
+
+    @Operation(summary = "mypotTask 수정하기 API")
+    @PostMapping("/my-pots/{pot_id}/tasks/{task_id}")
+    public ResponseEntity<?> modifyPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) { // 바디 추가
+
+        return null;
+    }
+
+    @Operation(summary = "mypotTask 삭제하기 API")
+    @PostMapping("/my-pots/{pot_id}/tasks/{task_id}") //deletet???
+    public ResponseEntity<?> deletetPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
+
+        return null;
+    }
+
+    @Operation(summary = "mypotTask 생성하기 API")
+    @PostMapping("/my-pots/{pot_id}/tasks")
+    public ResponseEntity<?> createPotTask(@PathVariable("pot_id") Long potId) { // 바디 추가
+
+        return null;
+    }
+
 }
