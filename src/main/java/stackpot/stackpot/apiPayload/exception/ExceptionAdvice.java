@@ -22,9 +22,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
+import stackpot.stackpot.web.controller.*;
+
 
 @Slf4j
 //@RestControllerAdvice(annotations = {RestController.class})
+@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {UserController.class, PotController.class, FeedController.class, MyPotController.class, PotApplicationController.class, PotMemberController.class})
+
 public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 
 
