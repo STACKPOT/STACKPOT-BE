@@ -21,6 +21,7 @@ public class UserMypageConverter {
 
     public UserMypageResponseDto toDto(User user, List<Pot> completedPots, List<Feed> feeds) {
         return UserMypageResponseDto.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
                 .role(user.getRole())

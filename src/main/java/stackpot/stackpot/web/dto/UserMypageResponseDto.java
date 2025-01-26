@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserMypageResponseDto {
+    private Long id;
     private String email;
     private String nickname;
     private Role role;

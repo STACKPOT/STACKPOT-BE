@@ -96,10 +96,12 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
-    @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API")
+    @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
     @GetMapping("/{userId}/mypages")
-    public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(@PathVariable Long userId) {
-        UserMypageResponseDto response = userCommandService.getUserMypage(userId);
+    public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String dataType) {
+        UserMypageResponseDto response = userCommandService.getUserMypage(userId, dataType);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

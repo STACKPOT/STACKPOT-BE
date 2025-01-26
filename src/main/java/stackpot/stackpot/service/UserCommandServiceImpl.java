@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
@@ -37,7 +39,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         updateUserData(user, request);
 
@@ -77,7 +79,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // User 정보를 UserResponseDto로 변환
         return UserResponseDto.builder()
@@ -92,19 +94,31 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Transactional
-    public UserMypageResponseDto getUserMypage(Long userId) {
+    public UserMypageResponseDto getUserMypage(Long userId, String dataType) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // COMPLETED 상태의 팟 조회
-        List<Pot> completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
+        List<Pot> completedPots = List.of();
+        List<Feed> feeds = List.of();
 
-        // 사용자의 피드 조회
-        List<Feed> userFeeds = feedRepository.findByUser_Id(userId);
+        if (dataType == null || dataType.isBlank()) {
+            // 모든 데이터 반환 (pot + feed)
+            completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
+            feeds = feedRepository.findByUser_Id(userId);
+        } else if ("pot".equalsIgnoreCase(dataType)) {
+            // 팟 정보만 반환
+            completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
+        } else if ("feed".equalsIgnoreCase(dataType)) {
+            // 피드 정보만 반환
+            feeds = feedRepository.findByUser_Id(userId);
+        } else {
+            throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
+        }
 
-        // 컨버터를 사용하여 변환 (좋아요 개수 포함)
-        return userMypageConverter.toDto(user, completedPots, userFeeds);
+        return userMypageConverter.toDto(user, completedPots, feeds);
     }
+
+
 
     @Transactional
     public UserResponseDto updateUserProfile(UserUpdateRequestDto requestDto) {
@@ -113,7 +127,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 업데이트할 필드 적용
         if (requestDto.getRole() != null) {
