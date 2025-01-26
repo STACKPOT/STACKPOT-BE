@@ -3,6 +3,7 @@ package stackpot.stackpot.web.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class UserRequestDto {
     @Setter
     @NoArgsConstructor
     public static class JoinDto {
+        @Pattern(regexp = "DESIGN|PLANNING|BACKEND|FRONTEND", message = "유효하지 않은 역할입니다.")
         @NotBlank(message = "Role은 공백일 수 없습니다.")
         Role role;
         @NotBlank(message = "Interest는 공백일 수 없습니다.")

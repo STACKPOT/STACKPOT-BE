@@ -31,7 +31,8 @@ public class PotApplication extends BaseEntity {
     private LocalDateTime appliedAt;
 
     @Setter
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    @Column(nullable = false)
+    @Builder.Default
     private Boolean liked = false;
 
     @Enumerated(EnumType.STRING)

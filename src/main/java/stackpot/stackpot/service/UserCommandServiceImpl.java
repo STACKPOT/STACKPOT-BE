@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
@@ -39,8 +42,9 @@ public class UserCommandServiceImpl implements UserCommandService{
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
+        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         updateUserData(user, request);
 
@@ -79,8 +83,9 @@ public class UserCommandServiceImpl implements UserCommandService{
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
+        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // User 정보를 UserResponseDto로 변환
         return UserResponseDto.builder()
@@ -94,25 +99,11 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .build();
     }
 
-    /*@Transactional
-    public UserMypageResponseDto getUserMypage(Long userId, String dataType) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
-
-        // COMPLETED 상태의 팟 조회
-        List<Pot> completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
-
-        // 사용자의 피드 조회
-        List<Feed> userFeeds = feedRepository.findByUser_Id(userId);
-
-        // 컨버터를 사용하여 변환 (좋아요 개수 포함)
-        return userMypageConverter.toDto(user, completedPots, userFeeds);
-    }*/
 
     @Transactional
     public UserMypageResponseDto getUserMypage(Long userId, String dataType) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         List<Pot> completedPots = List.of();
         List<Feed> feeds = List.of();
@@ -143,7 +134,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 업데이트할 필드 적용
         if (requestDto.getRole() != null) {
