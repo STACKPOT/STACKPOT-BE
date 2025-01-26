@@ -18,9 +18,13 @@ public class UserConverter {
 
     public static UserResponseDto toDto(User user) {
 
+        if (user.getId() == null) {
+            throw new IllegalStateException("User ID is null");
+        }
         return UserResponseDto.builder()
+                .id(user.getId())  // id 값이 제대로 설정되었는지 로그 확인
                 .nickname(user.getNickname())
-                .email(user.getEmail())   // 추가된 코드
+                .email(user.getEmail())
                 .kakaoId(user.getKakaoId())
                 .role(user.getRole())
                 .interest(user.getInterest())
