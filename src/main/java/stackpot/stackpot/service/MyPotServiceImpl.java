@@ -5,16 +5,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
+import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.UserTodo;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,29 +26,38 @@ public class MyPotServiceImpl implements MyPotService {
     private final PotRepository potRepository;
     private final MyPotRepository myPotRepository;
     private final UserRepository userRepository;
+    private final PotConverter potConverter;
 
 
     @Override
-    public List<MyPotResponseDTO> getMyOnGoingPots() {
+    public Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> getMyOnGoingPots() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        // 사용자가 만든 팟 조회
-        List<Pot> myPots = potRepository.findByUserId(user.getId());
+        // 1. 내가 PotMember로 참여 중이고 상태가 'ONGOING'인 팟 조회
+        List<Pot> ongoingMemberPots = potRepository.findByPotMembers_UserIdAndPotStatus(user.getId(), "ONGOING");
 
-        // 진행 중인 팟 리스트 변환 (멤버 정보 포함)
-        List<MyPotResponseDTO.OngoingPotsDetail> ongoingPots = myPots.stream()
-                .filter(pot -> "recruiting".equals(pot.getPotStatus()))
+        // 2. 내가 만든 팟 중 상태가 'ONGOING'인 팟 조회
+        List<Pot> ongoingOwnedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "ONGOING");
+
+        // Pot 리스트를 DTO로 변환
+        List<MyPotResponseDTO.OngoingPotsDetail> memberPotsDetails = ongoingMemberPots.stream()
                 .map(this::convertToOngoingPotDetail)
                 .collect(Collectors.toList());
 
-        // MyPotResponseDTO로 변환하여 반환
-        return List.of(MyPotResponseDTO.builder()
-                .ongoingPots(ongoingPots)
-                .build());
+        List<MyPotResponseDTO.OngoingPotsDetail> ownedPotsDetails = ongoingOwnedPots.stream()
+                .map(this::convertToOngoingPotDetail)
+                .collect(Collectors.toList());
+
+        // 결과를 분류하여 반환
+        Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> result = new HashMap<>();
+        result.put("joinedOngoingPots", memberPotsDetails);
+        result.put("ownedOngoingPots", ownedPotsDetails);
+
+        return result;
     }
 
 
@@ -81,17 +92,29 @@ public class MyPotServiceImpl implements MyPotService {
         return potTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser))
                 .entrySet().stream()
-                .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname())
-                        .userId(entry.getKey().getId())
-                        .todos(entry.getValue().stream()
-                                .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
-                                        .todoId(todo.getTodoId())
-                                        .content(todo.getContent())
-                                        .status(todo.getStatus())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build())
+                .map(entry -> {
+                    // 해당 유저의 pot에서 potMember 역할 찾기
+                    String roleName = entry.getValue().stream()
+                            .findFirst()
+                            .flatMap(todo -> todo.getPot().getPotMembers().stream()
+                                    .filter(member -> member.getUser().equals(entry.getKey()))
+                                    .map(member -> member.getRoleName().name())  // ENUM -> String 변환
+                                    .findFirst()
+                            )
+                            .orElse("UNKNOWN");  // 기본값 설정
+
+                    return MyPotTodoResponseDTO.builder()
+                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
+                            .userId(entry.getKey().getId())
+                            .todos(entry.getValue().stream()
+                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                            .todoId(todo.getTodoId())
+                                            .content(todo.getContent())
+                                            .status(todo.getStatus())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -111,21 +134,30 @@ public class MyPotServiceImpl implements MyPotService {
         // 특정 팟의 모든 To-Do 조회
         List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
 
-        // 사용자별로 그룹화하여 반환
+        // 특정 팟의 모든 To-Do 조회
         return potTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser))
                 .entrySet().stream()
-                .map(entry -> MyPotTodoResponseDTO.builder()
-                        .userNickname(entry.getKey().getNickname())
-                        .userId(entry.getKey().getId())
-                        .todos(entry.getValue().stream()
-                                .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
-                                        .todoId(todo.getTodoId())
-                                        .content(todo.getContent())
-                                        .status(todo.getStatus())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build())
+                .map(entry -> {
+                    // 해당 유저의 pot에서 potMember 역할 찾기
+                    String roleName = pot.getPotMembers().stream()
+                            .filter(member -> member.getUser().equals(entry.getKey()))
+                            .map(member -> member.getRoleName().name())  // Enum을 String으로 변환
+                            .findFirst()
+                            .orElse("UNKNOWN");  // 기본값을 String으로 설정
+
+                    return MyPotTodoResponseDTO.builder()
+                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
+                            .userId(entry.getKey().getId())
+                            .todos(entry.getValue().stream()
+                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                            .todoId(todo.getTodoId())
+                                            .content(todo.getContent())
+                                            .status(todo.getStatus())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -168,6 +200,64 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
         return groupedByUser.entrySet().stream()
+                .map(entry -> {
+                    // 해당 유저의 pot에서 potMember 역할 찾기
+                    String roleName = entry.getValue().stream()
+                            .findFirst()
+                            .flatMap(todo -> todo.getPot().getPotMembers().stream()
+                                    .filter(member -> member.getUser().equals(entry.getKey()))
+                                    .map(member -> member.getRoleName().name())  // ENUM -> String 변환
+                                    .findFirst()
+                            )
+                            .orElse("UNKNOWN");  // 기본값 설정
+
+                    return MyPotTodoResponseDTO.builder()
+                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
+                            .userId(entry.getKey().getId())
+                            .todos(entry.getValue().stream()
+                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                            .todoId(todo.getTodoId())
+                                            .content(todo.getContent())
+                                            .status(todo.getStatus())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public List<MyPotTodoResponseDTO> completeTodo(Long potId, Long todoId) {
+        // 현재 로그인한 사용자 확인
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        // 해당 팟이 존재하는지 확인
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+
+        // 해당 투두가 존재하는지 확인 및 소유자 검증
+        UserTodo userTodo = myPotRepository.findByTodoIdAndPot_PotId(todoId, potId)
+                .orElseThrow(() -> new IllegalArgumentException("Todo not found for given potId and todoId"));
+
+        if (!userTodo.getUser().equals(user)) {
+            throw new SecurityException("You are not authorized to update this todo");
+        }
+
+        // To-Do 상태 업데이트
+        userTodo.setStatus(TodoStatus.COMPLETED);
+        myPotRepository.save(userTodo);
+
+        // 특정 팟의 모든 To-Do 조회 후 반환
+        List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
+
+        return potTodos.stream()
+                .collect(Collectors.groupingBy(UserTodo::getUser))
+                .entrySet().stream()
                 .map(entry -> MyPotTodoResponseDTO.builder()
                         .userNickname(entry.getKey().getNickname())
                         .userId(entry.getKey().getId())
@@ -182,39 +272,35 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
-    // 진행 중인 팟 변환 메서드 (멤버 포함)
     private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
-        List<RecruitmentDetailsResponseDTO> recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(details -> RecruitmentDetailsResponseDTO.builder()
-                        .recruitmentId(details.getRecruitmentId())
-                        .recruitmentRole(String.valueOf(details.getRecruitmentRole()))
-                        .recruitmentCount(details.getRecruitmentCount())
-                        .build())
-                .collect(Collectors.toList());
-
         List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
                 .map(member -> PotMemberResponseDTO.builder()
                         .potMemberId(member.getPotMemberId())
-                        .roleName(String.valueOf(member.getRoleName()))
-
+                        .roleName(member.getRoleName())
+                        .appealContent(member.getAppealContent())
                         .build())
                 .collect(Collectors.toList());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
                 .user(UserResponseDto.builder()
-                        .nickname(pot.getUser().getNickname())
-                        .role(String.valueOf(pot.getUser().getRole()))
+                        .nickname(pot.getUser().getNickname() + getVegetableNameByRole(String.valueOf(pot.getUser().getRole())))
+                        .role(pot.getUser().getRole())
                         .build())
-                .pot(PotResponseDto.builder()
-                        .potName(pot.getPotName())
-                        .potStartDate(pot.getPotStartDate())
-                        .potEndDate(pot.getPotEndDate())
-                        .potStatus(pot.getPotStatus())
-                        .build())
+                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))
                 .potMembers(potMembers)
                 .build();
     }
 
+    // 역할에 따른 채소명을 반환하는 메서드
+    private String getVegetableNameByRole(String role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯",
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근"
+        );
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
+    }
 
 
 }

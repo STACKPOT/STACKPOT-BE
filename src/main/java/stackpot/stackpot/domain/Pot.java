@@ -40,6 +40,7 @@ public class Pot extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String potName;
 
+    @Setter
     @Column(nullable = false)
     private LocalDate potStartDate;
 

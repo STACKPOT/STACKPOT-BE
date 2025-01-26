@@ -1,6 +1,9 @@
 package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/pots/{pot_id}/members")
 @RequiredArgsConstructor
+@Tag(name = "Pot Member Management", description = "팟 멤버 관리 API")
 public class PotMemberController {
 
     private final PotMemberService potMemberService;
@@ -29,11 +33,15 @@ public class PotMemberController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "팟 시작하기")
+    @Operation(
+            summary = "팟 시작하기",
+            description = "지원자 ID 리스트를 받아 팟 멤버를 추가합니다."
+
+    )
     @PostMapping
     public ResponseEntity<ApiResponse<List<PotMemberAppealResponseDto>>> addPotMembers(
             @PathVariable("pot_id") Long potId,
-            @RequestBody PotMemberRequestDto requestDto) {
+            @RequestBody @Valid PotMemberRequestDto requestDto) {
         List<PotMemberAppealResponseDto> response = potMemberService.addMembersToPot(potId, requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }

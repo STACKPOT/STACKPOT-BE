@@ -2,6 +2,7 @@ package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.service.PotServiceImpl;
 import stackpot.stackpot.web.dto.PotRequestDto;
@@ -22,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+@Tag(name = "Pot  Management", description = "팟 관리 API")
 @RestController
 @RequestMapping("/pots")
 @RequiredArgsConstructor
@@ -34,8 +36,14 @@ public class PotController {
     private final PotServiceImpl potService;
     private final PotRepository potRepository;
 
-    @Operation(summary = "팟 생성하기")
-    @PostMapping
+    @Operation(
+            summary = "팟 생성하기",
+            description = """
+        - potStatus: RECRUITING / ONGOING / COMPLETED
+        - potModeOfOperation: ONLINE / OFFLINE / HYBRID
+        - Role: FRONTEND / BACKEND / DESIGN / PLANNING
+    """
+    )    @PostMapping
     public ResponseEntity<PotResponseDto> createPot(
 
             @RequestBody @Valid PotRequestDto requestDto) {
@@ -64,21 +72,42 @@ public class PotController {
 
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/completed")
+    @Operation(summary = "나의 끓인 팟 정보 가져오기", description = "potStatus가 COMPLETED인 팟의 목록을 가져옵니다.")
+    public ResponseEntity<ApiResponse<List<CompletedPotResponseDto>>> getMyCompletedPots() {
+        List<CompletedPotResponseDto> response = potService.getMyCompletedPots();
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+    //-------------------
 
-    //----------------------------
+    @Operation(
+            summary = "팟 전체 보기 API",
+            description = """
+        - Role: FRONTEND / BACKEND / DESIGN / PLANNING / (NULL)
+        만약 null인 경우 모든 role에 대해서 조회합니다.    
+    """
+    )
 
-    @Operation(summary = "팟 전체 보기 API", description = "Design, Backend, Frontend, PM으로 필터링 가능합니다. 만약 null인 경우 전체 카테고리에 대해서 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
             @RequestParam(required = false) String recruitmentRole,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
 
-        List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(recruitmentRole, page, size);
+        Role roleEnum = null;
+        if (recruitmentRole != null && !recruitmentRole.isEmpty()) {
+            try {
+                roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid recruitment role provided: " + recruitmentRole);
+            }
+        }
 
-        Page<Pot> potPage = (recruitmentRole == null || recruitmentRole.isEmpty())
+        List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(roleEnum, page, size);
+
+        Page<Pot> potPage = (roleEnum == null)
                 ? potRepository.findAll(PageRequest.of(page, size))
-                : potRepository.findByRecruitmentDetails_RecruitmentRole(recruitmentRole, PageRequest.of(page, size));
+                : potRepository.findByRecruitmentDetails_RecruitmentRole(roleEnum, PageRequest.of(page, size));
 
         Map<String, Object> response = new HashMap<>();
         response.put("pots", pots);

@@ -17,4 +17,5 @@ public class PotApplicationResponseDto {
     private LocalDateTime appliedAt;
     private Long potId;
     private Long userId;
+    private String userNickname;
 }
