@@ -106,4 +106,6 @@ public class PotMemberServiceImpl implements PotMemberService {
             throw new AccessDeniedException("해당 작업은 팟 생성자만 수행할 수 있습니다.");
         }
     }
+
+
 }
