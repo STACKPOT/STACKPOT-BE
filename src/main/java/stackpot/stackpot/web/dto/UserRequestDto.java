@@ -15,7 +15,7 @@ public class UserRequestDto {
     @Setter
     @NoArgsConstructor
     public static class JoinDto {
-        @NotBlank(message = "Role은 공백일 수 없습니다.")
+
         Role role;
         @NotBlank(message = "Interest는 공백일 수 없습니다.")
         String interest;

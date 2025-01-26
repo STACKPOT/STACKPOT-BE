@@ -85,4 +85,47 @@ public class PotConverterImpl implements PotConverter {
                 .roleCounts(roleCounts)
                 .build();
     }
+
+    public PotSearchResponseDto toSearchDto(Pot pot) {
+        // 역할 이름 매핑 (유효한 역할만 처리)
+        String roleName = pot.getUser() != null && pot.getUser().getRole() != null
+                ? pot.getUser().getRole().name()
+                : "멤버";
+
+        String nicknameWithRole = pot.getUser() != null && pot.getUser().getNickname() != null
+                ? pot.getUser().getNickname() + " " + mapRoleName(roleName)
+                : "Unknown 멤버";
+
+        return PotSearchResponseDto.builder()
+                .potId(pot.getPotId())
+                .potName(pot.getPotName())
+                .potContent(pot.getPotContent())
+                .creatorNickname(nicknameWithRole)
+                .creatorRole(
+                        pot.getUser() != null && pot.getUser().getRole() != null
+                                ? pot.getUser().getRole().name()
+                                : "멤버" // 기본값 설정
+                )
+                .recruitmentPart(
+                        pot.getRecruitmentDetails() != null
+                                ? pot.getRecruitmentDetails().stream()
+                                .filter(rd -> rd.getRecruitmentRole() != null)
+                                .map(rd -> rd.getRecruitmentRole().name())
+                                .collect(Collectors.joining(", "))
+                                : "없음" // 기본값 설정
+                )
+                .recruitmentDeadline(pot.getRecruitmentDeadline())
+                .build();
+    }
+
+
+    private String mapRoleName(String roleName) {
+        return switch (roleName) {
+            case "BACKEND" -> "양파";
+            case "FRONTEND" -> "버섯";
+            case "DESIGN" -> "브로콜리";
+            case "PLANNING" -> "당근";
+            default -> "멤버";
+        };
+    }
 }
