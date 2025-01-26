@@ -33,5 +33,5 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
             "(SELECT pm.pot.potId FROM PotMember pm WHERE pm.user.id = :userId)) " +
             "AND (:cursor IS NULL OR p.potId < :cursor) " +
             "ORDER BY p.potId DESC")
-    List<Pot> findCompletedPotsByCursor(@Param("userId") Long userId, @Param("cursor") Long cursor, @Param("size") int size);
+    List<Pot> findCompletedPotsByCursor(@Param("userId") Long userId, @Param("cursor") Long cursor);
 }

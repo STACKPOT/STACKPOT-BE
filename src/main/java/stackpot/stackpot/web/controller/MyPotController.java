@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.service.MyPotService;
 import stackpot.stackpot.service.PotService;
-import stackpot.stackpot.web.dto.*;
+import stackpot.stackpot.web.dto.MyPotResponseDTO;
+import stackpot.stackpot.web.dto.MyPotTodoRequestDTO;
+import stackpot.stackpot.web.dto.MyPotTodoResponseDTO;
+import stackpot.stackpot.web.dto.MyPotTodoUpdateRequestDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +22,7 @@ import java.util.Map;
 public class MyPotController {
 
     private final MyPotService myPotService;
-
+    private final PotService potService;
 
     // 사용자가 만든 진행 중인 팟 조회
     @Operation(summary = "사용자의 팟 목록 조회 API", description = "사용자가 생성했거나, 참여하고 있으며 진행 중(ONGOING)인 팟들 리스트를 조회합니다. \n")
@@ -28,6 +31,15 @@ public class MyPotController {
         Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> response = myPotService.getMyOnGoingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+//    @DeleteMapping("/{pot_id}/members/{user_id}")
+//    @Operation(summary = "팟에서 멤버 삭제", description = "팟 멤버가 본인의 팟을 삭제하면 팟 멤버에서 해당 사용자가 제거됩니다.")
+//    public ResponseEntity<ApiResponse<String>> removePotMember(
+//            @PathVariable("pot_id") Long potId,
+//            @PathVariable("user_id") Long userId) {
+//
+//        potService.removeMemberFromPot(potId, userId);
+//        return ResponseEntity.ok(ApiResponse.onSuccess("팟 멤버가 성공적으로 삭제되었습니다."));
+//    }
 
     // 팟에서의 투두 생성
     @Operation(

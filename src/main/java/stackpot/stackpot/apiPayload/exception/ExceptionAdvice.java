@@ -2,6 +2,7 @@ package stackpot.stackpot.apiPayload.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -16,15 +17,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.ErrorReasonDTO;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.web.controller.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
-//@RestControllerAdvice(annotations = {RestController.class})
+@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {UserController.class, PotController.class, FeedController.class, MyPotController.class, PotApplicationController.class, PotMemberController.class})
 public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 
 
