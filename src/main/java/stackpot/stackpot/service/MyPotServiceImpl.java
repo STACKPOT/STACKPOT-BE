@@ -11,7 +11,6 @@ import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.UserTodo;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
@@ -19,7 +18,9 @@ import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
