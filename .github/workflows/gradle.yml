@@ -96,11 +96,10 @@ jobs:
         docker stop stackpot-be_certbot_1 || true
         docker rm stackpot-be_certbot_1 || true
         docker run --rm \
-          --name stackpot-be_certbot_1 \
-          -v ./certbot/conf:/etc/letsencrypt \
-          -v ./certbot/www:/var/www/certbot \
-          certbot/certbot certonly --webroot --webroot-path=/var/www/certbot -d api.stackpot.co.kr
-
+        --name stackpot-be_certbot_1 \
+        -v ./certbot/conf:/etc/letsencrypt \
+        -v ./certbot/www:/var/www/certbot \
+        nginx:1.15-alpine
     # Docker 이미지 및 컨테이너 정리
     - name: Clean up Docker system
       run: docker system prune -f
