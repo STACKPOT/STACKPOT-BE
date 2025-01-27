@@ -30,15 +30,22 @@ public class MyPotController {
         Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> response = myPotService.getMyOnGoingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-//    @DeleteMapping("/{pot_id}/members/{user_id}")
-//    @Operation(summary = "팟에서 멤버 삭제", description = "팟 멤버가 본인의 팟을 삭제하면 팟 멤버에서 해당 사용자가 제거됩니다.")
+//    @DeleteMapping("/{pot_id}/members")
+//    @Operation(summary = "팟에서 본인 삭제", description = "현재 로그인한 팟 멤버가 본인의 팟을 삭제하면 팟 멤버에서 자신이 제거됩니다.")
 //    public ResponseEntity<ApiResponse<String>> removePotMember(
-//            @PathVariable("pot_id") Long potId,
-//            @PathVariable("user_id") Long userId) {
+//            @PathVariable("pot_id") Long potId) {
 //
-//        potService.removeMemberFromPot(potId, userId);
+//        potService.removeMemberFromPot(potId);
 //        return ResponseEntity.ok(ApiResponse.onSuccess("팟 멤버가 성공적으로 삭제되었습니다."));
 //    }
+    @DeleteMapping("/{pot_id}/members")
+    @Operation(summary = "팟 멤버 삭제 또는 팟 삭제", description = "생성자는 팟을 삭제하며, 생성자가 아니면 팟 멤버에서 본인을 삭제합니다.")
+    public ResponseEntity<ApiResponse<String>> removePotOrMember(
+            @PathVariable("pot_id") Long potId) {
+
+        String responseMessage = potService.removePotOrMember(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseMessage));
+    }
 
     // 팟에서의 투두 생성
     @Operation(
