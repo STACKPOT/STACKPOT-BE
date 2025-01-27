@@ -2,6 +2,7 @@ package stackpot.stackpot.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MyPotServiceImpl implements MyPotService {
@@ -305,6 +307,8 @@ public class MyPotServiceImpl implements MyPotService {
         taskboardRepository.save(taskboard);
 
         List<PotMember> participants = potMemberRepository.findAllById(request.getParticipants());
+
+        log.info("dd",  participants);
 
         if (participants.isEmpty()) {
             throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
