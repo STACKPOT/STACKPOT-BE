@@ -29,7 +29,7 @@ public class FeedController {
     private final FeedConverter feedConverter;
 
 
-    @Operation(summary = "feed 작성 api")
+    @Operation(summary = "(수정 필요) feed 작성 api")
     @PostMapping("")
     public ResponseEntity<FeedResponseDto.FeedDto> createFeeds(@Valid @RequestBody FeedRequestDto.createDto requset) {
         // 정상 처리
@@ -65,7 +65,7 @@ public class FeedController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "feed 수정 api")
+    @Operation(summary = "feed 수정 api (수정 필요")
     @PatchMapping("/{feedId}")
     public ResponseEntity<FeedResponseDto.FeedDto> modifyFeed(@PathVariable Long feedId, @Valid @RequestBody FeedRequestDto.createDto requset) {
         // 정상 처리
