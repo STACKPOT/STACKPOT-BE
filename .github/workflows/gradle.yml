@@ -93,13 +93,16 @@ jobs:
     # Certbot 컨테이너 실행
     - name: Run Certbot container
       run: |
-        docker stop stackpot-be_certbot_1 || true
-        docker rm stackpot-be_certbot_1 || true
+        docker stop nginx || true
+        docker rm nginx || true
         docker run --rm \
-        --name stackpot-be_certbot_1 \
-        -v ./certbot/conf:/etc/letsencrypt \
-        -v ./certbot/www:/var/www/certbot \
-        nginx:1.15-alpine
+          --name nginx \
+          -p 80:80 \
+          -p 443:443 \
+          -v /home/ubuntu/STACKPOT-BE/certbot/conf:/etc/letsencrypt \
+          -v /home/ubuntu/STACKPOT-BE/certbot/www:/var/www/certbot \
+          -v /home/ubuntu/STACKPOT-BE/nginx/conf.d:/etc/nginx/conf.d \
+          nginx:1.15-alpine
     # Docker 이미지 및 컨테이너 정리
     - name: Clean up Docker system
       run: docker system prune -f
