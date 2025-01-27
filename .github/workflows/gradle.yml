@@ -38,10 +38,10 @@ jobs:
         echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}" >> $GITHUB_ENV
         echo "mail.password=${{ secrets.MAIL_PASSWORD }}" >> $GITHUB_ENV
         echo "mail.username=${{ secrets.MAIL_USERNAME }}" >> $GITHUB_ENV
-        echo "PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
-        echo "URL=${{ secrets.DB_URL }}" >> $GITHUB_ENV
+        echo "PASSWORD=${{ secrets.PASSWORD }}" >> $GITHUB_ENV
+        echo "URL=${{ secrets.URL }}" >> $GITHUB_ENV
         echo "OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}" >> $GITHUB_ENV
-        echo "USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+        echo "USERNAME=${{ secrets.USERNAME }}" >> $GITHUB_ENV
     # Spring Boot 어플리케이션 빌드
     - name: Build with Gradle Wrapper
       run: ./gradlew build
