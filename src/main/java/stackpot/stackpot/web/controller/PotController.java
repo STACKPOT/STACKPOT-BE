@@ -72,6 +72,9 @@ public class PotController {
 
         return ResponseEntity.noContent().build();
     }
+
+
+
     @GetMapping("/completed")
     @Operation(summary = "나의 끓인 팟 정보 가져오기", description = "potStatus가 COMPLETED인 팟의 목록을 커서 기반 페이지네이션으로 가져옵니다.",
             parameters = {

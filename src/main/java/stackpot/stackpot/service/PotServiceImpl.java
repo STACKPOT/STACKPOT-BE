@@ -22,14 +22,13 @@ import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotApplication;
+import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -426,35 +425,59 @@ public class PotServiceImpl implements PotService {
                 .potMembers(potMembers)
                 .build();
     }
-//    @Transactional
-//    public void removeMemberFromPot(Long potId, Long userId) {
-//        // 현재 로그인한 사용자 확인
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String email = authentication.getName();
-//
-//        // 현재 로그인한 사용자 조회
-//        User currentUser = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new IllegalArgumentException("현재 사용자를 찾을 수 없습니다."));
-//
-//        // 팟 존재 여부 확인
-//        Pot pot = potRepository.findById(potId)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
-//
-//        // 팟 생성자인지 확인
-//        if (!pot.getUser().getId().equals(currentUser.getId())) {
-//            throw new IllegalStateException("해당 팟의 멤버를 삭제할 권한이 없습니다.");
-//        }
-//
-//        // 사용자 존재 여부 확인
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
-//
-//        // 팟 멤버 존재 여부 확인
-//        PotMember member = potMemberRepository.findByPotAndUser(pot, user)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 팟에 사용자가 존재하지 않습니다."));
-//
-//        // 팟 멤버 삭제
-//        potMemberRepository.delete(member);
-//    }
+    @Transactional
+    @Override
+    public void removeMemberFromPot(Long potId) {
+        // 현재 로그인한 사용자 확인
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 현재 로그인한 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("현재 사용자를 찾을 수 없습니다."));
+
+        // 팟 존재 여부 확인
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
+        // 팟 멤버 존재 여부 확인
+        PotMember member = potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟에 사용자가 존재하지 않습니다."));
+
+        // 팟 멤버 삭제
+        potMemberRepository.delete(member);
+    }
+
+
+    @Transactional
+    @Override
+    public String removePotOrMember(Long potId) {
+        // 현재 로그인한 사용자 확인
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 현재 로그인한 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("현재 사용자를 찾을 수 없습니다."));
+
+        // 팟 존재 여부 확인
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
+        // 팟 생성자인지 확인
+        if (pot.getUser().equals(user)) {
+            // 팟 생성자일 경우 팟과 관련된 모든 데이터 삭제
+            potRepository.delete(pot);
+            return "팟이 성공적으로 삭제되었습니다.";
+        } else {
+            // 팟 멤버인지 확인
+            PotMember member = potMemberRepository.findByPotAndUser(pot, user)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 팟에 사용자가 존재하지 않습니다."));
+
+            // 팟 멤버 삭제
+            potMemberRepository.delete(member);
+            return "팟 멤버가 성공적으로 삭제되었습니다.";
+        }
+    }
 
 }

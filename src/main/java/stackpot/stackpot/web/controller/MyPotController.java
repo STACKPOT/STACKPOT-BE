@@ -25,20 +25,27 @@ public class MyPotController {
 
     // 사용자가 만든 진행 중인 팟 조회
     @Operation(summary = "사용자의 팟 목록 조회 API", description = "사용자가 생성했거나, 참여하고 있으며 진행 중(ONGOING)인 팟들 리스트를 조회합니다. \n")
-    @GetMapping("/mypots/ongoing")
+    @GetMapping("/my-pots")
     public ResponseEntity<ApiResponse<Map<String, List<MyPotResponseDTO.OngoingPotsDetail>>>> getMyOngoingPots() {
         Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> response = myPotService.getMyOnGoingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-//    @DeleteMapping("/{pot_id}/members/{user_id}")
-//    @Operation(summary = "팟에서 멤버 삭제", description = "팟 멤버가 본인의 팟을 삭제하면 팟 멤버에서 해당 사용자가 제거됩니다.")
+//    @DeleteMapping("/{pot_id}/members")
+//    @Operation(summary = "팟에서 본인 삭제", description = "현재 로그인한 팟 멤버가 본인의 팟을 삭제하면 팟 멤버에서 자신이 제거됩니다.")
 //    public ResponseEntity<ApiResponse<String>> removePotMember(
-//            @PathVariable("pot_id") Long potId,
-//            @PathVariable("user_id") Long userId) {
+//            @PathVariable("pot_id") Long potId) {
 //
-//        potService.removeMemberFromPot(potId, userId);
+//        potService.removeMemberFromPot(potId);
 //        return ResponseEntity.ok(ApiResponse.onSuccess("팟 멤버가 성공적으로 삭제되었습니다."));
 //    }
+    @DeleteMapping("/{pot_id}/members")
+    @Operation(summary = "팟 멤버 삭제 또는 팟 삭제", description = "생성자는 팟을 삭제하며, 생성자가 아니면 팟 멤버에서 본인을 삭제합니다.")
+    public ResponseEntity<ApiResponse<String>> removePotOrMember(
+            @PathVariable("pot_id") Long potId) {
+
+        String responseMessage = potService.removePotOrMember(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseMessage));
+    }
 
     // 팟에서의 투두 생성
     @Operation(
