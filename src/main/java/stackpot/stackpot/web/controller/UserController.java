@@ -3,6 +3,7 @@ package stackpot.stackpot.web.controller;
 import io.swagger.v3.oas.annotations.Operation;
 //import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 @Tag(name = "User Management", description = "유저 관리 API")
@@ -44,23 +46,49 @@ public class UserController {
         return ResponseEntity.ok("Authenticated user: " + authentication.getName());
     }
 
-    @GetMapping("/oauth/kakao")
-    public ResponseEntity<TokenServiceResponse> callback(@RequestParam("code") String code) {
+//    @GetMapping("/oauth/kakao")
+//    public ResponseEntity<TokenServiceResponse> callback(@RequestParam("code") String code) {
+//
+//        log.info("Authorization code: {}", code); // 인증 코드 확인
+//        String accessToken = kakaoService.getAccessTokenFromKakao(code);
+//        KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
+//
+//        String email = userInfo.getKakaoAccount().getEmail();// 이메일 가져오기
+//        log.info("userInfo.getEmail -> ", email);
+//
+//        User user = userCommandService.saveNewUser(email);
+//
+//        TokenServiceResponse token = jwtTokenProvider.createToken(user);
+//        log.info("STACKPOT ACESSTOKEN : " + token.getAccessToken());
+//
+//
+//        return ResponseEntity.ok(token);
+//    }
 
-        log.info("Authorization code: {}", code); // 인증 코드 확인
+    @GetMapping("/oauth/kakao")
+    public void callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
+
+        log.info("Authorization code: {}", code);
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
 
-        String email = userInfo.getKakaoAccount().getEmail();// 이메일 가져오기
-        log.info("userInfo.getEmail -> ", email);
+        String email = userInfo.getKakaoAccount().getEmail();
+        log.info("userInfo.getEmail -> {}", email);
 
         User user = userCommandService.saveNewUser(email);
 
         TokenServiceResponse token = jwtTokenProvider.createToken(user);
-        log.info("STACKPOT ACESSTOKEN : " + token.getAccessToken());
+        log.info("AccessToken: {}", token.getAccessToken());
 
-
-        return ResponseEntity.ok(token);
+        if (user.getId() == null) {
+            // 미가입 유저: 회원가입 페이지로 리다이렉트 (토큰을 헤더로 추가)
+            response.setHeader("Authorization", "Bearer " + token.getAccessToken());
+            response.sendRedirect("/sign-up");
+        } else {
+            // 가입된 유저: 홈 페이지로 리다이렉트 (토큰을 헤더로 추가)
+            response.setHeader("Authorization", "Bearer " + token.getAccessToken());
+            response.sendRedirect("/callback");
+        }
     }
 
     @Operation(summary = "회원가입 api")
@@ -85,7 +113,6 @@ public class UserController {
     @GetMapping("/nickname")
     public ResponseEntity<ApiResponse<String>> nickname(){
         String nickName = userCommandService.createNickname();
-
 
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }

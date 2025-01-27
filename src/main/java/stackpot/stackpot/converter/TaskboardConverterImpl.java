@@ -8,6 +8,7 @@ import stackpot.stackpot.web.dto.MyPotTaskRequestDto;
 import stackpot.stackpot.web.dto.MyPotTaskResponseDto;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,11 +44,21 @@ public class TaskboardConverterImpl implements TaskboardConverter{
 
     @Override
     public MyPotTaskResponseDto.Participant toParticipantDto(PotMember participant) {
-        return new MyPotTaskResponseDto.Participant(
-                participant.getUser().getId(),
-                participant.getPotMemberId(),
-                participant.getUser().getNickname(),
-                participant.getUser().getEmail()
+
+        return MyPotTaskResponseDto.Participant.builder()
+                .potMemberId(participant.getPotMemberId())
+                .userId(participant.getUser().getUserId())
+                .nickName(participant.getUser().getNickname() + " " + getVegetableNameByRole(participant.getRoleName().toString()))
+                .build();
+    }
+
+    private String getVegetableNameByRole(String role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯",
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근"
         );
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 }

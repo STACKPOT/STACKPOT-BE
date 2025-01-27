@@ -32,7 +32,6 @@ public class MyPotTaskResponseDto {
         private Long userId;
         private Long potMemberId;
         private String nickName;
-        private String email;
     }
 
 }
