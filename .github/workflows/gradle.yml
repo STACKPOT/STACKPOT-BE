@@ -1,3 +1,4 @@
+
 name: Java CI/CD with Gradle and Docker
 
 on:
@@ -24,33 +25,32 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 환경 변수 설정 및 .env 파일 생성
-      - name: Generate .env file
+      # 환경 변수 설정
+      - name: Set environment variables
         run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> .env
-          echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}" >> .env
-          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
-          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
-          echo "PASSWORD=${{ secrets.PASSWORD }}" >> .env
-          echo "URL=${{ secrets.URL }}" >> .env
-          echo "OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}" >> .env
-          echo "USERNAME=${{ secrets.USERNAME }}" >> .env
-
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "mail.password=${{ secrets.MAIL_PASSWORD }}" >> $GITHUB_ENV
+          echo "mail.username=${{ secrets.MAIL_USERNAME }}" >> $GITHUB_ENV
+          echo "PASSWORD=${{ secrets.PASSWORD }}" >> $GITHUB_ENV
+          echo "URL=${{ secrets.URL }}" >> $GITHUB_ENV
+          echo "OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}" >> $GITHUB_ENV
+          echo "USERNAME=${{ secrets.USERNAME }}" >> $GITHUB_ENV
       # Spring Boot 어플리케이션 빌드
       - name: Build with Gradle Wrapper
         run: ./gradlew build
 
+      # Docker 이미지 빌드
       - name: Docker image build
-        run: docker build --env-file .env -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring .
-
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring .
 
       # DockerHub 로그인
       - name: Docker login
@@ -68,15 +68,14 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      # Spring 컨테이너 실행
       - name: Run Spring container
         run: |
           docker stop spring || true
           docker rm spring || true
           docker run -d --name spring --network stackpot-network \
             -p 8080:8080 \
-            --env-file .env \
             ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
-
       # Nginx 컨테이너 실행
       - name: Run Nginx container
         run: |
@@ -89,8 +88,6 @@ jobs:
             -v /home/ubuntu/STACKPOT-BE/certbot/www:/var/www/certbot \
             -v /home/ubuntu/STACKPOT-BE/nginx/conf.d:/etc/nginx/conf.d \
             nginx:1.15-alpine
-
       # Docker 이미지 및 컨테이너 정리
       - name: Clean up Docker system
         run: docker system prune -f
-
