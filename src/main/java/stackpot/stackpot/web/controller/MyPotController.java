@@ -31,7 +31,7 @@ public class MyPotController {
         Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> response = myPotService.getMyOnGoingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-//    @DeleteMapping("/{pot_id}/members")
+    //    @DeleteMapping("/{pot_id}/members")
 //    @Operation(summary = "팟에서 본인 삭제", description = "현재 로그인한 팟 멤버가 본인의 팟을 삭제하면 팟 멤버에서 자신이 제거됩니다.")
 //    public ResponseEntity<ApiResponse<String>> removePotMember(
 //            @PathVariable("pot_id") Long potId) {
@@ -110,12 +110,12 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-        @Operation(summary = "[미완성] Task 조회 API")
-        @GetMapping("/{pot_id}/tasks")
-        public ResponseEntity<?> getPotTask(@PathVariable("pot_id") Long potId) {
+    @Operation(summary = "[미완성] Task 조회 API")
+    @GetMapping("/{pot_id}/tasks")
+    public ResponseEntity<?> getPotTask(@PathVariable("pot_id") Long potId) {
 
-            return null;
-        }
+        return null;
+    }
 
     @Operation(summary = "Task 수정 API")
     @PatchMapping("/{pot_id}/tasks/{task_id}")
