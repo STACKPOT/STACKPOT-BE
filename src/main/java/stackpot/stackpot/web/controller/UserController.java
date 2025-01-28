@@ -117,14 +117,32 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
-    @Operation(summary = "나의 마이페이지 조회 API")
-    @GetMapping("/mypages")
-    public ResponseEntity<ApiResponse<UserResponseDto>> usersMypages(){
-        UserResponseDto userDetails = userCommandService.getMypages();
+    @Operation(summary = "나의 정보 조회 API")
+    @GetMapping("")
+    public ResponseEntity<ApiResponse<UserResponseDto>> usersMyPages(){
+        UserResponseDto userDetails = userCommandService.getMyUsers();
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
-    @Operation(summary = "다른 사람 마이페이지 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
+    @Operation(summary = "사용자별 정보 조회 API")
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<UserResponseDto>> usersPages(
+            @PathVariable Long userId
+    ){
+        UserResponseDto userDetails = userCommandService.getUsers(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+    @Operation(summary = "나의 마이페이지 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
+    @GetMapping("/mypages")
+    public ResponseEntity<ApiResponse<UserMypageResponseDto>> usersMypages(
+            @RequestParam(required = false) String dataType){
+        UserMypageResponseDto userDetails = userCommandService.getMypages(dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+
+    @Operation(summary = "사용자별 마이페이지 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
     @GetMapping("/{userId}/mypages")
     public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(
             @PathVariable Long userId,

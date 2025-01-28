@@ -186,7 +186,7 @@ public class PotController {
     }
 
     @GetMapping("/completed/{userId}")
-    @Operation(summary = "사용자 별 끓인 팟 조회 API",
+    @Operation(summary = "사용자별 끓인 팟 조회 API",
             description = "사용자 ID로 potStatus가 COMPLETED인 팟 목록을 커서 기반 페이지네이션으로 가져옵니다.",
             parameters = {
                     @Parameter(name = "userId", description = "사용자 ID", example = "1"),

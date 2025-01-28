@@ -102,7 +102,7 @@ public class FeedController {
         ));
     }
 
-    @Operation(summary = "사용자 별 Feed 조회 API")
+    @Operation(summary = "사용자별 Feed 조회 API")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeedsByUserId(
             @PathVariable Long userId,

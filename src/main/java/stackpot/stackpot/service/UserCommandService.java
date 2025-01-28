@@ -10,7 +10,10 @@ public interface UserCommandService {
     User joinUser(UserRequestDto.JoinDto request);
     User saveNewUser(String email);
 
-    UserResponseDto getMypages();
+    UserResponseDto getMyUsers();
+    UserResponseDto getUsers(Long UserId);
+
+    UserMypageResponseDto getMypages(String dataType);
 
     UserMypageResponseDto getUserMypage(Long userId, String dataType);
 
