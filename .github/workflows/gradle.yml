@@ -37,7 +37,13 @@ jobs:
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}"
           echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}"
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}"
-
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}"
+          echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}"
+  
+          echo "PASSWORD=${{ secrets.PASSWORD }}"
+          echo "URL=${{ secrets.URL }}"
+          echo "OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}"
+          echo "USERNAME=${{ secrets.USERNAME }}"
       # Spring Boot 어플리케이션 빌드
       - name: Build with Gradle Wrapper
         run: ./gradlew build
