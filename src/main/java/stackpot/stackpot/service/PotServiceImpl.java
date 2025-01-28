@@ -399,6 +399,40 @@ public class PotServiceImpl implements PotService {
                 .build();
     }
 
+    @Transactional
+    @Override
+    public CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 사용자가 참여하거나 생성한 COMPLETED 상태의 Pot 조회 (커서 기반)
+        List<Pot> pots = potRepository.findCompletedPotsByCursor(user.getId(), cursor);
+
+        // 커서 및 데이터 반환
+        List<Pot> result = pots.size() > size ? pots.subList(0, size) : pots;
+        Long nextCursor = result.isEmpty() ? null : result.get(result.size() - 1).getPotId();
+
+        // Pot -> DTO 변환
+        List<CompletedPotResponseDto> content = result.stream()
+                .map(pot -> {
+                    // 역할별 참여자 수 조회
+                    List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
+                    Map<String, Integer> roleCountsMap = roleCounts.stream()
+                            .collect(Collectors.toMap(
+                                    roleCount -> ((Role) roleCount[0]).name(),
+                                    roleCount -> ((Long) roleCount[1]).intValue()
+                            ));
+
+                    // Pot -> CompletedPotResponseDto 변환
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+                })
+                .collect(Collectors.toList());
+
+        // 반환 데이터 구성
+        return new CursorPageResponse<>(content, nextCursor, pots.size() > size);
+    }
+
     // Pot을 PotAllResponseDTO.PotDetail로 변환하는 메서드
     private PotAllResponseDTO.PotDetail convertToPotDetail(Pot pot) {
 
