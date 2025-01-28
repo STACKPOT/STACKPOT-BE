@@ -74,6 +74,15 @@ jobs:
         docker rm spring || true
         docker run -d --name spring --network stackpot-network \
           -p 8080:8080 \
+          -e URL=${{ secrets.URL }} \
+          -e USERNAME=${{ secrets.USERNAME }} \
+          -e PASSWORD=${{ secrets.PASSWORD }} \
+          -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+          -e KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }} \
+          -e KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }} \
+          -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
+          -e MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
+          -e OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
           ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
     # Nginx 컨테이너 실행
     - name: Run Nginx container
