@@ -48,6 +48,14 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(responseMessage));
     }
 
+    @GetMapping("/{pot_id}/details")
+    @Operation(summary = "끓인 팟 상세 보기", description = "COMPLETED 상태인 팟의 상세 정보를 가져옵니다.")
+    public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
+            @PathVariable("pot_id") Long potId) {
+        CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
     // 팟에서의 투두 생성
     @Operation(
             summary = "Todo 생성 API",

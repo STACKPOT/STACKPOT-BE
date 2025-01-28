@@ -49,5 +49,4 @@ spring:
   task:
     scheduling:
       enabled: true
-  redirect:
-    base-url: http://localhost:5173
+
