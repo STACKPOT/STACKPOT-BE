@@ -87,7 +87,7 @@ public class UserController {
         } else {
             // 가입된 유저: 홈 페이지로 리다이렉트 (토큰을 헤더로 추가)
             response.setHeader("Authorization", "Bearer " + token.getAccessToken());
-            response.sendRedirect("/callback");
+            response.sendRedirect("/home");
         }
     }
 
