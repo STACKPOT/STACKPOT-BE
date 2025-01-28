@@ -22,6 +22,7 @@ import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotApplication;
+import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
@@ -347,16 +348,24 @@ public class PotServiceImpl implements PotService {
                 .map(this::convertToOngoingPotDetail)
                 .collect(Collectors.toList());
 
-        // 끓인 팟 리스트
-        List<PotAllResponseDTO.PotDetail> completedPots = myPots.stream()
-                .filter(pot -> "COMPLETED".equals(pot.getPotStatus()))
-                .map(this::convertToPotDetail)
+        // 끓인 팟 리스트 (COMPLETED 상태 필터링)
+        List<CompletedPotResponseDto> completedPots = myPots.stream()
+                .filter(pot -> "COMPLETED".equalsIgnoreCase(pot.getPotStatus()))
+                .map(pot -> {
+                    List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
+                    Map<String, Integer> roleCountsMap = roleCounts.stream()
+                            .collect(Collectors.toMap(
+                                    roleCount -> ((Role) roleCount[0]).name(),
+                                    roleCount -> ((Long) roleCount[1]).intValue()
+                            ));
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+                })
                 .collect(Collectors.toList());
 
         return List.of(PotAllResponseDTO.builder()
                 .recruitingPots(recruitingPots)
                 .ongoingPots(ongoingPots)
-                .completedPots(completedPots)
+                .completedPots(completedPots) // 끓인 팟을 CompletedPotResponseDto로 반환
                 .build());
 
     }
@@ -400,6 +409,40 @@ public class PotServiceImpl implements PotService {
                 .build();
     }
 
+    @Transactional
+    @Override
+    public CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 사용자가 참여하거나 생성한 COMPLETED 상태의 Pot 조회 (커서 기반)
+        List<Pot> pots = potRepository.findCompletedPotsByCursor(user.getId(), cursor);
+
+        // 커서 및 데이터 반환
+        List<Pot> result = pots.size() > size ? pots.subList(0, size) : pots;
+        Long nextCursor = result.isEmpty() ? null : result.get(result.size() - 1).getPotId();
+
+        // Pot -> DTO 변환
+        List<CompletedPotResponseDto> content = result.stream()
+                .map(pot -> {
+                    // 역할별 참여자 수 조회
+                    List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
+                    Map<String, Integer> roleCountsMap = roleCounts.stream()
+                            .collect(Collectors.toMap(
+                                    roleCount -> ((Role) roleCount[0]).name(),
+                                    roleCount -> ((Long) roleCount[1]).intValue()
+                            ));
+
+                    // Pot -> CompletedPotResponseDto 변환
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+                })
+                .collect(Collectors.toList());
+
+        // 반환 데이터 구성
+        return new CursorPageResponse<>(content, nextCursor, pots.size() > size);
+    }
+
     // Pot을 PotAllResponseDTO.PotDetail로 변환하는 메서드
     private PotAllResponseDTO.PotDetail convertToPotDetail(Pot pot) {
 
@@ -426,35 +469,59 @@ public class PotServiceImpl implements PotService {
                 .potMembers(potMembers)
                 .build();
     }
-//    @Transactional
-//    public void removeMemberFromPot(Long potId, Long userId) {
-//        // 현재 로그인한 사용자 확인
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String email = authentication.getName();
-//
-//        // 현재 로그인한 사용자 조회
-//        User currentUser = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new IllegalArgumentException("현재 사용자를 찾을 수 없습니다."));
-//
-//        // 팟 존재 여부 확인
-//        Pot pot = potRepository.findById(potId)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
-//
-//        // 팟 생성자인지 확인
-//        if (!pot.getUser().getId().equals(currentUser.getId())) {
-//            throw new IllegalStateException("해당 팟의 멤버를 삭제할 권한이 없습니다.");
-//        }
-//
-//        // 사용자 존재 여부 확인
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
-//
-//        // 팟 멤버 존재 여부 확인
-//        PotMember member = potMemberRepository.findByPotAndUser(pot, user)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 팟에 사용자가 존재하지 않습니다."));
-//
-//        // 팟 멤버 삭제
-//        potMemberRepository.delete(member);
-//    }
+    @Transactional
+    @Override
+    public void removeMemberFromPot(Long potId) {
+        // 현재 로그인한 사용자 확인
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 현재 로그인한 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("현재 사용자를 찾을 수 없습니다."));
+
+        // 팟 존재 여부 확인
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
+        // 팟 멤버 존재 여부 확인
+        PotMember member = potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟에 사용자가 존재하지 않습니다."));
+
+        // 팟 멤버 삭제
+        potMemberRepository.delete(member);
+    }
+
+
+    @Transactional
+    @Override
+    public String removePotOrMember(Long potId) {
+        // 현재 로그인한 사용자 확인
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 현재 로그인한 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("현재 사용자를 찾을 수 없습니다."));
+
+        // 팟 존재 여부 확인
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
+        // 팟 생성자인지 확인
+        if (pot.getUser().equals(user)) {
+            // 팟 생성자일 경우 팟과 관련된 모든 데이터 삭제
+            potRepository.delete(pot);
+            return "팟이 성공적으로 삭제되었습니다.";
+        } else {
+            // 팟 멤버인지 확인
+            PotMember member = potMemberRepository.findByPotAndUser(pot, user)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 팟에 사용자가 존재하지 않습니다."));
+
+            // 팟 멤버 삭제
+            potMemberRepository.delete(member);
+            return "팟 멤버가 성공적으로 삭제되었습니다.";
+        }
+    }
 
 }

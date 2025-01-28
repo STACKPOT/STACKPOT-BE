@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: ${URL}
     username: ${USERNAME}
@@ -35,8 +37,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${mail.username}
-    password: ${mail.password}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -47,3 +49,5 @@ spring:
   task:
     scheduling:
       enabled: true
+  redirect:
+    base-url: http://localhost:5173

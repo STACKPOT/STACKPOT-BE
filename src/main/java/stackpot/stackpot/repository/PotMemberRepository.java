@@ -1,8 +1,8 @@
 package stackpot.stackpot.repository;
 
 
-
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,4 +22,13 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     List<PotMember> findByPotId(@Param("potId") Long potId);
     @Query("SELECT pm.roleName, COUNT(pm) FROM PotMember pm WHERE pm.pot.potId = :potId GROUP BY pm.roleName")
     List<Object[]> findRoleCountsByPotId(@Param("potId") Long potId);
+
+    @Modifying
+    @Query("DELETE FROM PotMember pm WHERE pm.pot.potId = :potId AND pm.user.id = :userId")
+    void deleteByPotIdAndUserId(@Param("potId") Long potId, @Param("userId") Long userId);
+
+    Optional<PotMember> findByPotAndUser(Pot pot, User user);
+    boolean existsByPotAndUser(Pot pot, User user);
+
+
 }

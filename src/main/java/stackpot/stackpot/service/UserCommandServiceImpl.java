@@ -2,6 +2,7 @@ package stackpot.stackpot.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -14,10 +15,7 @@ import stackpot.stackpot.domain.User;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
-import stackpot.stackpot.web.dto.UserMypageResponseDto;
-import stackpot.stackpot.web.dto.UserRequestDto;
-import stackpot.stackpot.web.dto.UserResponseDto;
-import stackpot.stackpot.web.dto.UserUpdateRequestDto;
+import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +28,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     private final PotRepository potRepository;
     private final FeedRepository feedRepository;
     private final UserMypageConverter userMypageConverter;
+    private final PotSummarizationService potSummarizationService;
 
     @Override
     @Transactional
@@ -74,7 +73,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Override
-    public UserResponseDto getMypages() {
+    public UserResponseDto getMyUsers() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -91,6 +90,52 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .kakaoId(user.getKakaoId())
                 .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
                 .build();
+    }
+
+    @Override
+    public UserResponseDto getUsers(Long UserId) {
+        User user = userRepository.findById(UserId)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // User 정보를 UserResponseDto로 변환
+        return UserResponseDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
+                .role(user.getRole())
+                .interest(user.getInterest())
+                .userTemperature(user.getUserTemperature())
+                .kakaoId(user.getKakaoId())
+                .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
+                .build();
+    }
+
+
+    @Override
+    public UserMypageResponseDto getMypages(String dataType) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        List<Pot> completedPots = List.of();
+        List<Feed> feeds = List.of();
+
+        if (dataType == null || dataType.isBlank()) {
+            // 모든 데이터 반환 (pot + feed)
+            completedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "COMPLETED");
+            feeds = feedRepository.findByUser_Id(user.getId());
+        } else if ("pot".equalsIgnoreCase(dataType)) {
+            // 팟 정보만 반환
+            completedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "COMPLETED");
+        } else if ("feed".equalsIgnoreCase(dataType)) {
+            // 피드 정보만 반환
+            feeds = feedRepository.findByUser_Id(user.getId());
+        } else {
+            throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
+        }
+
+        return userMypageConverter.toDto(user, completedPots, feeds);
     }
 
     @Transactional
@@ -152,6 +197,16 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .kakaoId(user.getKakaoId())
                 .userIntroduction(user.getUserIntroduction())
                 .build();
+    }
+
+    @Override
+    public String createNickname() {
+        String prompt = "“재미있고 긍정적인 형용사와 명사를 결합한 문구를 만들어 주세요. 형식은 ‘형용사 명사’입니다"
+                + "예를 들어, ‘잘 자라는 양파’, ‘힘이 넘치는 버섯’ 같은 느낌으로 작성해 주세요.”";
+
+        String nickname = potSummarizationService.summarizeText(prompt, 15);
+
+        return nickname;
     }
 
     // 역할에 따른 채소명을 반환하는 메서드

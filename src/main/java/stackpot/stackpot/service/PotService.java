@@ -1,10 +1,6 @@
 package stackpot.stackpot.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import stackpot.stackpot.domain.enums.Role;
-import stackpot.stackpot.web.dto.PotRequestDto;
-import stackpot.stackpot.web.dto.PotResponseDto;
 import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
@@ -15,6 +11,8 @@ public interface PotService {
     PotResponseDto updatePotWithRecruitments(Long potId, PotRequestDto requestDto);
     CursorPageResponse<CompletedPotResponseDto> getMyCompletedPots(Long cursor, int size);
     void deletePot(Long potId);
+    void removeMemberFromPot(Long potId);
+    String removePotOrMember(Long potId);
 
     //---------------
 
@@ -40,4 +38,6 @@ public interface PotService {
     void patchPotStatus(Long potId);
 
     PotSummaryResponseDTO getPotSummary(Long potId);
+
+    CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size);
 }
