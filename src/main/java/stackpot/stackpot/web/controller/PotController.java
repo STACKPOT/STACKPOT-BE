@@ -39,38 +39,39 @@ public class PotController {
     @Operation(
             summary = "팟 생성 API",
             description = """
-        - potStatus: RECRUITING / ONGOING / COMPLETED
-        - potModeOfOperation: ONLINE / OFFLINE / HYBRID
-        - Role: FRONTEND / BACKEND / DESIGN / PLANNING
-    """
-    )    @PostMapping
-    public ResponseEntity<PotResponseDto> createPot(
+    - potStatus: RECRUITING / ONGOING / COMPLETED
+    - potModeOfOperation: ONLINE / OFFLINE / HYBRID
+    - Role: FRONTEND / BACKEND / DESIGN / PLANNING
+"""
+    )
+    @PostMapping
+    public ResponseEntity<ApiResponse<PotResponseDto>> createPot(
 
             @RequestBody @Valid PotRequestDto requestDto) {
         // 팟 생성 로직 호출
         PotResponseDto responseDto = potService.createPotWithRecruitments(requestDto);
 
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
 
     @Operation(summary = "팟 수정 API")
     @PatchMapping("/{pot_id}")
-    public ResponseEntity<PotResponseDto> updatePot(
+    public ResponseEntity<ApiResponse<PotResponseDto>> updatePot(
             @PathVariable("pot_id") Long potId,
             @RequestBody @Valid PotRequestDto requestDto) {
         // 팟 수정 로직 호출
         PotResponseDto responseDto = potService.updatePotWithRecruitments(potId, requestDto);
 
-        return ResponseEntity.ok(responseDto); // 수정된 팟 정보 반환
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
 
     @Operation(summary = "팟 삭제 API")
     @DeleteMapping("/{pot_id}")
-    public ResponseEntity<Void> deletePot(@PathVariable("pot_id") Long potId) {
+    public ResponseEntity<ApiResponse<Void>> deletePot(@PathVariable("pot_id") Long potId) {
         // 팟 삭제 로직 호출
         potService.deletePot(potId);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
 
@@ -199,6 +200,11 @@ public class PotController {
             @RequestParam(value = "size", defaultValue = "3") int size) {
         CursorPageResponse<CompletedPotResponseDto> response = potService.getUserCompletedPots(userId, cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @GetMapping("/")
+    public ResponseEntity hello() {
+        return ResponseEntity.ok("eroom 배포 자동화 테스트");
     }
 
 }
