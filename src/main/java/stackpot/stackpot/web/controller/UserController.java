@@ -45,25 +45,6 @@ public class UserController {
         return ResponseEntity.ok("Authenticated user: " + authentication.getName());
     }
 
-//    @GetMapping("/oauth/kakao")
-//    public ResponseEntity<TokenServiceResponse> callback(@RequestParam("code") String code) {
-//
-//        log.info("Authorization code: {}", code); // 인증 코드 확인
-//        String accessToken = kakaoService.getAccessTokenFromKakao(code);
-//        KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
-//
-//        String email = userInfo.getKakaoAccount().getEmail();// 이메일 가져오기
-//        log.info("userInfo.getEmail -> ", email);
-//
-//        User user = userCommandService.saveNewUser(email);
-//
-//        TokenServiceResponse token = jwtTokenProvider.createToken(user);
-//        log.info("STACKPOT ACESSTOKEN : " + token.getAccessToken());
-//
-//
-//        return ResponseEntity.ok(token);
-//    }
-
     @GetMapping("/oauth/kakao")
     @Operation(summary = "토큰 조회 API")
     public void callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
@@ -86,7 +67,7 @@ public class UserController {
         } else {
             // 가입된 유저: 홈 페이지로 리다이렉트 (토큰을 헤더로 추가)
             response.setHeader("Authorization", "Bearer " + token.getAccessToken());
-            response.sendRedirect("/callback");
+            response.sendRedirect("/home");
         }
     }
 
