@@ -10,10 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
-import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.converter.FeedConverter;
 import stackpot.stackpot.domain.Feed;
-import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Category;
 import stackpot.stackpot.domain.mapping.FeedLike;
@@ -95,10 +93,6 @@ public class FeedServiceImpl implements FeedService {
 
     @Transactional
     public FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, String nextCursor, int pageSize) {
-        // 사용자 존재 여부 확인
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-
         // 피드 조회 (페이징 처리 추가)
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         List<Feed> feeds;
