@@ -30,7 +30,7 @@ public class FeedController {
     private final FeedConverter feedConverter;
 
 
-    @Operation(summary = "(수정 필요) feed 작성 api")
+    @Operation(summary = "[수정 필요] Feed 생성 API")
     @PostMapping("")
     public ResponseEntity<FeedResponseDto.FeedDto> createFeeds(@Valid @RequestBody FeedRequestDto.createDto requset) {
         // 정상 처리
@@ -43,7 +43,7 @@ public class FeedController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "feed 미리보기 api ( 수정 필요 )")
+    @Operation(summary = "[수정 필요] Feed 전체 조회 API")
     @GetMapping("")
     public ResponseEntity<FeedResponseDto.FeedPreviewList> getPreViewFeeds(
             @RequestParam(value = "category", required = false, defaultValue = "ALL") Category category,
@@ -54,7 +54,7 @@ public class FeedController {
         FeedResponseDto.FeedPreviewList response = feedService.getPreViewFeeds(category, sort, cursor, limit);
         return ResponseEntity.ok(response);
     }
-    @Operation(summary = "feed 상세보기 api")
+    @Operation(summary = "Feed 상세 조회 API")
     @PostMapping("/{feedId}")
     public ResponseEntity<FeedResponseDto.FeedDto> getDetailFeed(@PathVariable Long feedId) {
 
@@ -66,7 +66,7 @@ public class FeedController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "feed 수정 api (수정 필요")
+    @Operation(summary = "[수정 필요] Feed 수정 API")
     @PatchMapping("/{feedId}")
     public ResponseEntity<FeedResponseDto.FeedDto> modifyFeed(@PathVariable Long feedId, @Valid @RequestBody FeedRequestDto.createDto requset) {
         // 정상 처리
@@ -78,7 +78,7 @@ public class FeedController {
 
         return ResponseEntity.ok(response);
     }
-    @Operation(summary = "feed 좋아요 추가 api")
+    @Operation(summary = "Feed 좋아요 API")
     @PostMapping("/{feedId}/like")
     public ResponseEntity<Map> toggleLike(@PathVariable Long feedId) {
 
@@ -90,7 +90,7 @@ public class FeedController {
         ));
     }
 
-    @Operation(summary = "feed 저장하기 api")
+    @Operation(summary = "Feed 저장 API")
     @PostMapping("/{feedId}/save")
     public ResponseEntity<Map> toggleSave(@PathVariable Long feedId) {
 
@@ -102,7 +102,7 @@ public class FeedController {
         ));
     }
 
-    @Operation(summary = "사용자 별 feed 조회 API")
+    @Operation(summary = "사용자 별 Feed 조회 API")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeedsByUserId(
             @PathVariable Long userId,
