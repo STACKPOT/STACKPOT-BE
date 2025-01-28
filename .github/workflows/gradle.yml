@@ -55,11 +55,15 @@ jobs:
       # Spring Boot 애플리케이션 빌드
       - name: Build with Gradle Wrapper
         run: ./gradlew build
+      - name: Print current directory
+        run: pwd
+      - name: List files in Docker context
+        run: ls -la
 
       # Docker 이미지 빌드
       - name: Docker image build
         run: |
-          DOCKER_BUILDKIT=0 docker build \
+          docker build \
             --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
@@ -71,9 +75,9 @@ jobs:
             --build-arg URL=${{ secrets.URL }} \
             --build-arg OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
             --build-arg USERNAME=${{ secrets.USERNAME }} \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring:latest .
-        
-        
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring:latest \
+            .
+
          # DockerHub 로그인
       - name: Docker login
         uses: docker/login-action@v2
