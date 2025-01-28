@@ -1,13 +1,21 @@
 package stackpot.stackpot.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.converter.FeedConverter;
 import stackpot.stackpot.domain.Feed;
+import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Category;
 import stackpot.stackpot.domain.mapping.FeedLike;
@@ -85,6 +93,70 @@ public class FeedServiceImpl implements FeedService {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(()->new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
         return feed;
+    }
+
+    @Transactional
+    public FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, String nextCursor, int pageSize) {
+        // 피드 조회 (페이징 처리 추가)
+        Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Feed> feeds;
+
+        if (nextCursor == null || nextCursor.isBlank()) {
+            // 첫 페이지 조회
+            feeds = feedRepository.findByUser_Id(userId, pageable);
+        } else {
+            // 다음 페이지 조회 (Cursor 기반 페이징)
+            LocalDateTime cursorTime = LocalDateTime.parse(nextCursor);
+            feeds = feedRepository.findByUserIdAndCreatedAtBefore(userId, cursorTime, pageable);
+        }
+
+        // Feed -> FeedDto 변환 (FeedConverter 활용)
+        List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
+                .map(feed -> feedConverter.feedDto(feed, getLikeCount(feed.getFeedId()), feedLikeRepository.countByFeed(feed)))
+                .collect(Collectors.toList());
+
+        // 다음 커서 설정 (마지막 피드의 createdAt)
+        String nextCursorResult = feeds.isEmpty() ? null : feeds.get(feeds.size() - 1).getCreatedAt().toString();
+
+        return FeedResponseDto.FeedPreviewList.builder()
+                .feeds(feedDtos)
+                .nextCursor(nextCursorResult)
+                .build();
+    }
+
+    @Override
+    public FeedResponseDto.FeedPreviewList getFeeds(String nextCursor, int pageSize) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // 피드 조회 (페이징 처리 추가)
+        Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Feed> feeds;
+
+        if (nextCursor == null || nextCursor.isBlank()) {
+            // 첫 페이지 조회
+            feeds = feedRepository.findByUser_Id(user.getId(), pageable);
+        } else {
+            // 다음 페이지 조회 (Cursor 기반 페이징)
+            LocalDateTime cursorTime = LocalDateTime.parse(nextCursor);
+            feeds = feedRepository.findByUserIdAndCreatedAtBefore(user.getId(), cursorTime, pageable);
+        }
+
+        // Feed -> FeedDto 변환 (FeedConverter 활용)
+        List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
+                .map(feed -> feedConverter.feedDto(feed, getLikeCount(feed.getFeedId()), feedLikeRepository.countByFeed(feed)))
+                .collect(Collectors.toList());
+
+        // 다음 커서 설정 (마지막 피드의 createdAt)
+        String nextCursorResult = feeds.isEmpty() ? null : feeds.get(feeds.size() - 1).getCreatedAt().toString();
+
+        return FeedResponseDto.FeedPreviewList.builder()
+                .feeds(feedDtos)
+                .nextCursor(nextCursorResult)
+                .build();
     }
 
     @Override

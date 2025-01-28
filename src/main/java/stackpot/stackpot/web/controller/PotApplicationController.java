@@ -19,7 +19,7 @@ import java.util.List;
 public class PotApplicationController {
 
     private final PotApplicationService potApplicationService;
-    @Operation(summary = "팟 지원하기")
+    @Operation(summary = "팟 지원 API")
     @PostMapping
     public ResponseEntity<PotApplicationResponseDto> applyToPot(
             @PathVariable("pot_id") Long potId,
@@ -31,7 +31,7 @@ public class PotApplicationController {
         return ResponseEntity.ok(responseDto); // 성공 시 응답 반환
     }
 
-    @Operation(summary = "팟 지원자 조회하기")
+    @Operation(summary = "팟 지원자 조회 API")
     @GetMapping("")
     public ResponseEntity<List<PotApplicationResponseDto>> getApplicants(
             @PathVariable("pot_id") Long potId) {

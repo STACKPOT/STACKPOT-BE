@@ -13,6 +13,7 @@ public class ApplicantResponseDTO {
     private PotResponseDto pot;
     private List<ApplicantDto> applicant;
 
+
     @Getter
     @Builder
     public static class ApplicantDto {

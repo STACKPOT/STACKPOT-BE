@@ -73,7 +73,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Override
-    public UserResponseDto getMypages() {
+    public UserResponseDto getMyUsers() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -90,6 +90,52 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .kakaoId(user.getKakaoId())
                 .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
                 .build();
+    }
+
+    @Override
+    public UserResponseDto getUsers(Long UserId) {
+        User user = userRepository.findById(UserId)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // User 정보를 UserResponseDto로 변환
+        return UserResponseDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
+                .role(user.getRole())
+                .interest(user.getInterest())
+                .userTemperature(user.getUserTemperature())
+                .kakaoId(user.getKakaoId())
+                .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
+                .build();
+    }
+
+
+    @Override
+    public UserMypageResponseDto getMypages(String dataType) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        List<Pot> completedPots = List.of();
+        List<Feed> feeds = List.of();
+
+        if (dataType == null || dataType.isBlank()) {
+            // 모든 데이터 반환 (pot + feed)
+            completedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "COMPLETED");
+            feeds = feedRepository.findByUser_Id(user.getId());
+        } else if ("pot".equalsIgnoreCase(dataType)) {
+            // 팟 정보만 반환
+            completedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "COMPLETED");
+        } else if ("feed".equalsIgnoreCase(dataType)) {
+            // 피드 정보만 반환
+            feeds = feedRepository.findByUser_Id(user.getId());
+        } else {
+            throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
+        }
+
+        return userMypageConverter.toDto(user, completedPots, feeds);
     }
 
     @Transactional

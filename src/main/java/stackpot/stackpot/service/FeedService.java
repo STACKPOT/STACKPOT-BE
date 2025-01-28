@@ -6,15 +6,19 @@ import stackpot.stackpot.web.dto.FeedRequestDto;
 import stackpot.stackpot.web.dto.FeedResponseDto;
 
 public interface FeedService {
-    public FeedResponseDto.FeedPreviewList getPreViewFeeds(Category category, String sort, String cursor, int limit);
-    public Feed createFeed(FeedRequestDto.createDto request);
+     FeedResponseDto.FeedPreviewList getPreViewFeeds(Category category, String sort, String cursor, int limit);
+     Feed createFeed(FeedRequestDto.createDto request);
 
-    public Feed getFeed(Long feedId);
 
-    public Feed modifyFeed(long feedId, FeedRequestDto.createDto request);
-    public boolean toggleLike(Long feedId);
-    public boolean toggleSave(Long feedId);
+     Feed getFeed(Long feedId);
+     FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, String nextCursor, int pageSize);
+     FeedResponseDto.FeedPreviewList getFeeds(String nextCursor, int pageSize);
 
-    public Long getSaveCount(Long feedId);
-    public Long getLikeCount(Long feedId);
+
+     Feed modifyFeed(long feedId, FeedRequestDto.createDto request);
+     boolean toggleLike(Long feedId);
+     boolean toggleSave(Long feedId);
+
+     Long getSaveCount(Long feedId);
+     Long getLikeCount(Long feedId);
 }
