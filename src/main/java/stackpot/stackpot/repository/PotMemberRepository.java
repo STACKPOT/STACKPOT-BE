@@ -30,5 +30,4 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     Optional<PotMember> findByPotAndUser(Pot pot, User user);
     boolean existsByPotAndUser(Pot pot, User user);
 
-
 }
