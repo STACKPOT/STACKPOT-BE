@@ -48,7 +48,6 @@ jobs:
       - name: Build with Gradle Wrapper
         run: ./gradlew build
 
-      # Docker 이미지 빌드
       - name: Docker image build
         run: |
           docker build \
@@ -64,6 +63,7 @@ jobs:
             --build-arg OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
             --build-arg USERNAME=${{ secrets.USERNAME }} \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring .
+
 
       # DockerHub 로그인
       - name: Docker login
