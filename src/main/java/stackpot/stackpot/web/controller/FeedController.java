@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
+import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.converter.FeedConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.enums.Category;
@@ -101,4 +102,14 @@ public class FeedController {
         ));
     }
 
+    @Operation(summary = "사용자 별 feed 조회 API")
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeedsByUserId(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String nextCursor,
+            @RequestParam(defaultValue = "10") int pageSize) {
+
+        FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeedsByUserId(userId, nextCursor, pageSize);
+        return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
+    }
 }

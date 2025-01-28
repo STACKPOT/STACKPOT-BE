@@ -39,4 +39,10 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     List<Feed> findByUser_Id(Long userId);
     Page<Feed> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String titleKeyword, String contentKeyword, Pageable pageable);
 
+    // 기본 페이징 조회
+    List<Feed> findByUser_Id(Long userId, Pageable pageable);
+
+    // 커서 기반 페이징 조회
+    List<Feed> findByUserIdAndCreatedAtBefore(Long userId, LocalDateTime createdAt, Pageable pageable);
+
 }
