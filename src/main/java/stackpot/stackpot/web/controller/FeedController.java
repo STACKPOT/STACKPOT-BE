@@ -112,4 +112,14 @@ public class FeedController {
         FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeedsByUserId(userId, cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
     }
+
+    @Operation(summary = "나의 Feed 조회 API")
+    @GetMapping("/my-feeds")
+    public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeeds(
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "10") int size) {
+
+        FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeeds(cursor, size);
+        return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
+    }
 }
