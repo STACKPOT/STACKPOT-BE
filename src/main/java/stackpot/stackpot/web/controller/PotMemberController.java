@@ -24,7 +24,7 @@ public class PotMemberController {
 
     private final PotMemberService potMemberService;
 
-    @Operation(summary = "팟 멤버 정보 가져오기( KAKAOID, 닉네임)")
+    @Operation(summary = "팟 멤버 정보 (KAKAOID, 닉네임) 조회 API")
     @GetMapping
     public ResponseEntity<ApiResponse<List<PotMemberAppealResponseDto>>> getPotMembers(
             @PathVariable("pot_id") Long potId) {
@@ -34,7 +34,7 @@ public class PotMemberController {
     }
 
     @Operation(
-            summary = "팟 시작하기",
+            summary = "팟 시작 API",
             description = "지원자 ID 리스트를 받아 팟 멤버를 추가합니다."
 
     )
@@ -45,7 +45,7 @@ public class PotMemberController {
         List<PotMemberAppealResponseDto> response = potMemberService.addMembersToPot(potId, requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-    @Operation(summary = "팟 어필하기")
+    @Operation(summary = "팟 어필 API")
     @PatchMapping("/{member_id}/appeal")
     public ResponseEntity<ApiResponse<String>> updateAppealContent(
             @PathVariable("pot_id") Long potId,

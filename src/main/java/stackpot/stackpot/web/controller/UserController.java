@@ -36,7 +36,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final KakaoService kakaoService;
     private final JwtTokenProvider jwtTokenProvider;
-    @Operation(summary = "토큰 test api")
+    @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
     public ResponseEntity<String> testEndpoint(Authentication authentication) {
         if (authentication == null) {
@@ -65,6 +65,7 @@ public class UserController {
 //    }
 
     @GetMapping("/oauth/kakao")
+    @Operation(summary = "토큰 조회 API")
     public void callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
 
         log.info("Authorization code: {}", code);
@@ -90,7 +91,7 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "회원가입 api")
+    @Operation(summary = "회원가입 API")
     @PatchMapping("/profile")
     public ResponseEntity<?> signup(@Valid @RequestBody UserRequestDto.JoinDto request,
                                     BindingResult bindingResult) {
@@ -108,7 +109,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
     }
 
-    @Operation(summary = "닉네임 생성 [질문 수정 필요]")
+    @Operation(summary = "[질문 수정 필요] 닉네임 생성 API")
     @GetMapping("/nickname")
     public ResponseEntity<ApiResponse<String>> nickname(){
         String nickName = userCommandService.createNickname();
@@ -116,14 +117,14 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
-    @Operation(summary = "마이페이지 사용자 정보 조회 API")
+    @Operation(summary = "나의 마이페이지 조회 API")
     @GetMapping("/mypages")
     public ResponseEntity<ApiResponse<UserResponseDto>> usersMypages(){
         UserResponseDto userDetails = userCommandService.getMypages();
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
-    @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
+    @Operation(summary = "다른 사람 마이페이지 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
     @GetMapping("/{userId}/mypages")
     public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(
             @PathVariable Long userId,
@@ -133,7 +134,7 @@ public class UserController {
     }
 
     @PatchMapping("/profile/update")
-    @Operation(summary = "사용자 프로필 수정 API", description = "사용자의 역할, 관심사, 한 줄 소개를 수정합니다.")
+    @Operation(summary = "나의 프로필 수정 API", description = "사용자의 역할, 관심사, 한 줄 소개를 수정합니다.")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUserProfile(
             @RequestBody @Valid UserUpdateRequestDto requestDto) {
 
