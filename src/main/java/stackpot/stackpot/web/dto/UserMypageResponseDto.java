@@ -7,6 +7,7 @@ import stackpot.stackpot.domain.enums.Role;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -35,6 +36,7 @@ public class UserMypageResponseDto {
         private String potEndDate;
         private String potSummary;
         private List<PotRecruitmentResponseDto> recruitmentDetails;
+        private Map<String, Integer> roleCounts; // 역할별 참여자 수 추가
     }
 
     @Getter

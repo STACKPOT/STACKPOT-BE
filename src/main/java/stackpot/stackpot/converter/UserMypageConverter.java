@@ -1,12 +1,15 @@
 package stackpot.stackpot.converter;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.repository.FeedLikeRepository;
+import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.web.dto.PotRecruitmentResponseDto;
 import stackpot.stackpot.web.dto.UserMypageResponseDto;
+import stackpot.stackpot.domain.enums.Role;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,7 +20,9 @@ import java.util.stream.Collectors;
 import static com.mysql.cj.util.TimeUtil.DATE_FORMATTER;
 
 @Component
+@RequiredArgsConstructor
 public class UserMypageConverter {
+    private final PotMemberRepository potMemberRepository; // 추가
 
     public UserMypageResponseDto toDto(User user, List<Pot> completedPots, List<Feed> feeds) {
         return UserMypageResponseDto.builder()
@@ -36,13 +41,13 @@ public class UserMypageConverter {
 
 
     private UserMypageResponseDto.CompletedPotDto convertToCompletedPotDto(Pot pot) {
-        // 역할별 인원 수 집계
-        Map<String, Long> roleSummary = pot.getPotMembers().stream()
-                .collect(Collectors.groupingBy(
-                        member -> member.getRoleName().name(),  // Enum을 String으로 변환
-                        Collectors.counting()
+        // 역할별 참여자 수 계산
+        List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
+        Map<String, Integer> roleCountsMap = roleCounts.stream()
+                .collect(Collectors.toMap(
+                        roleCount -> ((Role) roleCount[0]).name(),
+                        roleCount -> ((Long) roleCount[1]).intValue()
                 ));
-
 
         return UserMypageResponseDto.CompletedPotDto.builder()
                 .potId(pot.getPotId())
@@ -57,14 +62,11 @@ public class UserMypageConverter {
                                 .recruitmentCount(detail.getRecruitmentCount())
                                 .build())
                         .collect(Collectors.toList()))
+                .roleCounts(roleCountsMap)
                 .build();
     }
 
     private final FeedLikeRepository feedLikeRepository;
-
-    public UserMypageConverter(FeedLikeRepository feedLikeRepository) {
-        this.feedLikeRepository = feedLikeRepository;
-    }
 
     private UserMypageResponseDto.FeedDto convertToFeedDto(Feed feed) {
         return UserMypageResponseDto.FeedDto.builder()

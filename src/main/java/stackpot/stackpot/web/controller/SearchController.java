@@ -32,7 +32,7 @@ public class SearchController {
     private final SearchService searchService;
 
     @GetMapping("/pots")
-    @Operation(summary = "팟 검색", description = "키워드로 팟 이름 및 내용을 검색합니다.",
+    @Operation(summary = "팟 검색 API", description = "키워드로 팟 이름 및 내용을 검색합니다.",
             parameters = {
                     @Parameter(name = "keyword", description = "검색 키워드", example = "JAVA"),
 
@@ -55,7 +55,7 @@ public class SearchController {
     }
 
 
-    @Operation(summary = "피드 검색", description = "키워드로 피드 제목 및 내용을 검색합니다.",
+    @Operation(summary = "피드 검색 API", description = "키워드로 피드 제목 및 내용을 검색합니다.",
             parameters = {
                     @Parameter(name = "keyword", description = "검색 키워드", example = "Spring"),
                     @Parameter(name = "page", description = "요청 페이지 번호 (0부터 시작)", example = "0"),

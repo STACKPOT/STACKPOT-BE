@@ -1,11 +1,9 @@
 package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-//import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,6 +24,7 @@ import stackpot.stackpot.web.dto.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+
 @Tag(name = "User Management", description = "유저 관리 API")
 @Slf4j
 @RestController
@@ -37,7 +36,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final KakaoService kakaoService;
     private final JwtTokenProvider jwtTokenProvider;
-    @Operation(summary = "토큰 test api")
+    @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
     public ResponseEntity<String> testEndpoint(Authentication authentication) {
         if (authentication == null) {
@@ -66,6 +65,7 @@ public class UserController {
 //    }
 
     @GetMapping("/oauth/kakao")
+    @Operation(summary = "토큰 조회 API")
     public void callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
 
         log.info("Authorization code: {}", code);
@@ -79,7 +79,6 @@ public class UserController {
 
         TokenServiceResponse token = jwtTokenProvider.createToken(user);
         log.info("AccessToken: {}", token.getAccessToken());
-
         if (user.getId() == null) {
             // 미가입 유저: 회원가입 페이지로 리다이렉트 (토큰을 헤더로 추가)
             response.setHeader("Authorization", "Bearer " + token.getAccessToken());
@@ -91,7 +90,7 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "회원가입 api")
+    @Operation(summary = "회원가입 API")
     @PatchMapping("/profile")
     public ResponseEntity<?> signup(@Valid @RequestBody UserRequestDto.JoinDto request,
                                     BindingResult bindingResult) {
@@ -109,7 +108,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
     }
 
-    @Operation(summary = "닉네임 생성 [질문 수정 필요]")
+    @Operation(summary = "[질문 수정 필요] 닉네임 생성 API")
     @GetMapping("/nickname")
     public ResponseEntity<ApiResponse<String>> nickname(){
         String nickName = userCommandService.createNickname();
@@ -117,14 +116,32 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
-    @Operation(summary = "마이페이지 사용자 정보 조회 API")
-    @GetMapping("/mypages")
-    public ResponseEntity<ApiResponse<UserResponseDto>> usersMypages(){
-        UserResponseDto userDetails = userCommandService.getMypages();
+    @Operation(summary = "나의 정보 조회 API")
+    @GetMapping("")
+    public ResponseEntity<ApiResponse<UserResponseDto>> usersMyPages(){
+        UserResponseDto userDetails = userCommandService.getMyUsers();
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
-    @Operation(summary = "다른 사람 마이페이지(프로필) 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
+    @Operation(summary = "사용자별 정보 조회 API")
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<UserResponseDto>> usersPages(
+            @PathVariable Long userId
+    ){
+        UserResponseDto userDetails = userCommandService.getUsers(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+    @Operation(summary = "나의 마이페이지 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
+    @GetMapping("/mypages")
+    public ResponseEntity<ApiResponse<UserMypageResponseDto>> usersMypages(
+            @RequestParam(required = false) String dataType){
+        UserMypageResponseDto userDetails = userCommandService.getMypages(dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+
+    @Operation(summary = "사용자별 마이페이지 조회 API", description = "dataType = pot / feed / (null : pot + feed)")
     @GetMapping("/{userId}/mypages")
     public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(
             @PathVariable Long userId,
@@ -134,7 +151,7 @@ public class UserController {
     }
 
     @PatchMapping("/profile/update")
-    @Operation(summary = "사용자 프로필 수정 API", description = "사용자의 역할, 관심사, 한 줄 소개를 수정합니다.")
+    @Operation(summary = "나의 프로필 수정 API", description = "사용자의 역할, 관심사, 한 줄 소개를 수정합니다.")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUserProfile(
             @RequestBody @Valid UserUpdateRequestDto requestDto) {
 
