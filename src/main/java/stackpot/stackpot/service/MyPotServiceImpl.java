@@ -93,9 +93,12 @@ public class MyPotServiceImpl implements MyPotService {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        // 소유자 확인
-        if (!pot.getUser().equals(user)) {
-            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        // 소유자 또는 멤버 권한 확인
+        boolean isOwner = pot.getUser().equals(user);
+        boolean isMember = potMemberRepository.existsByPotAndUser(pot, user); // 팟의 멤버 여부 확인
+
+        if (!isOwner && !isMember) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN); // 권한 없음
         }
 
         // To-Do 생성
@@ -148,9 +151,12 @@ public class MyPotServiceImpl implements MyPotService {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        // 소유자 확인
-        if (!pot.getUser().equals(user)) {
-            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        // 소유자 또는 멤버 권한 확인
+        boolean isOwner = pot.getUser().equals(user);
+        boolean isMember = potMemberRepository.existsByPotAndUser(pot, user); // 팟의 멤버 여부 확인
+
+        if (!isOwner && !isMember) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN); // 권한 없음
         }
 
         // 특정 팟의 모든 To-Do 조회
@@ -194,22 +200,24 @@ public class MyPotServiceImpl implements MyPotService {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        // 소유자 확인
-        if (!pot.getUser().equals(user)) {
-            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
-        }
+        // 특정 팟에 속한 모든 투두 리스트 조회
+        List<UserTodo> userTodos = myPotRepository.findByPot_PotId(potId);
 
-        // 특정 팟에 속한 모든 투두 리스트 조회 (사용자별)
-        List<UserTodo> userTodos = myPotRepository.findByPotAndUser(pot, user);
-
-        // 요청된 todoId와 일치하는 항목 업데이트
+        // 요청된 todoId와 일치하는 항목을 매핑
         Map<Long, UserTodo> todoMap = userTodos.stream()
                 .collect(Collectors.toMap(UserTodo::getTodoId, todo -> todo));
 
         for (MyPotTodoUpdateRequestDTO updateRequest : requestList) {
             UserTodo todo = todoMap.get(updateRequest.getTodoId());
+
+            // To-Do 존재 여부 확인
             if (todo == null) {
-                throw new IllegalArgumentException("Todo with ID " + updateRequest.getTodoId() + " not found.");
+                throw new PotHandler(ErrorStatus.USER_TODO_NOT_FOUND); // To-Do가 존재하지 않음
+            }
+
+            // 소유자 확인
+            if (!todo.getUser().equals(user)) {
+                throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED); // 권한 없음
             }
 
             // 내용 업데이트

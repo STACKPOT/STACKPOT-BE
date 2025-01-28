@@ -28,5 +28,7 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     void deleteByPotIdAndUserId(@Param("potId") Long potId, @Param("userId") Long userId);
 
     Optional<PotMember> findByPotAndUser(Pot pot, User user);
+    boolean existsByPotAndUser(Pot pot, User user);
+
 
 }

@@ -16,7 +16,7 @@ public class PotAllResponseDTO {
     private List<MyPotResponseDTO.OngoingPotsDetail> ongoingPots;
 
     @JsonProperty("completedPots")
-    private List<PotDetail> completedPots;
+    private List<CompletedPotResponseDto> completedPots;
 
     @Getter
     @Builder
