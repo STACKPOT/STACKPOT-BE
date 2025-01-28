@@ -79,15 +79,14 @@ public class UserController {
 
         TokenServiceResponse token = jwtTokenProvider.createToken(user);
         log.info("AccessToken: {}", token.getAccessToken());
-
         if (user.getId() == null) {
             // 미가입 유저: 회원가입 페이지로 리다이렉트 (토큰을 헤더로 추가)
             response.setHeader("Authorization", "Bearer " + token.getAccessToken());
-            response.sendRedirect("http://localhost:5173/sign-up");
+            response.sendRedirect("/sign-up");
         } else {
             // 가입된 유저: 홈 페이지로 리다이렉트 (토큰을 헤더로 추가)
             response.setHeader("Authorization", "Bearer " + token.getAccessToken());
-            response.sendRedirect("http://localhost:5173/callback");
+            response.sendRedirect("/callback");
         }
     }
 

@@ -27,4 +27,5 @@ public interface MyPotService {
     MyPotTaskResponseDto viewDetailTask(Long taskId);
     MyPotTaskResponseDto modfiyTask(Long taskId, MyPotTaskRequestDto.create request);
     void deleteTaskboard(Long potId, Long taskboardId);
+    CompletedPotDetailResponseDto getCompletedPotDetail(Long potId);
 }
