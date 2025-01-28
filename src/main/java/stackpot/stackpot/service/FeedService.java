@@ -11,6 +11,8 @@ public interface FeedService {
 
     public Feed getFeed(Long feedId);
     public FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, String nextCursor, int pageSize);
+    public FeedResponseDto.FeedPreviewList getFeeds(String nextCursor, int pageSize);
+
 
     public Feed modifyFeed(long feedId, FeedRequestDto.createDto request);
     public boolean toggleLike(Long feedId);
