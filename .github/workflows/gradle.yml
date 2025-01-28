@@ -13,10 +13,10 @@ jobs:
       contents: read
 
     steps:
-      # 코드 체크아웃
+      # 🔹 1️⃣ 코드 체크아웃
       - uses: actions/checkout@v4
 
-      # Java와 Gradle 설정
+      # 🔹 2️⃣ Java 및 Gradle 설정
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -24,12 +24,12 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3.1.0
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 환경 변수 설정
+      # 🔹 3️⃣ 환경 변수 설정
       - name: Set environment variables
         run: |
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
@@ -44,26 +44,19 @@ jobs:
           echo "OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}" >> $GITHUB_ENV
           echo "USERNAME=${{ secrets.USERNAME }}" >> $GITHUB_ENV
 
-      # 환경 변수 디버깅
-      - name: Debug Environment Variables
-        run: |
-          echo "Checking Environment Variables..."
-          echo "URL=${{ secrets.URL }}"
-          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}"
-          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}"
-
-      # Spring Boot 애플리케이션 빌드
+      # 🔹 4️⃣ Gradle Build
       - name: Build with Gradle Wrapper
         run: ./gradlew build
-      - name: Print current directory
-        run: pwd
-      - name: List files in Docker context
-        run: ls -la
 
-      # Docker 이미지 빌드
-      - name: Docker image build
+      # 🔹 5️⃣ Docker Buildx 설정
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # 🔹 6️⃣ Docker 이미지 빌드 및 푸시
+      - name: Docker image build and push
+        working-directory: ${{ github.workspace }}
         run: |
-          docker build \
+          docker buildx build \
             --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
@@ -76,43 +69,29 @@ jobs:
             --build-arg OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
             --build-arg USERNAME=${{ secrets.USERNAME }} \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring:latest \
+            --push \
             .
-
-         # DockerHub 로그인
-      - name: Docker login
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      # Docker 이미지 푸시
-      - name: Docker image push
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring:latest
 
   deploy:
     needs: build-docker-image
     runs-on: self-hosted
 
     steps:
-      # Spring 컨테이너 실행
+      # 🔹 1️⃣ Docker 네트워크 생성
+      - name: Create Docker network
+        run: |
+          docker network create stackpot-network || true
+
+      # 🔹 2️⃣ Spring 컨테이너 실행
       - name: Run Spring container
         run: |
           docker stop spring || true
           docker rm spring || true
           docker run -d --name spring --network stackpot-network \
             -p 8080:8080 \
-            -e URL=${{ secrets.URL }} \
-            -e USERNAME=${{ secrets.USERNAME }} \
-            -e PASSWORD=${{ secrets.PASSWORD }} \
-            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            -e KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }} \
-            -e KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }} \
-            -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
-            -e MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
-            -e OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
 
-      # Nginx 컨테이너 실행
+      # 🔹 3️⃣ Nginx 컨테이너 실행
       - name: Run Nginx container
         run: |
           docker stop nginx || true
@@ -125,7 +104,6 @@ jobs:
             -v /home/ubuntu/STACKPOT-BE/nginx/conf.d:/etc/nginx/conf.d \
             nginx:1.15-alpine
 
-      # Docker 이미지 및 컨테이너 정리
+      # 🔹 4️⃣ Docker 이미지 및 컨테이너 정리
       - name: Clean up Docker system
         run: docker system prune -f
-
