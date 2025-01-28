@@ -346,16 +346,24 @@ public class PotServiceImpl implements PotService {
                 .map(this::convertToOngoingPotDetail)
                 .collect(Collectors.toList());
 
-        // 끓인 팟 리스트
-        List<PotAllResponseDTO.PotDetail> completedPots = myPots.stream()
-                .filter(pot -> "COMPLETED".equals(pot.getPotStatus()))
-                .map(this::convertToPotDetail)
+        // 끓인 팟 리스트 (COMPLETED 상태 필터링)
+        List<CompletedPotResponseDto> completedPots = myPots.stream()
+                .filter(pot -> "COMPLETED".equalsIgnoreCase(pot.getPotStatus()))
+                .map(pot -> {
+                    List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
+                    Map<String, Integer> roleCountsMap = roleCounts.stream()
+                            .collect(Collectors.toMap(
+                                    roleCount -> ((Role) roleCount[0]).name(),
+                                    roleCount -> ((Long) roleCount[1]).intValue()
+                            ));
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+                })
                 .collect(Collectors.toList());
 
         return List.of(PotAllResponseDTO.builder()
                 .recruitingPots(recruitingPots)
                 .ongoingPots(ongoingPots)
-                .completedPots(completedPots)
+                .completedPots(completedPots) // 끓인 팟을 CompletedPotResponseDto로 반환
                 .build());
 
     }
