@@ -36,6 +36,17 @@ services:
     depends_on:
       - spring
     environment:
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      JWT_SECRET: "${JWT_SECRET}"
+      KAKAO_CLIENT_ID: "${KAKAO_CLIENT_ID}"
+      KAKAO_CLIENT_SECRET: "${KAKAO_CLIENT_SECRET}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD}"
+      MAIL_USERNAME: "${MAIL_USERNAME}"
+      PASSWORD: "${PASSWORD}"
+      URL: "${URL}"
+      OPEN_API_KEY: "${OPEN_API_KEY}"
+      USERNAME: "${USERNAME}"
       SERVER_PORT: 80
 
   certbot:
