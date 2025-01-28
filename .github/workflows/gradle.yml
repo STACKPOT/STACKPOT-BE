@@ -28,7 +28,8 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    # 3. 환경 변수 설정
+
+    # 환경 변수 설정
     - name: Set environment variables
       run: |
         echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
@@ -42,6 +43,7 @@ jobs:
         echo "URL=${{ secrets.URL }}" >> $GITHUB_ENV
         echo "OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}" >> $GITHUB_ENV
         echo "USERNAME=${{ secrets.USERNAME }}" >> $GITHUB_ENV
+
     # Spring Boot 어플리케이션 빌드
     - name: Build with Gradle Wrapper
       run: ./gradlew build
@@ -66,15 +68,14 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - name: Pull Spring image
-      run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
-
     # Spring 컨테이너 실행
     - name: Run Spring container
       run: |
         docker stop spring || true
         docker rm spring || true
-        docker run -d --name spring -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
+        docker run -d --name spring --network stackpot-network \
+          -p 8080:8080 \
+          ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
 
     # Nginx 컨테이너 실행
     - name: Run Nginx container
@@ -82,24 +83,12 @@ jobs:
         docker stop nginx || true
         docker rm nginx || true
         docker run -d \
-          --name nginx \
-          -p 80:80 \
-          -p 443:443 \
-          -v ./nginx/conf.d:/etc/nginx/conf.d \
-          -v ./certbot/conf:/etc/letsencrypt \
-          -v ./certbot/www:/var/www/certbot \
+          --name nginx --network stackpot-network \
+          -p 80:80 -p 443:443 \
+          -v /home/ubuntu/STACKPOT-BE/certbot/conf:/etc/letsencrypt \
+          -v /home/ubuntu/STACKPOT-BE/certbot/www:/var/www/certbot \
+          -v /home/ubuntu/STACKPOT-BE/nginx/conf.d:/etc/nginx/conf.d \
           nginx:1.15-alpine
-
-    # Certbot 컨테이너 실행
-    - name: Run Certbot container
-      run: |
-        docker stop stackpot-be_certbot_1 || true
-        docker rm stackpot-be_certbot_1 || true
-        docker run --rm \
-          --name stackpot-be_certbot_1 \
-          -v ./certbot/conf:/etc/letsencrypt \
-          -v ./certbot/www:/var/www/certbot \
-          certbot/certbot certonly --webroot --webroot-path=/var/www/certbot -d api.stackpot.co.kr
 
     # Docker 이미지 및 컨테이너 정리
     - name: Clean up Docker system
