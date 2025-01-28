@@ -1,11 +1,9 @@
 package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-//import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,6 +24,7 @@ import stackpot.stackpot.web.dto.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+
 @Tag(name = "User Management", description = "유저 관리 API")
 @Slf4j
 @RestController
@@ -83,11 +82,11 @@ public class UserController {
         if (user.getId() == null) {
             // 미가입 유저: 회원가입 페이지로 리다이렉트 (토큰을 헤더로 추가)
             response.setHeader("Authorization", "Bearer " + token.getAccessToken());
-            response.sendRedirect("/sign-up");
+            response.sendRedirect("http://localhost:5173/sign-up");
         } else {
             // 가입된 유저: 홈 페이지로 리다이렉트 (토큰을 헤더로 추가)
             response.setHeader("Authorization", "Bearer " + token.getAccessToken());
-            response.sendRedirect("/callback");
+            response.sendRedirect("http://localhost:5173/callback");
         }
     }
 
