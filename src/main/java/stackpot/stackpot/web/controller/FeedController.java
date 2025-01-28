@@ -106,10 +106,10 @@ public class FeedController {
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeedsByUserId(
             @PathVariable Long userId,
-            @RequestParam(required = false) String nextCursor,
-            @RequestParam(defaultValue = "10") int pageSize) {
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "10") int size) {
 
-        FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeedsByUserId(userId, nextCursor, pageSize);
+        FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeedsByUserId(userId, cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
     }
 }

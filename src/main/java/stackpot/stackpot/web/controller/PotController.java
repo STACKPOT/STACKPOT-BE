@@ -185,4 +185,20 @@ public class PotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(summary));
     }
 
+    @GetMapping("/completed/{userId}")
+    @Operation(summary = "사용자 별 끓인 팟 조회 API",
+            description = "사용자 ID로 potStatus가 COMPLETED인 팟 목록을 커서 기반 페이지네이션으로 가져옵니다.",
+            parameters = {
+                    @Parameter(name = "userId", description = "사용자 ID", example = "1"),
+                    @Parameter(name = "cursor", description = "현재 페이지의 마지막 potId 값", example = "10"),
+                    @Parameter(name = "size", description = "한 페이지에 가져올 데이터 개수", example = "3")
+            })
+    public ResponseEntity<ApiResponse<CursorPageResponse<CompletedPotResponseDto>>> getUserCompletedPots(
+            @PathVariable Long userId,
+            @RequestParam(value = "cursor", required = false) Long cursor,
+            @RequestParam(value = "size", defaultValue = "3") int size) {
+        CursorPageResponse<CompletedPotResponseDto> response = potService.getUserCompletedPots(userId, cursor, size);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
 }

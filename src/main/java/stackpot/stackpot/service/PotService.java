@@ -38,4 +38,6 @@ public interface PotService {
     void patchPotStatus(Long potId);
 
     PotSummaryResponseDTO getPotSummary(Long potId);
+
+    CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size);
 }
