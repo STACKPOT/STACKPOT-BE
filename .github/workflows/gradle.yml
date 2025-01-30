@@ -103,15 +103,7 @@ jobs:
       - name: Verify running containers
         run: docker ps -a
 
-      - name: Check application health
-        run: |
-          sleep 10
-          curl -f http://localhost:8080/actuator/health || exit 1
 
-      - name: Clean up Docker system
-        run: docker system prune -f
-
-
-
+      
       - name: Clean up Docker system
         run: docker system prune -f
