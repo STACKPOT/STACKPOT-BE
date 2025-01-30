@@ -42,6 +42,8 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = true, columnDefinition = "TEXT")
     private String userIntroduction; // 한 줄 소개
 
+    @Getter
+    @Setter
     @Column(nullable = true)
     private Integer userTemperature; // 유저 온도
 

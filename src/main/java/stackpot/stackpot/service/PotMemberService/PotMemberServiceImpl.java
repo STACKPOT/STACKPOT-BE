@@ -58,6 +58,10 @@ public class PotMemberServiceImpl implements PotMemberService {
         pot.setPotStartDate(LocalDate.now()); // 필드 이름에 따라 메서드 호출
         potRepository.save(pot); // 변경 사항 저장
 
+        // 4. 팟 생성자의 temperature 증가
+        User potCreator = pot.getUser();  // 팟 생성자 가져오기
+        potCreator.setUserTemperature(potCreator.getUserTemperature() + 3); // 3도 증가
+        userRepository.save(potCreator);   // 변경 사항 저장
 
         // 4. 선택된 지원자들을 멤버로 추가
         List<Long> applicantIds = requestDto.getApplicantIds();
@@ -68,6 +72,14 @@ public class PotMemberServiceImpl implements PotMemberService {
             PotApplication application = potApplicationRepository.findById(applicantId)
                     .orElseThrow(() -> new IllegalArgumentException("지원자를 찾을 수 없습니다."));
             User user = application.getUser();
+
+
+            // 지원자의 temperature 증가
+            user.setUserTemperature(user.getUserTemperature() + 3);
+            userRepository.save(user);  // 변경 사항 저장
+
+
+
             PotMember member = potMemberConverter.toEntity(user, pot, application, false);
             newMembers.add(member);
         }
