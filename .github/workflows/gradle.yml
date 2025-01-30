@@ -81,7 +81,7 @@ jobs:
             -e URL=${{ secrets.URL }} \
             -e OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
             -e USERNAME=${{ secrets.USERNAME }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
+            stackpot-be_spring:latest
 
       - name: Stop and remove existing Nginx container
         run: |
@@ -98,8 +98,25 @@ jobs:
             -v /home/ubuntu/STACKPOT-BE/nginx/conf.d:/etc/nginx/conf.d \
             nginx:1.15-alpine
 
+      - name: Run Certbot container
+        run: |
+          docker stop stackpot-be_certbot_1 || true
+          docker rm stackpot-be_certbot_1 || true
+          docker run --name stackpot-be_certbot_1 \
+            -v /home/ubuntu/STACKPOT-BE/certbot/conf:/etc/letsencrypt \
+            -v /home/ubuntu/STACKPOT-BE/certbot/www:/var/www/certbot \
+            certbot/certbot renew
+
       - name: Verify running containers
         run: docker ps -a
+
+      - name: Check application health
+        run: |
+          sleep 10
+          curl -f http://localhost:8080/actuator/health || exit 1
+
+      - name: Clean up Docker system
+        run: docker system prune -f
 
 
 
