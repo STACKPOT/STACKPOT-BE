@@ -61,15 +61,20 @@ jobs:
     runs-on: self-hosted
 
     steps:
+    
+      - name: Pull latest Docker image
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
+
       - name: Stop and remove existing Spring container
         run: |
           docker stop spring || true
           docker rm spring || true
+          docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring || true
+
 
       - name: Run Spring container
         run: |
-          docker stop spring || true
-          docker rm spring || true
+
           docker run -d --name spring --network stackpot-network \
             --env-file /home/ubuntu/STACKPOT-BE/.env \
             -p 8080:8080 \
