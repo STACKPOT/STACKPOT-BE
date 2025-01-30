@@ -66,22 +66,15 @@ jobs:
           docker stop spring || true
           docker rm spring || true
 
-      - name: Run Spring container with environment variables
+      - name: Run Spring container
         run: |
+          docker stop spring || true
+          docker rm spring || true
           docker run -d --name spring --network stackpot-network \
+            --env-file /home/ubuntu/STACKPOT-BE/.env \
             -p 8080:8080 \
-            -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-            -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            -e KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }} \
-            -e KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }} \
-            -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
-            -e MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
-            -e PASSWORD=${{ secrets.PASSWORD }} \
-            -e URL=${{ secrets.URL }} \
-            -e OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
-            -e USERNAME=${{ secrets.USERNAME }} \
-            stackpot-be_spring:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
+
 
       - name: Stop and remove existing Nginx container
         run: |
