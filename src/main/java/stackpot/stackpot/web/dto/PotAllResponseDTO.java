@@ -21,7 +21,7 @@ public class PotAllResponseDTO {
     @Getter
     @Builder
     public static class PotDetail {
-        private UserResponseDto user;
+        private UserResponseDto.Userdto user;
         private PotResponseDto pot;
     }
 }

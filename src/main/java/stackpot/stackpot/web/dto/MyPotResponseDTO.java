@@ -16,7 +16,7 @@ public class MyPotResponseDTO {
     @Getter
     @Builder
     public static class OngoingPotsDetail {
-        private UserResponseDto user;
+        private UserResponseDto.Userdto user;
         private PotResponseDto pot;
         private List<PotMemberResponseDTO> potMembers;
     }
