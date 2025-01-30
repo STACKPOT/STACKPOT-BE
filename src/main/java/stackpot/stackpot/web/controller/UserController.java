@@ -33,9 +33,7 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserCommandService userCommandService;
-    private final UserRepository userRepository;
     private final KakaoService kakaoService;
-    private final JwtTokenProvider jwtTokenProvider;
     @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
     public ResponseEntity<String> testEndpoint(Authentication authentication) {
@@ -46,29 +44,17 @@ public class UserController {
     }
 
     @GetMapping("/oauth/kakao")
-    @Operation(summary = "토큰 조회 API")
-    public void callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
+    @Operation(summary = "로그인 및 토큰발급 API")
+    public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
 
         log.info("Authorization code: {}", code);
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
 
         String email = userInfo.getKakaoAccount().getEmail();
-        log.info("userInfo.getEmail -> {}", email);
 
-        User user = userCommandService.saveNewUser(email);
-
-        TokenServiceResponse token = jwtTokenProvider.createToken(user);
-        log.info("AccessToken: {}", token.getAccessToken());
-        if (user.getId() == null) {
-            // 미가입 유저: 회원가입 페이지로 리다이렉트 (토큰을 헤더로 추가)
-            response.setHeader("Authorization", "Bearer " + token.getAccessToken());
-            response.sendRedirect("/sign-up");
-        } else {
-            // 가입된 유저: 홈 페이지로 리다이렉트 (토큰을 헤더로 추가)
-            response.setHeader("Authorization", "Bearer " + token.getAccessToken());
-            response.sendRedirect("/home");
-        }
+        UserResponseDto.loginDto userResponse = userCommandService.isnewUser(email);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userResponse));
     }
 
     @Operation(summary = "회원가입 API")
@@ -99,17 +85,17 @@ public class UserController {
 
     @Operation(summary = "나의 정보 조회 API")
     @GetMapping("")
-    public ResponseEntity<ApiResponse<UserResponseDto>> usersMyPages(){
-        UserResponseDto userDetails = userCommandService.getMyUsers();
+    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersMyPages(){
+        UserResponseDto.Userdto userDetails = userCommandService.getMyUsers();
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
     @Operation(summary = "사용자별 정보 조회 API")
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<UserResponseDto>> usersPages(
+    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersPages(
             @PathVariable Long userId
     ){
-        UserResponseDto userDetails = userCommandService.getUsers(userId);
+        UserResponseDto.Userdto userDetails = userCommandService.getUsers(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
@@ -133,10 +119,10 @@ public class UserController {
 
     @PatchMapping("/profile/update")
     @Operation(summary = "나의 프로필 수정 API", description = "사용자의 역할, 관심사, 한 줄 소개를 수정합니다.")
-    public ResponseEntity<ApiResponse<UserResponseDto>> updateUserProfile(
+    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> updateUserProfile(
             @RequestBody @Valid UserUpdateRequestDto requestDto) {
 
-        UserResponseDto updatedUser = userCommandService.updateUserProfile(requestDto);
+        UserResponseDto.Userdto updatedUser = userCommandService.updateUserProfile(requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(updatedUser));
     }
 

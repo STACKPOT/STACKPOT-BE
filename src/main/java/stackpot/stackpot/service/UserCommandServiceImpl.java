@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
+import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
@@ -19,7 +20,11 @@ import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserCommandServiceImpl implements UserCommandService{
@@ -29,6 +34,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     private final FeedRepository feedRepository;
     private final UserMypageConverter userMypageConverter;
     private final PotSummarizationService potSummarizationService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     @Transactional
@@ -59,6 +65,42 @@ public class UserCommandServiceImpl implements UserCommandService{
                 });
     }
 
+    @Override
+    public UserResponseDto.loginDto isnewUser(String email) {
+        // 이메일로 기존 유저 조회
+        Optional<User> existingUser = userRepository.findByEmail(email);
+
+        if (existingUser.isPresent()) {
+            // 기존 유저가 있으면 isNewUser = false
+            User user = existingUser.get();
+            TokenServiceResponse token = jwtTokenProvider.createToken(user);
+
+            return UserResponseDto.loginDto.builder()
+                    .tokenServiceResponse(token)
+                    .isNewUser(false)
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .build();
+        } else {
+            // 신규 유저 생성
+            User newUser = User.builder()
+                    .email(email)
+                    .userTemperature(33)  // 기본값 설정
+                    .build();
+
+            userRepository.save(newUser);
+            TokenServiceResponse token = jwtTokenProvider.createToken(newUser);
+
+            return UserResponseDto.loginDto.builder()
+                    .tokenServiceResponse(token)
+                    .isNewUser(true)  // 신규 유저임을 표시
+                    .id(newUser.getId())
+                    .email(newUser.getEmail())
+                    .build();
+        }
+    }
+
+
     private void updateUserData(User user, UserRequestDto.JoinDto request) {
         // 카카오 id
         user.setKakaoId(request.getKakaoId());
@@ -73,7 +115,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Override
-    public UserResponseDto getMyUsers() {
+    public UserResponseDto.Userdto getMyUsers() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -81,7 +123,7 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // User 정보를 UserResponseDto로 변환
-        return UserResponseDto.builder()
+        return UserResponseDto.Userdto.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
                 .role(user.getRole())
@@ -93,12 +135,12 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Override
-    public UserResponseDto getUsers(Long UserId) {
+    public UserResponseDto.Userdto getUsers(Long UserId) {
         User user = userRepository.findById(UserId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // User 정보를 UserResponseDto로 변환
-        return UserResponseDto.builder()
+        return UserResponseDto.Userdto.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
                 .role(user.getRole())
@@ -166,7 +208,7 @@ public class UserCommandServiceImpl implements UserCommandService{
 
 
     @Transactional
-    public UserResponseDto updateUserProfile(UserUpdateRequestDto requestDto) {
+    public UserResponseDto.Userdto updateUserProfile(UserUpdateRequestDto requestDto) {
         // 현재 로그인한 사용자 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -188,7 +230,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 저장 후 DTO로 변환하여 반환
         userRepository.save(user);
 
-        return UserResponseDto.builder()
+        return UserResponseDto.Userdto.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
                 .role(user.getRole())

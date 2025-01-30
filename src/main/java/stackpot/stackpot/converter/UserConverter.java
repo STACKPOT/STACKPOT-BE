@@ -18,7 +18,7 @@ public class UserConverter {
                 .build();
     }
 
-    public static UserResponseDto toDto(User user) {
+    public static UserResponseDto.Userdto toDto(User user) {
 
         if (user.getId() == null) {
             throw new IllegalStateException("User ID is null");
@@ -28,7 +28,7 @@ public class UserConverter {
         String roleName = user.getRole() != null ? user.getRole().name() : "멤버";
         String nicknameWithRole = user.getNickname() + " " + toDtoRole(roleName);
 
-        return UserResponseDto.builder()
+        return UserResponseDto.Userdto.builder()
                 .id(user.getId())  // id 값이 제대로 설정되었는지 로그 확인
                 .nickname(nicknameWithRole)
                 .email(user.getEmail())
