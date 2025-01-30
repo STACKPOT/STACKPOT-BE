@@ -42,7 +42,7 @@ public class SecurityConfig {
 //                    oauth -> oauth.userInfoEndpoint(config -> config.userService(customOAuth2UserService))
 //                                                .successHandler(successHandler(jwtTokenProvider)))
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/", "/home", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs/**", "users/oauth/kakao","/pots").permitAll()
+                        .requestMatchers("/", "/home","/sign-up", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs/**", "/users/oauth/kakao", "/pots").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
