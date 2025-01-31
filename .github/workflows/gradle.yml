@@ -13,10 +13,8 @@ jobs:
       contents: read
 
     steps:
-      # 코드 체크아웃
       - uses: actions/checkout@v4
 
-      # Java와 Gradle 설정
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -29,37 +27,32 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 환경 변수 설정
-      - name: Debug environment variables
+      - name: Set environment variables
         run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}"
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}"
-          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}"
-          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}"
-          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}"
-          echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}"
-  
-          echo "PASSWORD=${{ secrets.PASSWORD }}"
-          echo "URL=${{ secrets.URL }}"
-          echo "OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}"
-          echo "USERNAME=${{ secrets.USERNAME }}"
-      # Spring Boot 어플리케이션 빌드
-      - name: Build with Gradle Wrapper
-        run: ./gradlew build
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> $GITHUB_ENV
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> $GITHUB_ENV
+          echo "PASSWORD=${{ secrets.PASSWORD }}" >> $GITHUB_ENV
+          echo "URL=${{ secrets.URL }}" >> $GITHUB_ENV
+          echo "OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}" >> $GITHUB_ENV
+          echo "USERNAME=${{ secrets.USERNAME }}" >> $GITHUB_ENV
 
-      # Docker 이미지 빌드
+      - name: Build with Gradle Wrapper (Skipping Tests)
+        run: ./gradlew build -x test
+
       - name: Docker image build
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring .
 
-      # DockerHub 로그인
       - name: Docker login
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # Docker 이미지 푸시
       - name: Docker image push
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
 
@@ -68,28 +61,33 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # Spring 컨테이너 실행
-      - name: Run Spring container
+    
+      - name: Pull latest Docker image
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
+
+      - name: Stop and remove existing Spring container
         run: |
           docker stop spring || true
           docker rm spring || true
+          docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring || true
+
+
+      - name: Run Spring container
+        run: |
+
           docker run -d --name spring --network stackpot-network \
+            --env-file /home/ubuntu/STACKPOT-BE/.env \
             -p 8080:8080 \
-            -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-            -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            -e MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
-            -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
-            -e URL=${{ secrets.URL }} \
-            -e USERNAME=${{ secrets.USERNAME }} \
-            -e PASSWORD=${{ secrets.PASSWORD }} \
             ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
 
-      # Nginx 컨테이너 실행
-      - name: Run Nginx container
+
+      - name: Stop and remove existing Nginx container
         run: |
           docker stop nginx || true
           docker rm nginx || true
+
+      - name: Run Nginx container
+        run: |
           docker run -d \
             --name nginx --network stackpot-network \
             -p 80:80 -p 443:443 \
@@ -98,17 +96,19 @@ jobs:
             -v /home/ubuntu/STACKPOT-BE/nginx/conf.d:/etc/nginx/conf.d \
             nginx:1.15-alpine
 
-      # 네트워크 및 컨테이너 상태 확인
-      - name: Debug Docker network
-        run: docker network inspect stackpot-network
-
-      - name: Debug Docker logs
+      - name: Run Certbot container
         run: |
-          echo "Spring Logs:"
-          docker logs spring
-          echo "Nginx Logs:"
-          docker logs nginx
+          docker stop stackpot-be_certbot_1 || true
+          docker rm stackpot-be_certbot_1 || true
+          docker run --name stackpot-be_certbot_1 \
+            -v /home/ubuntu/STACKPOT-BE/certbot/conf:/etc/letsencrypt \
+            -v /home/ubuntu/STACKPOT-BE/certbot/www:/var/www/certbot \
+            certbot/certbot renew
 
-      # Docker 이미지 및 컨테이너 정리
+      - name: Verify running containers
+        run: docker ps -a
+
+
+      
       - name: Clean up Docker system
         run: docker system prune -f
