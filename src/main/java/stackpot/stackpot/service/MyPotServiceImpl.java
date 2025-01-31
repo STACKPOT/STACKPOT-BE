@@ -27,10 +27,7 @@ import stackpot.stackpot.repository.TaskboardRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -186,72 +183,6 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
-    /*@Override
-    @Transactional
-    public List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> requestList) {
-        // 현재 인증된 사용자 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        // 사용자 정보 조회
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-
-        // 팟 조회
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
-
-        // 특정 팟에 속한 모든 투두 리스트 조회
-        List<UserTodo> userTodos = myPotRepository.findByPot_PotId(potId);
-
-        // 요청된 todoId와 일치하는 항목을 매핑
-        Map<Long, UserTodo> todoMap = userTodos.stream()
-                .collect(Collectors.toMap(UserTodo::getTodoId, todo -> todo));
-
-        for (MyPotTodoUpdateRequestDTO updateRequest : requestList) {
-            UserTodo todo = todoMap.get(updateRequest.getTodoId());
-
-            // To-Do 존재 여부 확인
-            if (todo == null) {
-                throw new PotHandler(ErrorStatus.USER_TODO_NOT_FOUND); // To-Do가 존재하지 않음
-            }
-
-            // 소유자 확인
-            if (!todo.getUser().equals(user)) {
-                throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED); // 권한 없음
-            }
-
-            // 내용 업데이트
-            todo.setContent(updateRequest.getContent());
-        }
-
-
-        // 변경된 상태 저장
-        myPotRepository.saveAll(userTodos);
-
-        // 사용자별로 그룹화하여 DTO로 변환
-        Map<User, List<UserTodo>> groupedByUser = userTodos.stream()
-                .collect(Collectors.groupingBy(UserTodo::getUser));
-
-        return groupedByUser.entrySet().stream()
-                .map(entry -> {
-                    // 해당 유저의 pot에서 potMember 역할 찾기
-                    String roleName = getUserRoleInPot(entry.getKey(), pot);
-
-                    return MyPotTodoResponseDTO.builder()
-                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
-                            .userId(entry.getKey().getId())
-                            .todos(entry.getValue().stream()
-                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
-                                            .todoId(todo.getTodoId())
-                                            .content(todo.getContent())
-                                            .status(todo.getStatus())
-                                            .build())
-                                    .collect(Collectors.toList()))
-                            .build();
-                })
-                .collect(Collectors.toList());
-    }*/
 
     @Override
     @Transactional
@@ -268,24 +199,49 @@ public class MyPotServiceImpl implements MyPotService {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        // 기존 To-Do 삭제
-        myPotRepository.deleteByPot_PotIdAndUser(potId, user);
+        List<UserTodo> existingTodos = myPotRepository.findByPot_PotIdAndUser(potId, user);
 
-        // 새로운 To-Do 생성
-        List<UserTodo> newTodos = requestList.stream()
-                .map(updateRequest -> UserTodo.builder()
+        // 요청된 todoId 리스트
+        Set<Long> requestedTodoIds = requestList.stream()
+                .map(MyPotTodoUpdateRequestDTO::getTodoId)
+                .filter(Objects::nonNull) // 새로 추가된 항목(null) 제외
+                .collect(Collectors.toSet());
+
+        Map<Long, UserTodo> existingTodoMap = existingTodos.stream()
+                .collect(Collectors.toMap(UserTodo::getTodoId, todo -> todo));
+
+        List<UserTodo> updatedOrNewTodos = new ArrayList<>();
+
+        for (MyPotTodoUpdateRequestDTO request : requestList) {
+            if (request.getTodoId() != null && existingTodoMap.containsKey(request.getTodoId())) {
+                UserTodo existingTodo = existingTodoMap.get(request.getTodoId());
+
+                if (!existingTodo.getUser().equals(user)) {
+                    throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED);
+                }
+
+                existingTodo.setContent(request.getContent());
+                updatedOrNewTodos.add(existingTodo);
+            } else {
+                UserTodo newTodo = UserTodo.builder()
                         .user(user)
                         .pot(pot)
-                        .content(updateRequest.getContent())
-                        .status(updateRequest.getStatus())
-                        .build())
+                        .content(request.getContent())
+                        .status(request.getStatus() != null ? request.getStatus() : TodoStatus.NOT_STARTED) // 기본값 설정
+                        .build();
+                updatedOrNewTodos.add(newTodo);
+            }
+        }
+
+        List<UserTodo> todosToDelete = existingTodos.stream()
+                .filter(todo -> !requestedTodoIds.contains(todo.getTodoId()) && todo.getUser().equals(user)) // 본인만 삭제 가능
                 .collect(Collectors.toList());
 
-        // 저장
-        myPotRepository.saveAll(newTodos);
+        myPotRepository.saveAll(updatedOrNewTodos);
 
-        // 사용자별로 그룹화하여 DTO 변환
-        Map<User, List<UserTodo>> groupedByUser = newTodos.stream()
+        myPotRepository.deleteAll(todosToDelete);
+
+        Map<User, List<UserTodo>> groupedByUser = updatedOrNewTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
         return groupedByUser.entrySet().stream()
