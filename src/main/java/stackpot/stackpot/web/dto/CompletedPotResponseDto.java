@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Setter;
 import stackpot.stackpot.domain.enums.PotModeOfOperation;
+import stackpot.stackpot.domain.enums.Role;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,5 +31,6 @@ public class CompletedPotResponseDto {
     private LocalDate recruitmentDeadline; // 모집 마감일
     private List<RecruitmentDetailResponseDto> recruitmentDetails; // 수정된 부분 // 모집 세부 정보
     private Map<String, Integer> roleCounts; // 역할별 인원
+    private Role userPotRole;
 }
 

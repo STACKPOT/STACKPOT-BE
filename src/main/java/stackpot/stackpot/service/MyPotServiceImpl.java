@@ -184,6 +184,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
+
     @Override
     @Transactional
     public List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> requestList) {
@@ -199,35 +200,49 @@ public class MyPotServiceImpl implements MyPotService {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        // 특정 팟에 속한 모든 투두 리스트 조회
-        List<UserTodo> userTodos = myPotRepository.findByPot_PotId(potId);
+        List<UserTodo> existingTodos = myPotRepository.findByPot_PotIdAndUser(potId, user);
 
-        // 요청된 todoId와 일치하는 항목을 매핑
-        Map<Long, UserTodo> todoMap = userTodos.stream()
+        // 요청된 todoId 리스트
+        Set<Long> requestedTodoIds = requestList.stream()
+                .map(MyPotTodoUpdateRequestDTO::getTodoId)
+                .filter(Objects::nonNull) // 새로 추가된 항목(null) 제외
+                .collect(Collectors.toSet());
+
+        Map<Long, UserTodo> existingTodoMap = existingTodos.stream()
                 .collect(Collectors.toMap(UserTodo::getTodoId, todo -> todo));
 
-        for (MyPotTodoUpdateRequestDTO updateRequest : requestList) {
-            UserTodo todo = todoMap.get(updateRequest.getTodoId());
+        List<UserTodo> updatedOrNewTodos = new ArrayList<>();
 
-            // To-Do 존재 여부 확인
-            if (todo == null) {
-                throw new PotHandler(ErrorStatus.USER_TODO_NOT_FOUND); // To-Do가 존재하지 않음
+        for (MyPotTodoUpdateRequestDTO request : requestList) {
+            if (request.getTodoId() != null && existingTodoMap.containsKey(request.getTodoId())) {
+                UserTodo existingTodo = existingTodoMap.get(request.getTodoId());
+
+                if (!existingTodo.getUser().equals(user)) {
+                    throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED);
+                }
+
+                existingTodo.setContent(request.getContent());
+                updatedOrNewTodos.add(existingTodo);
+            } else {
+                UserTodo newTodo = UserTodo.builder()
+                        .user(user)
+                        .pot(pot)
+                        .content(request.getContent())
+                        .status(request.getStatus() != null ? request.getStatus() : TodoStatus.NOT_STARTED) // 기본값 설정
+                        .build();
+                updatedOrNewTodos.add(newTodo);
             }
-
-            // 소유자 확인
-            if (!todo.getUser().equals(user)) {
-                throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED); // 권한 없음
-            }
-
-            // 내용 업데이트
-            todo.setContent(updateRequest.getContent());
         }
 
-        // 변경된 상태 저장
-        myPotRepository.saveAll(userTodos);
+        List<UserTodo> todosToDelete = existingTodos.stream()
+                .filter(todo -> !requestedTodoIds.contains(todo.getTodoId()) && todo.getUser().equals(user)) // 본인만 삭제 가능
+                .collect(Collectors.toList());
 
-        // 사용자별로 그룹화하여 DTO로 변환
-        Map<User, List<UserTodo>> groupedByUser = userTodos.stream()
+        myPotRepository.saveAll(updatedOrNewTodos);
+
+        myPotRepository.deleteAll(todosToDelete);
+
+        Map<User, List<UserTodo>> groupedByUser = updatedOrNewTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
         return groupedByUser.entrySet().stream()

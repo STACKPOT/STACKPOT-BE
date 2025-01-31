@@ -1,6 +1,7 @@
 package stackpot.stackpot.web.dto;
 
 import lombok.*;
+import stackpot.stackpot.domain.enums.TodoStatus;
 
 
 @Getter
@@ -11,4 +12,5 @@ import lombok.*;
 public class MyPotTodoUpdateRequestDTO {
     private Long todoId;
     private String content;
+    private TodoStatus status;
 }
