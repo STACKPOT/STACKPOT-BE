@@ -34,4 +34,5 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
             "AND (:cursor IS NULL OR p.potId < :cursor) " +
             "ORDER BY p.potId DESC")
     List<Pot> findCompletedPotsByCursor(@Param("userId") Long userId, @Param("cursor") Long cursor);
+
 }

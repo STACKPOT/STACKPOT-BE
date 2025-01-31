@@ -10,6 +10,7 @@ import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.converter.PotConverter;
+import stackpot.stackpot.converter.PotDetailConverter;
 import stackpot.stackpot.converter.TaskboardConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.Taskboard;
@@ -45,7 +46,7 @@ public class MyPotServiceImpl implements MyPotService {
     private final TaskboardRepository taskboardRepository;
     private final PotMemberRepository potMemberRepository;
     private final TaskRepository taskRepository;
-
+    private final PotDetailConverter potDetailConverter;
 
     @Override
     public Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> getMyOnGoingPots() {
@@ -350,7 +351,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
-                .user(UserResponseDto.builder()
+                .user(UserResponseDto.Userdto.builder()
                         .nickname(pot.getUser().getNickname())
                         .role(pot.getUser().getRole())
                         .build())
@@ -453,5 +454,35 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
 
         return taskRepository.saveAll(tasks);
+    }
+
+    @Transactional
+    @Override
+    public CompletedPotDetailResponseDto getCompletedPotDetail(Long potId) {
+        // 현재 로그인한 사용자 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 팟 조회
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
+        // 팟 상태 확인
+        if (!"COMPLETED".equals(pot.getPotStatus())) {
+            throw new IllegalArgumentException("해당 팟은 COMPLETED 상태가 아닙니다.");
+        }
+
+        // 팟 멤버에서 어필 내용 가져오기
+        PotMember potMember = potMemberRepository.findByPotAndUser(pot, user)
+                .orElse(null);
+
+        String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
+
+        // DTO 반환
+        return potDetailConverter.toCompletedPotDetailDto(pot, appealContent);
     }
 }
