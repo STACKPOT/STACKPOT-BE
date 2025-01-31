@@ -304,27 +304,56 @@ public class MyPotServiceImpl implements MyPotService {
     }
 
 
+//    @Override
+//    public MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request) {
+//
+//        Pot pot = potRepository.findById(potId)
+//                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+//
+//        Taskboard taskboard = taskboardConverter.toTaskboard(pot, request);
+//        taskboardRepository.save(taskboard);
+//
+//        List<PotMember> participants = potMemberRepository.findAllById(request.getParticipants());
+//
+//        log.info("dd", participants);
+//
+//        if (participants.isEmpty()) {
+//            throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
+//        }
+//        createAndSaveTasks(taskboard, participants);
+//        List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
+//
+//        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
+//        response.setParticipants(participantDtos);
+//        return response;
+//    }
     @Override
     public MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request) {
-
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
 
         Taskboard taskboard = taskboardConverter.toTaskboard(pot, request);
         taskboardRepository.save(taskboard);
 
-        List<PotMember> participants = potMemberRepository.findAllById(request.getParticipants());
+        List<Long> requestedParticipantIds = request.getParticipants();
 
-        log.info("dd", participants);
+        List<PotMember> validParticipants = potMemberRepository.findByPotId(potId);
+
+        List<PotMember> participants = validParticipants.stream()
+                .filter(potMember -> requestedParticipantIds.contains(potMember.getPotMemberId()))
+                .collect(Collectors.toList());
+
+        log.info("유효한 참가자 목록: {}", participants);
 
         if (participants.isEmpty()) {
             throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
         }
         createAndSaveTasks(taskboard, participants);
-        List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
 
+        List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
         MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
         response.setParticipants(participantDtos);
+
         return response;
     }
 
