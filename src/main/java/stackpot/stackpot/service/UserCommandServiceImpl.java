@@ -226,6 +226,9 @@ public class UserCommandServiceImpl implements UserCommandService{
         if (requestDto.getUserIntroduction() != null && !requestDto.getUserIntroduction().isEmpty()) {
             user.setUserIntroduction(requestDto.getUserIntroduction());
         }
+        if(requestDto.getKakaoId() != null && !requestDto.getKakaoId().isEmpty()) {
+            user.setKakaoId(requestDto.getKakaoId());
+        }
 
         // 저장 후 DTO로 변환하여 반환
         userRepository.save(user);

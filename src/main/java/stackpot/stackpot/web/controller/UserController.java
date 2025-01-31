@@ -120,7 +120,7 @@ public class UserController {
     @PatchMapping("/profile/update")
     @Operation(summary = "나의 프로필 수정 API", description = "사용자의 역할, 관심사, 한 줄 소개를 수정합니다.")
     public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> updateUserProfile(
-            @RequestBody @Valid UserUpdateRequestDto requestDto) {
+            @RequestBody UserUpdateRequestDto requestDto) {
 
         UserResponseDto.Userdto updatedUser = userCommandService.updateUserProfile(requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(updatedUser));
