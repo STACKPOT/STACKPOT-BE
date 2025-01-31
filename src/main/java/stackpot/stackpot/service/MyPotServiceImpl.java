@@ -15,6 +15,7 @@ import stackpot.stackpot.converter.TaskboardConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.TaskboardStatus;
 import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.domain.mapping.Task;
@@ -27,10 +28,7 @@ import stackpot.stackpot.repository.TaskboardRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -317,7 +315,7 @@ public class MyPotServiceImpl implements MyPotService {
 
         List<PotMember> participants = potMemberRepository.findAllById(request.getParticipants());
 
-        log.info("dd",  participants);
+        log.info("dd", participants);
 
         if (participants.isEmpty()) {
             throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
@@ -329,6 +327,31 @@ public class MyPotServiceImpl implements MyPotService {
         response.setParticipants(participantDtos);
         return response;
     }
+
+    @Override
+    public Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> preViewTask(Long potId) {
+
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(()->new IllegalArgumentException("Pot not found with id: " + potId));
+
+        List<Taskboard> taskboards = taskboardRepository.findByPot(pot);
+
+        List<MyPotTaskPreViewResponseDto> taskboardDtos = taskboards.stream()
+                .map(taskboard -> {
+                    List<Task> tasks = taskRepository.findByTaskboard(taskboard); // Task 조회
+                    List<PotMember> participants = tasks.stream()
+                            .map(Task::getPotMember) // Task에서 PotMember 추출
+                            .distinct()
+                            .collect(Collectors.toList());
+
+                    return taskboardConverter.toDto(taskboard, participants);
+                })
+                .collect(Collectors.toList());
+
+        return taskboardDtos.stream()
+                .collect(Collectors.groupingBy(MyPotTaskPreViewResponseDto::getStatus));
+    }
+
 
     @Override
     public MyPotTaskResponseDto viewDetailTask(Long taskboardId) {
@@ -438,7 +461,7 @@ public class MyPotServiceImpl implements MyPotService {
             taskboard.setDescription(request.getDescription());
         }
         if(request.getDeadline()!=null){
-            taskboard.setEndDate(request.getDeadline());
+            taskboard.setDeadLine(request.getDeadline());
         }
         if(request.getTaskboardStatus()!=null){
             taskboard.setStatus(request.getTaskboardStatus());
