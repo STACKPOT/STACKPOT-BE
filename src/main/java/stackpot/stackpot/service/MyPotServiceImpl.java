@@ -186,7 +186,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
-    @Override
+    /*@Override
     @Transactional
     public List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> requestList) {
         // 현재 인증된 사용자 가져오기
@@ -225,11 +225,67 @@ public class MyPotServiceImpl implements MyPotService {
             todo.setContent(updateRequest.getContent());
         }
 
+
         // 변경된 상태 저장
         myPotRepository.saveAll(userTodos);
 
         // 사용자별로 그룹화하여 DTO로 변환
         Map<User, List<UserTodo>> groupedByUser = userTodos.stream()
+                .collect(Collectors.groupingBy(UserTodo::getUser));
+
+        return groupedByUser.entrySet().stream()
+                .map(entry -> {
+                    // 해당 유저의 pot에서 potMember 역할 찾기
+                    String roleName = getUserRoleInPot(entry.getKey(), pot);
+
+                    return MyPotTodoResponseDTO.builder()
+                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
+                            .userId(entry.getKey().getId())
+                            .todos(entry.getValue().stream()
+                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                            .todoId(todo.getTodoId())
+                                            .content(todo.getContent())
+                                            .status(todo.getStatus())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }*/
+
+    @Override
+    @Transactional
+    public List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> requestList) {
+        // 현재 인증된 사용자 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 사용자 정보 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // 팟 조회
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        // 기존 To-Do 삭제
+        myPotRepository.deleteByPot_PotIdAndUser(potId, user);
+
+        // 새로운 To-Do 생성
+        List<UserTodo> newTodos = requestList.stream()
+                .map(updateRequest -> UserTodo.builder()
+                        .user(user)
+                        .pot(pot)
+                        .content(updateRequest.getContent())
+                        .status(updateRequest.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 저장
+        myPotRepository.saveAll(newTodos);
+
+        // 사용자별로 그룹화하여 DTO 변환
+        Map<User, List<UserTodo>> groupedByUser = newTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
         return groupedByUser.entrySet().stream()
