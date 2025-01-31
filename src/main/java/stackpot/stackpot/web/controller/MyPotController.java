@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.domain.enums.TaskboardStatus;
 import stackpot.stackpot.service.MyPotService;
 import stackpot.stackpot.service.PotService;
 import stackpot.stackpot.web.dto.*;
@@ -111,11 +112,11 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "[미완성] Task 조회 API")
+    @Operation(summary = "Task 조회 API")
     @GetMapping("/{pot_id}/tasks")
     public ResponseEntity<?> getPotTask(@PathVariable("pot_id") Long potId) {
-
-        return null;
+        Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> response = myPotService.preViewTask(potId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Task 수정 API")
