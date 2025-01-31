@@ -2,6 +2,7 @@ package stackpot.stackpot.service;
 
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.Taskboard;
+import stackpot.stackpot.domain.enums.TaskboardStatus;
 import stackpot.stackpot.domain.mapping.UserTodo;
 import stackpot.stackpot.web.dto.*;
 
@@ -24,6 +25,8 @@ public interface MyPotService {
     List<MyPotTodoResponseDTO> completeTodo(Long potId, Long todoId);
 
     MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request);
+
+    public Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> preViewTask(Long potId);
     MyPotTaskResponseDto viewDetailTask(Long taskId);
     MyPotTaskResponseDto modfiyTask(Long taskId, MyPotTaskRequestDto.create request);
     void deleteTaskboard(Long potId, Long taskboardId);
