@@ -1,5 +1,6 @@
 package stackpot.stackpot.config.security;
 
+import io.netty.handler.codec.http.HttpMethod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,12 +39,8 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//            .oauth2Login(
-//                    oauth -> oauth.userInfoEndpoint(config -> config.userService(customOAuth2UserService))
-//                                                .successHandler(successHandler(jwtTokenProvider)))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/", "/home","/sign-up", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs/**", "/users/oauth/kakao", "/pots").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);

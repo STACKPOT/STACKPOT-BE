@@ -14,4 +14,5 @@ public class UserUpdateRequestDto {
     private Role role;
     private String interest;
     private String userIntroduction;
+    private String kakaoId;
 }

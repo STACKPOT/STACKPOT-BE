@@ -1,6 +1,8 @@
 package stackpot.stackpot.repository;
 
 
+import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -8,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotMember;
 
 import java.util.List;
@@ -29,6 +32,10 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
 
     Optional<PotMember> findByPotAndUser(Pot pot, User user);
     boolean existsByPotAndUser(Pot pot, User user);
+
+    // ✅ 특정 Pot에 속한 사용자(userId)의 역할(Role) 찾기
+    @Query("SELECT pm.roleName FROM PotMember pm WHERE pm.pot.potId = :potId AND pm.user.id = :userId")
+    Optional<Role> findRoleByUserId(@Param("potId") Long potId, @Param("userId") Long userId);
 
 
 }

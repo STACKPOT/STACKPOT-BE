@@ -34,10 +34,11 @@ public interface PotService {
     // 사용자가 참여 중인 팟 목록 조회
     List<PotAllResponseDTO> getMyPots();
 
-    // 팟 다 끓이기
-    void patchPotStatus(Long potId);
 
     PotSummaryResponseDTO getPotSummary(Long potId);
 
     CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size);
+
+    // 팟 다 끓이기
+    PotResponseDto patchPotWithRecruitments(Long potId, PotRequestDto requestDto);
 }
