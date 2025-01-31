@@ -153,7 +153,18 @@ public class PotServiceImpl implements PotService {
                                     roleCount -> ((Role) roleCount[0]).name(),
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+
+                    // 현재 사용자의 역할(Role) 결정
+                    Role userPotRole;
+                    if (pot.getUser().getId().equals(user.getId())) {
+                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                    } else {
+                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                                .orElse(pot.getUser().getRole()); // 기본값을 MEMBER로 설정
+                    }
+
+                    // Pot -> CompletedPotResponseDto 변환
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole);
                 })
                 .collect(Collectors.toList());
 
@@ -358,7 +369,18 @@ public class PotServiceImpl implements PotService {
                                     roleCount -> ((Role) roleCount[0]).name(),
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+
+                    // 현재 사용자의 역할(Role) 결정
+                    Role userPotRole;
+                    if (pot.getUser().getId().equals(user.getId())) {
+                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                    } else {
+                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                                .orElse(pot.getUser().getRole()); // 기본값을 MEMBER로 설정
+                    }
+
+                    // Pot -> CompletedPotResponseDto 변환
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole);
                 })
                 .collect(Collectors.toList());
 
@@ -411,8 +433,17 @@ public class PotServiceImpl implements PotService {
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
 
+                    // 현재 사용자의 역할(Role) 결정
+                    Role userPotRole;
+                    if (pot.getUser().getId().equals(userId)) {
+                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                    } else {
+                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), userId)
+                                .orElse(pot.getUser().getRole());
+                    }
+
                     // Pot -> CompletedPotResponseDto 변환
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole);
                 })
                 .collect(Collectors.toList());
 
@@ -446,6 +477,7 @@ public class PotServiceImpl implements PotService {
                 .potMembers(potMembers)
                 .build();
     }
+
     @Transactional
     @Override
     public void removeMemberFromPot(Long potId) {
@@ -460,6 +492,7 @@ public class PotServiceImpl implements PotService {
         // 팟 존재 여부 확인
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
 
         // 팟 멤버 존재 여부 확인
         PotMember member = potMemberRepository.findByPotAndUser(pot, user)

@@ -5,6 +5,7 @@ import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.PotModeOfOperation;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
@@ -63,7 +64,7 @@ public class PotConverterImpl implements PotConverter {
 
     @Override
 
-    public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts) {
+    public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts, Role userPotRole) {
         return CompletedPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
@@ -83,6 +84,7 @@ public class PotConverterImpl implements PotConverter {
                                 .build())
                         .collect(Collectors.toList()))
                 .roleCounts(roleCounts)
+                .userPotRole(userPotRole)
                 .build();
     }
 
