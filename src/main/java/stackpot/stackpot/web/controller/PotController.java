@@ -202,9 +202,20 @@ public class PotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @GetMapping("/")
-    public ResponseEntity hello() {
-        return ResponseEntity.ok("eroom 배포 자동화 테스트");
+    @Operation(summary = "팟 다 끓이기 API",
+            description =
+                    "pot의 status가 COMPLETED로 바뀌고, 팟 멤버들의 온도가 5도 올라갑니다.\n" +
+                    "- potStatus: COMPLETED\n" +
+                    "- potModeOfOperation: ONLINE / OFFLINE / HYBRID\n" +
+                    "- Role: FRONTEND / BACKEND / DESIGN / PLANNING")
+    @PatchMapping("/{pot_id}/complete")
+    public ResponseEntity<ApiResponse<PotResponseDto>> patchPot(
+            @PathVariable("pot_id") Long potId,
+            @RequestBody @Valid PotRequestDto requestDto) {
+        // 팟 다 끓이기 로직 호출
+        PotResponseDto responseDto = potService.patchPotWithRecruitments(potId, requestDto);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
 
 }
