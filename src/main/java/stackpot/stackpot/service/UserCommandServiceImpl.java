@@ -78,8 +78,6 @@ public class UserCommandServiceImpl implements UserCommandService{
             return UserResponseDto.loginDto.builder()
                     .tokenServiceResponse(token)
                     .isNewUser(false)
-                    .id(user.getId())
-                    .email(user.getEmail())
                     .build();
         } else {
             // 신규 유저 생성
@@ -94,8 +92,6 @@ public class UserCommandServiceImpl implements UserCommandService{
             return UserResponseDto.loginDto.builder()
                     .tokenServiceResponse(token)
                     .isNewUser(true)  // 신규 유저임을 표시
-                    .id(newUser.getId())
-                    .email(newUser.getEmail())
                     .build();
         }
     }

@@ -28,9 +28,5 @@ public class UserResponseDto {
     public static class loginDto {
         private TokenServiceResponse tokenServiceResponse;
         private Boolean isNewUser;
-        private Long id;
-        private String email;
-
-
     }
 }
