@@ -3,6 +3,10 @@ package stackpot.stackpot.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -137,7 +141,8 @@ public class MyPotServiceImpl implements MyPotService {
     }
 
     @Override
-    public List<MyPotTodoResponseDTO> getTodo(Long potId) {
+    @Transactional
+    public Page<MyPotTodoResponseDTO> getTodo(Long potId, PageRequest pageRequest) {
         // 현재 인증된 사용자 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -152,27 +157,47 @@ public class MyPotServiceImpl implements MyPotService {
 
         // 소유자 또는 멤버 권한 확인
         boolean isOwner = pot.getUser().equals(user);
-        boolean isMember = potMemberRepository.existsByPotAndUser(pot, user); // 팟의 멤버 여부 확인
+        boolean isMember = potMemberRepository.existsByPotAndUser(pot, user);
 
         if (!isOwner && !isMember) {
-            throw new PotHandler(ErrorStatus.POT_FORBIDDEN); // 권한 없음
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
-        // 특정 팟의 모든 To-Do 조회
-        List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
+        // 📌 팟의 모든 멤버 조회 (소유자 포함) 후, User 기준으로 페이징
+        List<User> allPotMembers = potMemberRepository.findByPotId(pot.getPotId())
+                .stream()
+                .map(PotMember::getUser)
+                .collect(Collectors.toList());
+        allPotMembers.add(pot.getUser()); // 팟 소유자 추가
 
-        // 특정 팟의 모든 To-Do 조회
-        return potTodos.stream()
-                .collect(Collectors.groupingBy(UserTodo::getUser))
-                .entrySet().stream()
-                .map(entry -> {
-                    // 해당 유저의 pot에서 potMember 역할 찾기
-                    String roleName = getUserRoleInPot(entry.getKey(), pot); // 기본값을 String으로 설정
+        // 📌 User 기준으로 페이징 적용
+        int totalUsers = allPotMembers.size();
+        int startIndex = (int) pageRequest.getOffset();
+        int endIndex = Math.min(startIndex + pageRequest.getPageSize(), totalUsers);
+
+        if (startIndex >= totalUsers) {
+            return new PageImpl<>(List.of(), pageRequest, totalUsers);
+        }
+
+        List<User> pagedUsers = allPotMembers.subList(startIndex, endIndex);
+
+        // 📌 선택된 User들의 투두 조회
+        List<UserTodo> todos = myPotRepository.findByPotAndUsers(pot, pagedUsers);
+
+        // 📌 투두를 User 기준으로 그룹핑
+        Map<User, List<UserTodo>> groupedByUser = todos.stream()
+                .collect(Collectors.groupingBy(UserTodo::getUser));
+
+        // DTO 변환
+        List<MyPotTodoResponseDTO> responseList = pagedUsers.stream()
+                .map(member -> {
+                    String roleName = getUserRoleInPot(member, pot);
+                    List<UserTodo> userTodos = groupedByUser.getOrDefault(member, List.of());
 
                     return MyPotTodoResponseDTO.builder()
-                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
-                            .userId(entry.getKey().getId())
-                            .todos(entry.getValue().stream()
+                            .userNickname(member.getNickname() + getVegetableNameByRole(roleName))
+                            .userId(member.getId())
+                            .todos(userTodos.isEmpty() ? null : userTodos.stream()
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
                                             .content(todo.getContent())
@@ -182,6 +207,9 @@ public class MyPotServiceImpl implements MyPotService {
                             .build();
                 })
                 .collect(Collectors.toList());
+
+        // 📌 Page 객체로 변환하여 반환
+        return new PageImpl<>(responseList, pageRequest, totalUsers);
     }
 
 
