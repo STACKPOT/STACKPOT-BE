@@ -1,5 +1,8 @@
 package stackpot.stackpot.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.enums.TaskboardStatus;
@@ -18,7 +21,7 @@ public interface MyPotService {
     // 사용자의 특정 팟에서의 생성
     List<MyPotTodoResponseDTO> postTodo(Long potId, MyPotTodoRequestDTO requestDTO);
 
-    List<MyPotTodoResponseDTO> getTodo(Long potId);
+    Page<MyPotTodoResponseDTO> getTodo(Long potId, PageRequest pageRequest);
 
     List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> requestList);
 

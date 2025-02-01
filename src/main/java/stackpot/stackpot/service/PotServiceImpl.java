@@ -166,10 +166,10 @@ public class PotServiceImpl implements PotService {
                     // 현재 사용자의 역할(Role) 결정
                     Role userPotRole;
                     if (pot.getUser().getId().equals(user.getId())) {
-                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                        userPotRole = pot.getUser().getRole(); // Pot 생성자의 Role 반환
                     } else {
                         userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
-                                .orElse(pot.getUser().getRole()); // 기본값을 MEMBER로 설정
+                                .orElse(pot.getUser().getRole());
                     }
 
                     // Pot -> CompletedPotResponseDto 변환
@@ -391,10 +391,10 @@ public class PotServiceImpl implements PotService {
                     // 현재 사용자의 역할(Role) 결정
                     Role userPotRole;
                     if (pot.getUser().getId().equals(user.getId())) {
-                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                        userPotRole = pot.getUser().getRole(); // Pot 생성자의 Role 반환
                     } else {
                         userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
-                                .orElse(pot.getUser().getRole()); // 기본값을 MEMBER로 설정
+                                .orElse(pot.getUser().getRole());
                     }
 
                     // Pot -> CompletedPotResponseDto 변환
@@ -462,10 +462,10 @@ public class PotServiceImpl implements PotService {
 
                     // 현재 사용자의 역할(Role) 결정
                     Role userPotRole;
-                    if (pot.getUser().getId().equals(userId)) {
-                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                    if (pot.getUser().getId().equals(user.getId())) {
+                        userPotRole = pot.getUser().getRole(); // Pot 생성자의 Role 반환
                     } else {
-                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), userId)
+                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
                                 .orElse(pot.getUser().getRole());
                     }
 
