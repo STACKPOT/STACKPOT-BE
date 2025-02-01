@@ -44,7 +44,6 @@ public class FeedServiceImpl implements FeedService {
     private final FeedConverter feedConverter;
     private final UserRepository userRepository;
     private final FeedLikeRepository feedLikeRepository;
-    private final FeedSaveRepository feedSaveRepository;
 
 
     @Override
