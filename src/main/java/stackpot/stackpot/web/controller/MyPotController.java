@@ -4,15 +4,23 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.EnumHandler;
 import stackpot.stackpot.domain.enums.TaskboardStatus;
 import stackpot.stackpot.service.MyPotService;
 import stackpot.stackpot.service.PotService;
 import stackpot.stackpot.web.dto.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,10 +76,29 @@ public class MyPotController {
     }
 
     // 팟에서의 투두 조회
-    @Operation(summary = "Todo 조회 API", description = "팟의 모든 멤버들의 todo 목록을 반환합니다. completed인 todo도 함께 반환하며, 새벽 3시에 자동 초기화됩니다.")
+    @Operation(summary = "Todo 조회 API", description = "팟의 모든 멤버들의 todo 목록을 반환합니다. completed인 todo도 함께 반환하며, 새벽 3시에 자동 초기화됩니다. size 1 = user 1명이라고 생각하시면 됩니다.")
     @GetMapping("/{pot_id}/todos")
-    public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> getMyTodo(@PathVariable("pot_id") Long potId){
-        List<MyPotTodoResponseDTO> response = myPotService.getTodo(potId);  // 수정된 부분
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getMyTodo(
+            @PathVariable("pot_id") Long potId,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+
+        // 페이지 번호 보정 (1부터 시작하도록)
+        if (page < 1) {
+            throw new EnumHandler(ErrorStatus.INVALID_PAGE);
+        }
+        int adjustedPage = page - 1;
+
+        // 서비스 호출하여 데이터 조회
+        Page<MyPotTodoResponseDTO> pagedTodos = myPotService.getTodo(potId, PageRequest.of(adjustedPage, size));
+
+        // 응답 데이터 구성
+        Map<String, Object> response = new HashMap<>();
+        response.put("todos", pagedTodos.getContent());
+        response.put("totalPages", pagedTodos.getTotalPages());
+        response.put("currentPage", pagedTodos.getNumber() + 1);
+        response.put("totalElements", pagedTodos.getTotalElements());
+
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
