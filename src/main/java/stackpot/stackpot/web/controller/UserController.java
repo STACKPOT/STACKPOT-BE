@@ -62,20 +62,12 @@ public class UserController {
     public ResponseEntity<?> signup(@Valid @RequestBody UserRequestDto.JoinDto request,
                                     BindingResult bindingResult) {
         // 유효성 검사 실패 처리
-        if (bindingResult.hasErrors()) {
-            // 에러 메시지 수집
-            List<String> errors = bindingResult.getAllErrors()
-                    .stream()
-                    .map(ObjectError::getDefaultMessage)
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
-        }
         // 정상 처리
         User user = userCommandService.joinUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
     }
 
-    @Operation(summary = "[질문 수정 필요] 닉네임 생성 API")
+    @Operation(summary = "닉네임 생성 API")
     @GetMapping("/nickname")
     public ResponseEntity<ApiResponse<String>> nickname(){
         String nickName = userCommandService.createNickname();

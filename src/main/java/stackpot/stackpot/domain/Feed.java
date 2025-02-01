@@ -31,8 +31,4 @@ public class Feed extends BaseEntity{
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Category category;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Visibility visibility;
 }

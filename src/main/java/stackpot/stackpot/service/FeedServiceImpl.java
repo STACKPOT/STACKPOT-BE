@@ -31,6 +31,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static stackpot.stackpot.domain.enums.Category.*;
+
 @Service
 @RequiredArgsConstructor
 public class FeedServiceImpl implements FeedService {
@@ -42,33 +45,51 @@ public class FeedServiceImpl implements FeedService {
     private final FeedSaveRepository feedSaveRepository;
 
     @Override
-    public FeedResponseDto.FeedPreviewList getPreViewFeeds(Category categor, String sort, String cursor, int limit) {
+    public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, String cursor, int limit) {
         // 커서가 없으면 현재 시간 사용
-        LocalDateTime lastCreatedAt = cursor != null
+        LocalDateTime lastCreatedAt = (cursor != null && !cursor.isEmpty())
                 ? LocalDateTime.parse(cursor)
                 : LocalDateTime.now();
 
-        // Pageable 생성
-        Pageable pageable = PageRequest.of(0, limit);
+        // Pageable 객체 생성 (페이지 번호 없이 크기만 설정)
+        Pageable pageable = PageRequest.ofSize(limit);
+
+        Category category = null;
+        if (categoryStr != null && !categoryStr.isEmpty()) {
+            if (categoryStr.equalsIgnoreCase("ALL")) {
+                category = null; // 전체 카테고리는 필터링 없이 조회
+            } else {
+                try {
+                    category = Category.valueOf(categoryStr.toUpperCase()); // 안전한 변환
+                } catch (IllegalArgumentException e) {
+                    category = null; // 잘못된 값이면 전체 조회
+                }
+            }
+        }
 
         // 데이터 조회
-        List<Object[]> feedResults = feedRepository.findFeeds(categor, sort, lastCreatedAt, pageable);
+        List<Object[]> feedResults = feedRepository.findFeeds(category, sort, lastCreatedAt, pageable);
 
         // Feed와 인기 점수를 DTO로 변환
         List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
                 .map(result -> {
                     Feed feed = (Feed) result[0];
-                    int popularity = (int) result[1];
-                    int likeCount = (int) result[2];
+                    int likeCount = ((Number) result[1]).intValue();  // 안전한 형변환
 
-                    return feedConverter.feedDto(feed, popularity, likeCount);
+                    return feedConverter.feedDto(feed, likeCount);
                 })
                 .collect(Collectors.toList());
 
         // 다음 커서 계산
-        String nextCursor = feedResults.isEmpty()
-                ? null
-                : ((Feed) feedResults.get(feedResults.size() - 1)[0]).getCreatedAt().toString();
+        String nextCursor = null;
+        if (!feedResults.isEmpty()) {
+            Feed lastFeed = (Feed) feedResults.get(feedResults.size() - 1)[0];
+
+            // 인기순 정렬일 경우, likeCount와 createdAt을 함께 커서로 사용
+            nextCursor = sort.equals("popular")
+                    ? getLikeCount(lastFeed.getFeedId()) + "|" + lastFeed.getCreatedAt().toString()
+                    : lastFeed.getCreatedAt().toString();
+        }
 
         return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
     }
@@ -112,7 +133,7 @@ public class FeedServiceImpl implements FeedService {
 
         // Feed -> FeedDto 변환 (FeedConverter 활용)
         List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
-                .map(feed -> feedConverter.feedDto(feed, getLikeCount(feed.getFeedId()), feedLikeRepository.countByFeed(feed)))
+                .map(feed -> feedConverter.feedDto(feed, feedLikeRepository.countByFeed(feed)))
                 .collect(Collectors.toList());
 
         // 다음 커서 설정 (마지막 피드의 createdAt)
@@ -147,7 +168,7 @@ public class FeedServiceImpl implements FeedService {
 
         // Feed -> FeedDto 변환 (FeedConverter 활용)
         List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
-                .map(feed -> feedConverter.feedDto(feed, getLikeCount(feed.getFeedId()), feedLikeRepository.countByFeed(feed)))
+                .map(feed -> feedConverter.feedDto(feed, feedLikeRepository.countByFeed(feed)))
                 .collect(Collectors.toList());
 
         // 다음 커서 설정 (마지막 피드의 createdAt)
@@ -177,11 +198,8 @@ public class FeedServiceImpl implements FeedService {
         if(request.getContent() != null){
             feed.setContent(request.getContent());
         }
-        if(request.getVisibility() != null){
-            feed.setVisibility(request.getVisibility());
-        }
-        if(request.getCategor() != null){
-            feed.setCategory(request.getCategor());
+        if(request.getCategory() != null){
+            feed.setCategory(request.getCategory());
         }
         return feedRepository.save(feed);
     }
@@ -215,39 +233,39 @@ public class FeedServiceImpl implements FeedService {
         }
     }
 
-    @Override
-    public boolean toggleSave(Long feedId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
+//    @Override
+//    public boolean toggleSave(Long feedId) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String userEmail = authentication.getName();
+//
+//        Feed feed = feedRepository.findById(feedId)
+//                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+//
+//        User user = userRepository.findByEmail(userEmail)
+//                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+//
+//        Optional<FeedSave> existingSave = feedSaveRepository.findByFeedAndUser(feed, user);
+//
+//        if (existingSave.isPresent()) {
+//            feedSaveRepository.delete(existingSave.get());
+//            return false;
+//        } else {
+//            FeedSave feedSave = FeedSave.builder()
+//                    .feed(feed)
+//                    .user(user)
+//                    .build();
+//
+//            feedSaveRepository.save(feedSave);
+//            return true; // 좋아요 성공
+//        }
+//    }
 
-        Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
-
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        Optional<FeedSave> existingSave = feedSaveRepository.findByFeedAndUser(feed, user);
-
-        if (existingSave.isPresent()) {
-            feedSaveRepository.delete(existingSave.get());
-            return false;
-        } else {
-            FeedSave feedSave = FeedSave.builder()
-                    .feed(feed)
-                    .user(user)
-                    .build();
-
-            feedSaveRepository.save(feedSave);
-            return true; // 좋아요 성공
-        }
-    }
-
-    @Override
-    public Long getSaveCount(Long feedId) {
-        Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
-        return feedSaveRepository.countByFeed(feed);
-    }
+//    @Override
+//    public Long getSaveCount(Long feedId) {
+//        Feed feed = feedRepository.findById(feedId)
+//                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+//        return feedSaveRepository.countByFeed(feed);
+//    }
 
     @Override
     public Long getLikeCount(Long feedId) {

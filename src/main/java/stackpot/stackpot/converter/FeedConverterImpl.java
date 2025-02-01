@@ -18,14 +18,13 @@ public class FeedConverterImpl implements FeedConverter{
 
 
     @Override
-    public FeedResponseDto.FeedDto feedDto(Feed feed, long popularity, long likeCount) {
+    public FeedResponseDto.FeedDto feedDto(Feed feed, long likeCount) {
         return FeedResponseDto.FeedDto.builder()
                 .id(feed.getFeedId())
-                .writer(feed.getUser().getNickname())
+                .writer(feed.getUser().getNickname()+ " " +mapRoleName(String.valueOf(feed.getUser().getRole())))
                 .category(feed.getCategory())
                 .title(feed.getTitle())
                 .content(feed.getContent())
-                .popularity(popularity)
                 .likeCount(likeCount)
                 .createdAt(formatLocalDateTime(feed.getCreatedAt()))
                 .build();
@@ -36,8 +35,7 @@ public class FeedConverterImpl implements FeedConverter{
         return Feed.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .category(request.getCategor())
-                .visibility(request.getVisibility())
+                .category(request.getCategory())
                 .build();
     }
 
