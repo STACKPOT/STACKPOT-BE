@@ -13,7 +13,7 @@ import java.util.TimeZone;
 public class StackpotApplication {
 
 	public static void main(String[] args) {
-		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul")); // JVM 기본 TimeZone 설정
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
 		SpringApplication.run(StackpotApplication.class, args);;
 	}
 
