@@ -30,10 +30,7 @@ public class FeedResponseDto {
         private Category category;
         private String title;
         private String content;
-        private Long popularity;
         private Long likeCount;
         private String createdAt;
     }
-
-
 }

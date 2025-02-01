@@ -29,13 +29,14 @@ public class UserConverter {
         String nicknameWithRole = user.getNickname() + " " + toDtoRole(roleName);
 
         return UserResponseDto.Userdto.builder()
-                .id(user.getId())  // id 값이 제대로 설정되었는지 로그 확인
+                .id(user.getId())
                 .nickname(nicknameWithRole)
                 .email(user.getEmail())
                 .kakaoId(user.getKakaoId())
                 .role(user.getRole())
                 .interest(user.getInterest())
                 .userTemperature(user.getUserTemperature())
+                .userIntroduction(user.getUserIntroduction())
                 .build();
     }
 
