@@ -15,7 +15,7 @@ public class MyPotTaskRequestDto {
     @NoArgsConstructor
     public static class create{
         private String title;
-        private LocalDateTime deadline;
+        private LocalDate deadline;
         private TaskboardStatus taskboardStatus;
         private String description;
         private List<Long> participants;

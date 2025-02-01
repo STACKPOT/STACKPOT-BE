@@ -44,6 +44,8 @@ public class PotServiceImpl implements PotService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final PotMemberRepository potMemberRepository;
+    private final UserTodoService userTodoService;
+
     @Transactional
     public PotResponseDto createPotWithRecruitments(PotRequestDto requestDto) {
         // 인증 정보에서 사용자 이메일 가져오기
@@ -151,7 +153,18 @@ public class PotServiceImpl implements PotService {
                                     roleCount -> ((Role) roleCount[0]).name(),
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+
+                    // 현재 사용자의 역할(Role) 결정
+                    Role userPotRole;
+                    if (pot.getUser().getId().equals(user.getId())) {
+                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                    } else {
+                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                                .orElse(pot.getUser().getRole()); // 기본값을 MEMBER로 설정
+                    }
+
+                    // Pot -> CompletedPotResponseDto 변환
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole);
                 })
                 .collect(Collectors.toList());
 
@@ -356,7 +369,18 @@ public class PotServiceImpl implements PotService {
                                     roleCount -> ((Role) roleCount[0]).name(),
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+
+                    // 현재 사용자의 역할(Role) 결정
+                    Role userPotRole;
+                    if (pot.getUser().getId().equals(user.getId())) {
+                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                    } else {
+                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                                .orElse(pot.getUser().getRole()); // 기본값을 MEMBER로 설정
+                    }
+
+                    // Pot -> CompletedPotResponseDto 변환
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole);
                 })
                 .collect(Collectors.toList());
 
@@ -366,29 +390,6 @@ public class PotServiceImpl implements PotService {
                 .completedPots(completedPots) // 끓인 팟을 CompletedPotResponseDto로 반환
                 .build());
 
-    }
-
-    @Override
-    public void patchPotStatus(Long potId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
-
-        // 팟 생성자 확인
-        if (!pot.getUser().getId().equals(user.getId())) {
-            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
-        }
-
-        // 팟 상태를 "complete"으로 변경
-        pot.setPotStatus("COMPLETED");
-
-        // 변경된 상태 저장
-        potRepository.save(pot);
     }
 
     @Override
@@ -432,8 +433,17 @@ public class PotServiceImpl implements PotService {
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
 
+                    // 현재 사용자의 역할(Role) 결정
+                    Role userPotRole;
+                    if (pot.getUser().getId().equals(userId)) {
+                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                    } else {
+                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), userId)
+                                .orElse(pot.getUser().getRole());
+                    }
+
                     // Pot -> CompletedPotResponseDto 변환
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap);
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole);
                 })
                 .collect(Collectors.toList());
 
@@ -467,6 +477,7 @@ public class PotServiceImpl implements PotService {
                 .potMembers(potMembers)
                 .build();
     }
+
     @Transactional
     @Override
     public void removeMemberFromPot(Long potId) {
@@ -481,6 +492,7 @@ public class PotServiceImpl implements PotService {
         // 팟 존재 여부 확인
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
 
         // 팟 멤버 존재 여부 확인
         PotMember member = potMemberRepository.findByPotAndUser(pot, user)
@@ -520,6 +532,74 @@ public class PotServiceImpl implements PotService {
             potMemberRepository.delete(member);
             return "팟 멤버가 성공적으로 삭제되었습니다.";
         }
+    }
+
+    @Transactional
+    @Override
+    public PotResponseDto patchPotWithRecruitments(Long potId, PotRequestDto requestDto) {
+        // 인증 정보에서 사용자 이메일 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 사용자 정보 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // 팟 조회
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        // 소유자 확인
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
+
+        // 사용자의 온도 증가 (최대 100 제한)
+        user.setUserTemperature(Math.min(user.getUserTemperature() + 5, 100));
+
+        // pot.potMember들의 온도도 증가
+        List<User> potMembers = pot.getPotMembers().stream()
+                .map(PotMember::getUser)
+                .collect(Collectors.toList());
+
+        // 변경된 사용자 정보 저장
+        userRepository.save(user);
+        userRepository.saveAll(potMembers); // 모든 멤버 저장
+
+        // 업데이트 로직
+        pot.updateFields(Map.of(
+                "potName", requestDto.getPotName(),
+//                "potStartDate", requestDto.getPotStartDate(),
+                "potEndDate", requestDto.getPotEndDate(),
+                "potDuration", requestDto.getPotDuration(),
+                "potLan", requestDto.getPotLan(),
+                "potContent", requestDto.getPotContent(),
+                "potStatus", requestDto.getPotStatus(),
+                "potModeOfOperation", requestDto.getPotModeOfOperation(),
+                "potSummary", requestDto.getPotSummary(),
+                "recruitmentDeadline", requestDto.getRecruitmentDeadline()
+        ));
+
+        // 기존 모집 정보 삭제
+        recruitmentDetailsRepository.deleteByPot_PotId(potId);
+
+        // 새로운 모집 정보 저장
+        List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
+                .map(recruitmentDto -> PotRecruitmentDetails.builder()
+                        .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole()))
+                        .recruitmentCount(recruitmentDto.getRecruitmentCount())
+                        .pot(pot)
+                        .build())
+                .collect(Collectors.toList());
+        recruitmentDetailsRepository.saveAll(recruitmentDetails);
+
+        pot.setPotStatus("COMPLETED");
+        potRepository.save(pot); // 변경 사항 반영
+
+        userTodoService.assignBadgeToTopMembers(potId);
+
+        // DTO로 변환 후 반환
+        return potConverter.toDto(pot, recruitmentDetails);
     }
 
 }

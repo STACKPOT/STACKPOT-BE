@@ -1,5 +1,6 @@
 package stackpot.stackpot.config.security;
 
+import io.netty.handler.codec.http.HttpMethod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,13 +35,10 @@ public class SecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(withDefaults())
+                .cors().and()
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//            .oauth2Login(
-//                    oauth -> oauth.userInfoEndpoint(config -> config.userService(customOAuth2UserService))
-//                                                .successHandler(successHandler(jwtTokenProvider)))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/", "/home","/sign-up", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs/**", "/users/oauth/kakao", "/pots").permitAll()
                         .anyRequest().authenticated()
@@ -58,7 +56,7 @@ public class SecurityConfig {
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true); // 인증 정보 포함 허용
-        configuration.setMaxAge(3600L); // 캐싱 시간 (1시간)
+        configuration.setMaxAge(3600L); // CORS 요청 캐싱 시간 (1시간)
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

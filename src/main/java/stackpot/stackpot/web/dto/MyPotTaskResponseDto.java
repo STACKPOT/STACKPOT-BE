@@ -17,8 +17,8 @@ public class MyPotTaskResponseDto {
     private Long taskboardId;
     private String title;
     private String description;
+    private String deadLine;
     private TaskboardStatus status;
-    private LocalDateTime endDate;
     private Long potId;
     private List<Participant> participants;
 

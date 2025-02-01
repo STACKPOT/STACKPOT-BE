@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.domain.enums.TaskboardStatus;
 import stackpot.stackpot.service.MyPotService;
 import stackpot.stackpot.service.PotService;
 import stackpot.stackpot.web.dto.*;
@@ -25,20 +26,13 @@ public class MyPotController {
     private final PotService potService;
 
     // 사용자가 만든 진행 중인 팟 조회
-    @Operation(summary = "나의 진행 중인 팟 조회 API", description = "사용자가 생성했거나, 참여하고 있으며 진행 중(ONGOING)인 팟들 리스트를 조회합니다. \n")
+    @Operation(summary = "나의 진행 중인 팟 조회 API", description = "'나의 팟 첫 페이지'의 정보를 리턴합니다. 사용자가 생성했거나, 참여하고 있으며 진행 중(ONGOING)인 팟들 리스트를 조회합니다. \n")
     @GetMapping("")
     public ResponseEntity<ApiResponse<Map<String, List<MyPotResponseDTO.OngoingPotsDetail>>>> getMyOngoingPots() {
         Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> response = myPotService.getMyOnGoingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-    //    @DeleteMapping("/{pot_id}/members")
-//    @Operation(summary = "팟에서 본인 삭제", description = "현재 로그인한 팟 멤버가 본인의 팟을 삭제하면 팟 멤버에서 자신이 제거됩니다.")
-//    public ResponseEntity<ApiResponse<String>> removePotMember(
-//            @PathVariable("pot_id") Long potId) {
-//
-//        potService.removeMemberFromPot(potId);
-//        return ResponseEntity.ok(ApiResponse.onSuccess("팟 멤버가 성공적으로 삭제되었습니다."));
-//    }
+
     @DeleteMapping("/{pot_id}/members")
     @Operation(summary = "팟 멤버 또는 팟 삭제 API", description = "생성자는 팟을 삭제하며, 생성자가 아니면 팟 멤버에서 본인을 삭제합니다.")
     public ResponseEntity<ApiResponse<String>> removePotOrMember(
@@ -49,7 +43,7 @@ public class MyPotController {
     }
 
     @GetMapping("/{pot_id}/details")
-    @Operation(summary = "끓인 팟 상세 보기", description = "COMPLETED 상태인 팟의 상세 정보를 가져옵니다.")
+    @Operation(summary = "끓인 팟 상세 보기", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 Role : num과 나의 역할도 함께 반환합니다.")
     public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
             @PathVariable("pot_id") Long potId) {
         CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
@@ -74,14 +68,14 @@ public class MyPotController {
     }
 
     // 팟에서의 투두 조회
-    @Operation(summary = "Todo 조회 API")
+    @Operation(summary = "Todo 조회 API", description = "팟의 모든 멤버들의 todo 목록을 반환합니다. completed인 todo도 함께 반환하며, 새벽 3시에 자동 초기화됩니다.")
     @GetMapping("/{pot_id}/todos")
     public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> getMyTodo(@PathVariable("pot_id") Long potId){
         List<MyPotTodoResponseDTO> response = myPotService.getTodo(potId);  // 수정된 부분
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Todo 수정 API", description = "사용자의 모든 투두의 내용을 한 번에 수정할 수 있습니다. 리스트 사이에 ,로 구분해서 전달해 주셔야 합니다!")
+    @Operation(summary = "Todo 수정 API ", description = "사용자의 모든 투두의 내용을 한 번에 수정할 수 있습니다. 리스트를 통한 생성과 유사한 방식이지만 기존에 만들었던 todo의 경우 status를 유지해야 하기 때문에 todoId를 함께 보내주셔야 합니다. 새로 만드는 todo의 경우 todoId가 존재하지 않기 때문에 아무 정수나 넣어주시면 됩니다. 되도록 겹치지 않도록 1000이상으로 넣어주시면 좋을 것 같습니다")
     @PatchMapping("/{pot_id}/todos")
     public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> updateMyTodos(
             @PathVariable("pot_id") Long potId,
@@ -118,11 +112,11 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "[미완성] Task 조회 API")
+    @Operation(summary = "Task 조회 API")
     @GetMapping("/{pot_id}/tasks")
     public ResponseEntity<?> getPotTask(@PathVariable("pot_id") Long potId) {
-
-        return null;
+        Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> response = myPotService.preViewTask(potId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Task 수정 API")

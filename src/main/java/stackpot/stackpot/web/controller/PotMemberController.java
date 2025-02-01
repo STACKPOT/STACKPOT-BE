@@ -1,8 +1,6 @@
 package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.service.PotMemberService.PotMemberService;
-import stackpot.stackpot.web.dto.PotMemberRequestDto;
 import stackpot.stackpot.web.dto.PotMemberAppealResponseDto;
+import stackpot.stackpot.web.dto.PotMemberRequestDto;
 import stackpot.stackpot.web.dto.UpdateAppealRequestDto;
 
 import java.util.List;
@@ -25,13 +23,16 @@ public class PotMemberController {
     private final PotMemberService potMemberService;
 
     @Operation(summary = "팟 멤버 정보 (KAKAOID, 닉네임) 조회 API")
-    @GetMapping
+    @GetMapping // ✅ @PathVariable을 사용하려면 URL에 포함해야 함
     public ResponseEntity<ApiResponse<List<PotMemberAppealResponseDto>>> getPotMembers(
             @PathVariable("pot_id") Long potId) {
+
         potMemberService.validateIsOwner(potId); // 팟 생성자 검증 추가
         List<PotMemberAppealResponseDto> response = potMemberService.getPotMembers(potId);
+
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
 
     @Operation(
             summary = "팟 시작 API",

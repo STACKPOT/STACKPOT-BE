@@ -15,6 +15,7 @@ import stackpot.stackpot.converter.TaskboardConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.TaskboardStatus;
 import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.domain.mapping.Task;
@@ -27,10 +28,7 @@ import stackpot.stackpot.repository.TaskboardRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -186,6 +184,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
+
     @Override
     @Transactional
     public List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> requestList) {
@@ -201,35 +200,49 @@ public class MyPotServiceImpl implements MyPotService {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        // 특정 팟에 속한 모든 투두 리스트 조회
-        List<UserTodo> userTodos = myPotRepository.findByPot_PotId(potId);
+        List<UserTodo> existingTodos = myPotRepository.findByPot_PotIdAndUser(potId, user);
 
-        // 요청된 todoId와 일치하는 항목을 매핑
-        Map<Long, UserTodo> todoMap = userTodos.stream()
+        // 요청된 todoId 리스트
+        Set<Long> requestedTodoIds = requestList.stream()
+                .map(MyPotTodoUpdateRequestDTO::getTodoId)
+                .filter(Objects::nonNull) // 새로 추가된 항목(null) 제외
+                .collect(Collectors.toSet());
+
+        Map<Long, UserTodo> existingTodoMap = existingTodos.stream()
                 .collect(Collectors.toMap(UserTodo::getTodoId, todo -> todo));
 
-        for (MyPotTodoUpdateRequestDTO updateRequest : requestList) {
-            UserTodo todo = todoMap.get(updateRequest.getTodoId());
+        List<UserTodo> updatedOrNewTodos = new ArrayList<>();
 
-            // To-Do 존재 여부 확인
-            if (todo == null) {
-                throw new PotHandler(ErrorStatus.USER_TODO_NOT_FOUND); // To-Do가 존재하지 않음
+        for (MyPotTodoUpdateRequestDTO request : requestList) {
+            if (request.getTodoId() != null && existingTodoMap.containsKey(request.getTodoId())) {
+                UserTodo existingTodo = existingTodoMap.get(request.getTodoId());
+
+                if (!existingTodo.getUser().equals(user)) {
+                    throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED);
+                }
+
+                existingTodo.setContent(request.getContent());
+                updatedOrNewTodos.add(existingTodo);
+            } else {
+                UserTodo newTodo = UserTodo.builder()
+                        .user(user)
+                        .pot(pot)
+                        .content(request.getContent())
+                        .status(request.getStatus() != null ? request.getStatus() : TodoStatus.NOT_STARTED) // 기본값 설정
+                        .build();
+                updatedOrNewTodos.add(newTodo);
             }
-
-            // 소유자 확인
-            if (!todo.getUser().equals(user)) {
-                throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED); // 권한 없음
-            }
-
-            // 내용 업데이트
-            todo.setContent(updateRequest.getContent());
         }
 
-        // 변경된 상태 저장
-        myPotRepository.saveAll(userTodos);
+        List<UserTodo> todosToDelete = existingTodos.stream()
+                .filter(todo -> !requestedTodoIds.contains(todo.getTodoId()) && todo.getUser().equals(user)) // 본인만 삭제 가능
+                .collect(Collectors.toList());
 
-        // 사용자별로 그룹화하여 DTO로 변환
-        Map<User, List<UserTodo>> groupedByUser = userTodos.stream()
+        myPotRepository.saveAll(updatedOrNewTodos);
+
+        myPotRepository.deleteAll(todosToDelete);
+
+        Map<User, List<UserTodo>> groupedByUser = updatedOrNewTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
         return groupedByUser.entrySet().stream()
@@ -305,30 +318,60 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     public MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request) {
-
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
 
         Taskboard taskboard = taskboardConverter.toTaskboard(pot, request);
         taskboardRepository.save(taskboard);
 
-        List<PotMember> participants = potMemberRepository.findAllById(request.getParticipants());
+        List<Long> requestedParticipantIds = request.getParticipants();
 
-        log.info("dd",  participants);
+        List<PotMember> validParticipants = potMemberRepository.findByPotId(potId);
+
+        List<PotMember> participants = validParticipants.stream()
+                .filter(potMember -> requestedParticipantIds.contains(potMember.getPotMemberId()))
+                .collect(Collectors.toList());
+
+        log.info("유효한 참가자 목록: {}", participants);
 
         if (participants.isEmpty()) {
             throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
         }
         createAndSaveTasks(taskboard, participants);
-        List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
 
+        List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
         MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
         response.setParticipants(participantDtos);
+
         return response;
     }
+
+    @Override
+    public Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> preViewTask(Long potId) {
+
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(()->new IllegalArgumentException("Pot not found with id: " + potId));
+
+        List<Taskboard> taskboards = taskboardRepository.findByPot(pot);
+
+        List<MyPotTaskPreViewResponseDto> taskboardDtos = taskboards.stream()
+                .map(taskboard -> {
+                    List<Task> tasks = taskRepository.findByTaskboard(taskboard); // Task 조회
+                    List<PotMember> participants = tasks.stream()
+                            .map(Task::getPotMember) // Task에서 PotMember 추출
+                            .distinct()
+                            .collect(Collectors.toList());
+
+                    return taskboardConverter.toDto(taskboard, participants);
+                })
+                .collect(Collectors.toList());
+
+        return taskboardDtos.stream()
+                .collect(Collectors.groupingBy(MyPotTaskPreViewResponseDto::getStatus));
+    }
+
 
     @Override
     public MyPotTaskResponseDto viewDetailTask(Long taskboardId) {
@@ -351,7 +394,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
 
         return MyPotResponseDTO.OngoingPotsDetail.builder()
-                .user(UserResponseDto.builder()
+                .user(UserResponseDto.Userdto.builder()
                         .nickname(pot.getUser().getNickname())
                         .role(pot.getUser().getRole())
                         .build())
@@ -438,7 +481,7 @@ public class MyPotServiceImpl implements MyPotService {
             taskboard.setDescription(request.getDescription());
         }
         if(request.getDeadline()!=null){
-            taskboard.setEndDate(request.getDeadline());
+            taskboard.setDeadLine(request.getDeadline());
         }
         if(request.getTaskboardStatus()!=null){
             taskboard.setStatus(request.getTaskboardStatus());
