@@ -15,25 +15,25 @@ import java.util.List;
 @Repository
 public interface FeedRepository extends JpaRepository<Feed, Long> {
 
-    @Query("SELECT f, " +
-            "       (COALESCE(FL.likeCount, 0) + COALESCE(FS.saveCount, 0)) AS popularity, " +
-            "       COALESCE(FL.likeCount, 0) AS likeCount " +
+    @Query("SELECT f " +
             "FROM Feed f " +
-            "LEFT JOIN (SELECT fl.feed.id AS feedId, COUNT(fl) AS likeCount FROM FeedLike fl GROUP BY fl.feed.id) FL " +
-            "ON f.id = FL.feedId " +
-            "LEFT JOIN (SELECT fs.feed.id AS feedId, COUNT(fs) AS saveCount FROM FeedSave fs GROUP BY fs.feed.id) FS " +
-            "ON f.id = FS.feedId " +
-            "WHERE (:category IS NULL OR :category = '전체' OR f.category = :category) " +
-            "AND ((:sort = 'new' AND f.createdAt < :lastCreatedAt) " +
-            "     OR (:sort = 'old' AND f.createdAt > :lastCreatedAt)) " +
+            "WHERE (:category IS NULL OR f.category = :category) " +
+            "AND ( " +
+            "     (:sort = 'new' AND f.createdAt < :lastCreatedAt) OR " +
+            "     (:sort = 'old' AND f.createdAt > :lastCreatedAt) OR " +
+            "     (:sort = 'popular' AND (f.likeCount < :lastLikeCount OR (f.likeCount = :lastLikeCount AND f.createdAt < :lastCreatedAt))) " +
+            ") " +
             "ORDER BY " +
-            "CASE WHEN :sort = 'popular' THEN (COALESCE(FL.likeCount, 0) + COALESCE(FS.saveCount, 0)) END DESC, " +
-            "CASE WHEN :sort = 'new' THEN f.createdAt END DESC, " +
-            "CASE WHEN :sort = 'old' THEN f.createdAt END ASC")
-    List<Object[]> findFeeds(
+            "     (CASE WHEN :sort = 'popular' THEN f.likeCount ELSE 0 END) DESC, " +
+            "     (CASE WHEN :sort = 'popular' THEN f.createdAt ELSE NULL END) DESC, " +
+            "     (CASE WHEN :sort = 'new' THEN f.createdAt ELSE NULL END) DESC, " +
+            "     (CASE WHEN :sort = 'old' THEN f.createdAt ELSE NULL END) ASC, " +
+            "     f.id ASC")
+    List<Feed> findFeeds(
             @Param("category") Category category,
             @Param("sort") String sort,
             @Param("lastCreatedAt") LocalDateTime lastCreatedAt,
+            @Param("lastLikeCount") Integer lastLikeCount,
             Pageable pageable);
 
     List<Feed> findByUser_Id(Long userId);
