@@ -49,58 +49,8 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, String cursor, int limit) {
-//        // 커서가 없으면 현재 시간 사용
-//        LocalDateTime lastCreatedAt = (cursor != null && !cursor.isEmpty())
-//                ? LocalDateTime.parse(cursor)
-//                : LocalDateTime.now();
-//
-//        // Pageable 객체 생성 (페이지 번호 없이 크기만 설정)
-//        Pageable pageable = PageRequest.ofSize(limit);
-//
-//        Category category = null;
-//        if (categoryStr != null && !categoryStr.isEmpty()) {
-//            if (categoryStr.equalsIgnoreCase("ALL")) {
-//                category = null; // 전체 카테고리는 필터링 없이 조회
-//            } else {
-//                try {
-//                    category = Category.valueOf(categoryStr.toUpperCase()); // 안전한 변환
-//                } catch (IllegalArgumentException e) {
-//                    category = null; // 잘못된 값이면 전체 조회
-//                }
-//            }
-//        }
-//
-//        // 데이터 조회
-//        List<Object[]> feedResults = feedRepository.findFeeds(category, sort, lastCreatedAt, pageable);
-//
-//        // Feed와 인기 점수를 DTO로 변환
-//        List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
-//                .map(result -> {
-//                    Feed feed = (Feed) result[0];
-//                    int likeCount = ((Number) result[1]).intValue();  // 안전한 형변환
-//                    return feedConverter.feedDto(feed, likeCount);
-//                })
-//                .collect(Collectors.toList());
-//
-//
-//        // 다음 커서 계산
-//        String nextCursor = null;
-//        if (!feedResults.isEmpty()) {
-//            Feed lastFeed = (Feed) feedResults.get(feedResults.size() - 1)[0];
-//
-//            // 인기순 정렬일 경우, likeCount와 createdAt을 함께 커서로 사용
-//            nextCursor = sort.equals("popular")
-//                    ? getLikeCount(lastFeed.getFeedId()) + "|" + lastFeed.getCreatedAt().toString()
-//                    : lastFeed.getCreatedAt().toString();
-//        }
-//
-//        return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
         LocalDateTime lastCreatedAt;
         int lastLikeCount = Integer.MAX_VALUE;  // 🔹 기본값을 최대로 설정 (popular 정렬을 위한 초기값)
-//        log.info("[feedservice6] catrgory", categoryStr);
-//        log.info("[feedservice6] sort", sort);
-//        log.info("[feedservice6] cursor", cursor);
-
 
         if (cursor != null && !cursor.isEmpty()) {
             if (sort.equals("popular") && cursor.contains("|")) {
@@ -118,7 +68,6 @@ public class FeedServiceImpl implements FeedService {
             }
         }
 
-        // ✅ category 변환 (문자열 → Enum)
         Category category = null;
         if (categoryStr != null && !categoryStr.isEmpty()) {
             if (categoryStr.equalsIgnoreCase("ALL")) {
@@ -143,7 +92,7 @@ public class FeedServiceImpl implements FeedService {
         if (!feedResults.isEmpty()) {
             Feed lastFeed = feedResults.get(feedResults.size() - 1);
 
-            if (sort.equals("popular")) {  // 🔹 `popular` 정렬일 때 커서 저장 방식 수정
+            if (sort.equals("popular")) {
                 nextCursor = lastFeed.getLikeCount() + "|" + lastFeed.getCreatedAt().toString();
             } else {
                 nextCursor = lastFeed.getCreatedAt().toString();
