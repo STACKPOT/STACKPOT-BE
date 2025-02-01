@@ -6,6 +6,7 @@ import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.web.dto.PotMemberAppealResponseDto;
+import stackpot.stackpot.web.dto.PotMemberInfoResponseDto;
 
 @Component
 public class PotMemberConverterImpl implements PotMemberConverter {
@@ -34,8 +35,9 @@ public class PotMemberConverterImpl implements PotMemberConverter {
                 .userId(entity.getUser().getId())
                 .roleName(roleName)
                 .nickname(nicknameWithRole)
-                .isOwner(entity.isOwner())
+//                .isOwner(entity.isOwner())
                 .appealContent(entity.getAppealContent())
+                .kakaoId(entity.getUser().getKakaoId())
                 .build();
     }
 

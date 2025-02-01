@@ -23,14 +23,13 @@ import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.mapping.PotMember;
+import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
 import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,6 +45,9 @@ public class PotServiceImpl implements PotService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final PotMemberRepository potMemberRepository;
+    private final PotMemberBadgeRepository potMemberBadgeRepository;
+    private final UserTodoService userTodoService;
+
     @Transactional
     public PotResponseDto createPotWithRecruitments(PotRequestDto requestDto) {
         // 인증 정보에서 사용자 이메일 가져오기
@@ -147,6 +149,13 @@ public class PotServiceImpl implements PotService {
 
         List<CompletedPotResponseDto> content = result.stream()
                 .map(pot -> {
+                    List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
+                            .stream()
+                            .map(potMemberBadge -> new BadgeDto(
+                                    potMemberBadge.getBadge().getBadgeId(),
+                                    potMemberBadge.getBadge().getName()
+                            ))
+                            .collect(Collectors.toList());
                     List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
                     Map<String, Integer> roleCountsMap = roleCounts.stream()
                             .collect(Collectors.toMap(
@@ -157,14 +166,14 @@ public class PotServiceImpl implements PotService {
                     // 현재 사용자의 역할(Role) 결정
                     Role userPotRole;
                     if (pot.getUser().getId().equals(user.getId())) {
-                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                        userPotRole = pot.getUser().getRole(); // Pot 생성자의 Role 반환
                     } else {
                         userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
-                                .orElse(pot.getUser().getRole()); // 기본값을 MEMBER로 설정
+                                .orElse(pot.getUser().getRole());
                     }
 
                     // Pot -> CompletedPotResponseDto 변환
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole);
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole, myBadges);
                 })
                 .collect(Collectors.toList());
 
@@ -363,6 +372,15 @@ public class PotServiceImpl implements PotService {
         List<CompletedPotResponseDto> completedPots = myPots.stream()
                 .filter(pot -> "COMPLETED".equalsIgnoreCase(pot.getPotStatus()))
                 .map(pot -> {
+                    //  이 팟에서 사용자가 받은 뱃지 조회
+                    List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
+                            .stream()
+                            .map(potMemberBadge -> new BadgeDto(
+                                    potMemberBadge.getBadge().getBadgeId(),
+                                    potMemberBadge.getBadge().getName()
+                            ))
+                            .collect(Collectors.toList());
+
                     List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
                     Map<String, Integer> roleCountsMap = roleCounts.stream()
                             .collect(Collectors.toMap(
@@ -373,14 +391,14 @@ public class PotServiceImpl implements PotService {
                     // 현재 사용자의 역할(Role) 결정
                     Role userPotRole;
                     if (pot.getUser().getId().equals(user.getId())) {
-                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                        userPotRole = pot.getUser().getRole(); // Pot 생성자의 Role 반환
                     } else {
                         userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
-                                .orElse(pot.getUser().getRole()); // 기본값을 MEMBER로 설정
+                                .orElse(pot.getUser().getRole());
                     }
 
                     // Pot -> CompletedPotResponseDto 변환
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole);
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole, myBadges);
                 })
                 .collect(Collectors.toList());
 
@@ -425,6 +443,15 @@ public class PotServiceImpl implements PotService {
         // Pot -> DTO 변환
         List<CompletedPotResponseDto> content = result.stream()
                 .map(pot -> {
+                    //  이 팟에서 사용자가 받은 뱃지 조회
+                    List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
+                            .stream()
+                            .map(potMemberBadge -> new BadgeDto(
+                                    potMemberBadge.getBadge().getBadgeId(),
+                                    potMemberBadge.getBadge().getName()
+                            ))
+                            .collect(Collectors.toList());
+
                     // 역할별 참여자 수 조회
                     List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
                     Map<String, Integer> roleCountsMap = roleCounts.stream()
@@ -435,15 +462,15 @@ public class PotServiceImpl implements PotService {
 
                     // 현재 사용자의 역할(Role) 결정
                     Role userPotRole;
-                    if (pot.getUser().getId().equals(userId)) {
-                        userPotRole = user.getRole(); // Pot 생성자의 Role 반환
+                    if (pot.getUser().getId().equals(user.getId())) {
+                        userPotRole = pot.getUser().getRole(); // Pot 생성자의 Role 반환
                     } else {
-                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), userId)
+                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
                                 .orElse(pot.getUser().getRole());
                     }
 
                     // Pot -> CompletedPotResponseDto 변환
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole);
+                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole, myBadges);
                 })
                 .collect(Collectors.toList());
 
@@ -595,6 +622,8 @@ public class PotServiceImpl implements PotService {
 
         pot.setPotStatus("COMPLETED");
         potRepository.save(pot); // 변경 사항 반영
+
+        userTodoService.assignBadgeToTopMembers(potId);
 
         // DTO로 변환 후 반환
         return potConverter.toDto(pot, recruitmentDetails);
