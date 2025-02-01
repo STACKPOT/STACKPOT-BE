@@ -28,11 +28,9 @@ public class Feed extends BaseEntity{
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Category category;
+    private long likeCount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Visibility visibility;
+    private Category category;
 }

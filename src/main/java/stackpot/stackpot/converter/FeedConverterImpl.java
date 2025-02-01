@@ -18,15 +18,14 @@ public class FeedConverterImpl implements FeedConverter{
 
 
     @Override
-    public FeedResponseDto.FeedDto feedDto(Feed feed, long popularity, long likeCount) {
+    public FeedResponseDto.FeedDto feedDto(Feed feed) {
         return FeedResponseDto.FeedDto.builder()
                 .id(feed.getFeedId())
-                .writer(feed.getUser().getNickname())
+                .writer(feed.getUser().getNickname()+ " " +mapRoleName(String.valueOf(feed.getUser().getRole())))
                 .category(feed.getCategory())
                 .title(feed.getTitle())
                 .content(feed.getContent())
-                .popularity(popularity)
-                .likeCount(likeCount)
+                .likeCount(feed.getLikeCount())
                 .createdAt(formatLocalDateTime(feed.getCreatedAt()))
                 .build();
     }
@@ -36,8 +35,7 @@ public class FeedConverterImpl implements FeedConverter{
         return Feed.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .category(request.getCategor())
-                .visibility(request.getVisibility())
+                .category(request.getCategory())
                 .build();
     }
 
@@ -49,7 +47,6 @@ public class FeedConverterImpl implements FeedConverter{
 
 
     public FeedSearchResponseDto toSearchDto(Feed feed) {
-        Long likeCount = feedLikeRepository.countByFeed(feed); // 좋아요 개수 조회
         // 역할 이름 매핑 (유효한 역할만 처리)
         String roleName = feed.getUser().getRole() != null ? feed.getUser().getRole().name() : "멤버";
         String nicknameWithRole = feed.getUser().getNickname() + " " + mapRoleName(roleName) ;
@@ -61,7 +58,7 @@ public class FeedConverterImpl implements FeedConverter{
                 .creatorNickname(nicknameWithRole) // 닉네임과 역할 포함
                 .creatorRole(roleName) // 역할 이름
                 .createdAt(formatLocalDateTime(feed.getCreatedAt())) // 시간 포맷 적용
-                .likeCount(likeCount) // 좋아요 개수 포함
+                .likeCount(feed.getLikeCount()) // 좋아요 개수 포함
                 .build();
     }
 

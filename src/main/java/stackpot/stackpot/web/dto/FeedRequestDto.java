@@ -18,7 +18,6 @@ public class FeedRequestDto {
     public static class createDto {
         private String title;
         private String content;
-        private Category categor;
-        private Visibility visibility;
+        private Category category;
     }
 }
