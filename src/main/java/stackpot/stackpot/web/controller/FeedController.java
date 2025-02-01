@@ -35,7 +35,7 @@ public class FeedController {
         Long feedId = feed.getFeedId();
         Long likeCount = feedService.getLikeCount(feedId);
 
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed, likeCount);
+        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -66,7 +66,7 @@ public class FeedController {
         Feed feed = feedService.getFeed(feedId);
         Long likeCount = feedService.getLikeCount(feedId);
 
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed,likeCount);
+        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -80,7 +80,7 @@ public class FeedController {
         Feed feed = feedService.modifyFeed(feedId, requset);
         Long likeCount = feedService.getLikeCount(feedId);
 
-        FeedResponseDto.FeedDto response =feedConverter.feedDto(feed, likeCount);
+        FeedResponseDto.FeedDto response =feedConverter.feedDto(feed);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }

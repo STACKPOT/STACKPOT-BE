@@ -15,26 +15,25 @@ import java.util.List;
 @Repository
 public interface FeedRepository extends JpaRepository<Feed, Long> {
 
-    @Query("SELECT f, " +
-            "       COALESCE(FL.likeCount, 0) AS likeCount " +
+    @Query("SELECT f " +
             "FROM Feed f " +
-            "LEFT JOIN (SELECT fl.feed.id AS feedId, COUNT(fl) AS likeCount FROM FeedLike fl GROUP BY fl.feed.id) FL " +
-            "ON f.id = FL.feedId " +
-            "WHERE (:category IS NULL OR f.category = :category) " + // category 필터 수정
+            "WHERE (:category IS NULL OR f.category = :category) " +
             "AND ( " +
             "     (:sort = 'new' AND f.createdAt < :lastCreatedAt) OR " +
-            "     (:sort = 'old' AND f.createdAt <= :lastCreatedAt) OR " +
-            "     (:sort = 'popular') " +
+            "     (:sort = 'old' AND f.createdAt > :lastCreatedAt) OR " +
+            "     (:sort = 'popular' AND (f.likeCount < :lastLikeCount OR (f.likeCount = :lastLikeCount AND f.createdAt < :lastCreatedAt))) " +
             ") " +
             "ORDER BY " +
-            "     CASE WHEN :sort = 'popular' THEN likeCount END DESC, " +
-            "     CASE WHEN :sort = 'new' THEN f.createdAt END DESC, " +
-            "     CASE WHEN :sort = 'old' THEN f.createdAt END ASC, " +
+            "     (CASE WHEN :sort = 'popular' THEN f.likeCount ELSE 0 END) DESC, " +
+            "     (CASE WHEN :sort = 'popular' THEN f.createdAt ELSE NULL END) DESC, " +
+            "     (CASE WHEN :sort = 'new' THEN f.createdAt ELSE NULL END) DESC, " +
+            "     (CASE WHEN :sort = 'old' THEN f.createdAt ELSE NULL END) ASC, " +
             "     f.id ASC")
-    List<Object[]> findFeeds(
-            @Param("category") Category category,  // ✅ String → Enum 타입 유지
+    List<Feed> findFeeds(
+            @Param("category") Category category,
             @Param("sort") String sort,
             @Param("lastCreatedAt") LocalDateTime lastCreatedAt,
+            @Param("lastLikeCount") Integer lastLikeCount,
             Pageable pageable);
 
     List<Feed> findByUser_Id(Long userId);

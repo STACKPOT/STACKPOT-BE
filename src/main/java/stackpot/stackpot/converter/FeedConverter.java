@@ -7,7 +7,7 @@ import stackpot.stackpot.web.dto.FeedResponseDto;
 import stackpot.stackpot.web.dto.FeedSearchResponseDto;
 
 public interface FeedConverter {
-    FeedResponseDto.FeedDto feedDto(Feed feed, long likeCount);
+    FeedResponseDto.FeedDto feedDto(Feed feed);
     Feed toFeed(FeedRequestDto.createDto request);
     FeedSearchResponseDto toSearchDto(Feed feed);
 }
