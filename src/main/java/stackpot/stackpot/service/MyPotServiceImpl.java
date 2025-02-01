@@ -152,27 +152,32 @@ public class MyPotServiceImpl implements MyPotService {
 
         // 소유자 또는 멤버 권한 확인
         boolean isOwner = pot.getUser().equals(user);
-        boolean isMember = potMemberRepository.existsByPotAndUser(pot, user); // 팟의 멤버 여부 확인
+        boolean isMember = potMemberRepository.existsByPotAndUser(pot, user);
 
         if (!isOwner && !isMember) {
-            throw new PotHandler(ErrorStatus.POT_FORBIDDEN); // 권한 없음
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
-        // 특정 팟의 모든 To-Do 조회
-        List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
+        // 팟에 속한 모든 멤버 조회 (소유자 포함)
+        List<User> potMembers = potMemberRepository.findByPotId(pot.getPotId())
+                .stream()
+                .map(PotMember::getUser)
+                .collect(Collectors.toList());
+        potMembers.add(pot.getUser()); // 팟 소유자 추가
 
-        // 특정 팟의 모든 To-Do 조회
-        return potTodos.stream()
-                .collect(Collectors.groupingBy(UserTodo::getUser))
-                .entrySet().stream()
-                .map(entry -> {
-                    // 해당 유저의 pot에서 potMember 역할 찾기
-                    String roleName = getUserRoleInPot(entry.getKey(), pot); // 기본값을 String으로 설정
+        // 팟 멤버들의 투두 조회
+        return potMembers.stream()
+                .map(member -> {
+                    // 해당 멤버의 투두 조회
+                    List<UserTodo> userTodos = myPotRepository.findByUserAndPot(member, pot);
+
+                    // 해당 유저의 pot에서 역할 찾기
+                    String roleName = getUserRoleInPot(member, pot);
 
                     return MyPotTodoResponseDTO.builder()
-                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
-                            .userId(entry.getKey().getId())
-                            .todos(entry.getValue().stream()
+                            .userNickname(member.getNickname() + getVegetableNameByRole(roleName))
+                            .userId(member.getId())
+                            .todos(userTodos.isEmpty() ? null : userTodos.stream()
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
                                             .content(todo.getContent())

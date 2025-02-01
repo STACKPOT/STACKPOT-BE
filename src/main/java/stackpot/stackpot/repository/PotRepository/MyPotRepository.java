@@ -14,5 +14,6 @@ public interface MyPotRepository extends JpaRepository<UserTodo, Long> {
     Optional<UserTodo> findByTodoIdAndPot_PotId(Long todoId, Long potId);
     void deleteByPot_PotIdAndUser(Long potId, User user);
     List<UserTodo> findByPot_PotIdAndUser(Long potId, User user);
+    List<UserTodo> findByUserAndPot(User user, Pot pot);
 
 }
