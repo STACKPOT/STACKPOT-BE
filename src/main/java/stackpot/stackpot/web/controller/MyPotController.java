@@ -95,7 +95,7 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Task 생성 API")
+    @Operation(summary = "[수정 필요] Task 생성 API")
     @PostMapping("/{pot_id}/tasks")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> createPotTask(@PathVariable("pot_id") Long potId,
                                                                            @RequestBody @Valid MyPotTaskRequestDto.create request) {
