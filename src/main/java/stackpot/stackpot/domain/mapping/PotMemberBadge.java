@@ -3,11 +3,11 @@ package stackpot.stackpot.domain.mapping;
 import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.Badge;
-import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.common.BaseEntity;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
