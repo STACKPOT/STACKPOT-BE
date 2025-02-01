@@ -32,5 +32,6 @@ public class CompletedPotResponseDto {
     private List<RecruitmentDetailResponseDto> recruitmentDetails; // 수정된 부분 // 모집 세부 정보
     private Map<String, Integer> roleCounts; // 역할별 인원
     private Role userPotRole;
+    private List<BadgeDto> myBadges;
 }
 

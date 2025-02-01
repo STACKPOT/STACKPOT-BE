@@ -64,7 +64,7 @@ public class PotConverterImpl implements PotConverter {
 
     @Override
 
-    public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts, Role userPotRole) {
+    public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts, Role userPotRole,List<BadgeDto> myBadges) {
         return CompletedPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
@@ -85,6 +85,7 @@ public class PotConverterImpl implements PotConverter {
                         .collect(Collectors.toList()))
                 .roleCounts(roleCounts)
                 .userPotRole(userPotRole)
+                .myBadges(myBadges)
                 .build();
     }
 

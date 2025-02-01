@@ -53,7 +53,7 @@ public class PotApplicationConverterImpl implements PotApplicationConverter {
                 .appliedAt(entity.getAppliedAt()) // null 가능성을 허용
                 .potId(entity.getPot().getPotId()) // Pot 엔티티에서 potId 가져오기
                 .userId(entity.getUser().getId()) // User 엔티티에서 id 가져오기
-                .userNickname(entity.getUser().getNickname() + getVegetableNameByRole(String.valueOf(entity.getUser().getRole())))
+                .userNickname(entity.getUser().getNickname() + " "+getVegetableNameByRole(String.valueOf(entity.getUser().getRole())))
                 .build();
     }
 

@@ -1,8 +1,6 @@
 package stackpot.stackpot.repository;
 
 
-import org.springframework.data.domain.Limit;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -37,5 +35,5 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     @Query("SELECT pm.roleName FROM PotMember pm WHERE pm.pot.potId = :potId AND pm.user.id = :userId")
     Optional<Role> findRoleByUserId(@Param("potId") Long potId, @Param("userId") Long userId);
 
-
+    Optional<PotMember> findByPot_PotIdAndUser_Id(Long potId, Long userId);
 }
