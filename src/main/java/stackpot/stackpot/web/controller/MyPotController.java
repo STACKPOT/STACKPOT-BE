@@ -76,7 +76,7 @@ public class MyPotController {
     }
 
     // 팟에서의 투두 조회
-    @Operation(summary = "Todo 조회 API", description = "팟의 모든 멤버들의 todo 목록을 반환합니다. completed인 todo도 함께 반환하며, 새벽 3시에 자동 초기화됩니다. size 1 = user 1명이라고 생각하시면 됩니다.")
+    @Operation(summary = "Todo 조회 API", description = "팟의 모든 멤버들의 todo 목록을 반환합니다. completed인 todo도 함께 반환하며, 새벽 3시에 자동 초기화됩니다. size 1 = user 1명이라고 생각하시면 됩니다. 현재 접속 중인 사용자가 맨 처음 요소로 반환됩니다.")
     @GetMapping("/{pot_id}/todos")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getMyTodo(
             @PathVariable("pot_id") Long potId,
@@ -102,7 +102,7 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Todo 수정 API ", description = "사용자의 모든 투두의 내용을 한 번에 수정할 수 있습니다. 리스트를 통한 생성과 유사한 방식이지만 기존에 만들었던 todo의 경우 status를 유지해야 하기 때문에 todoId를 함께 보내주셔야 합니다. 새로 만드는 todo의 경우 todoId가 존재하지 않기 때문에 아무 정수나 넣어주시면 됩니다. 되도록 겹치지 않도록 1000이상으로 넣어주시면 좋을 것 같습니다")
+    @Operation(summary = "Todo 수정 API ", description = "사용자의 모든 투두의 내용을 한 번에 수정할 수 있습니다. 리스트를 통한 생성과 유사한 방식이지만 기존에 만들었던 todo의 경우 status를 유지해야 하기 때문에 todoId를 함께 보내주셔야 합니다. 새로 만드는 todo의 경우 todoId가 존재하지 않지만 자동으로 생성되기 때문에 아무 정수나 넣어주시면 됩니다. 사용자의 todo 중 존재하는 todoId를 보내실 경우 해당 todoId가 수정되므로 되도록 연관이 없는 1000 이상의 숫자를 넣어주시는 게 좋습니다.")
     @PatchMapping("/{pot_id}/todos")
     public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> updateMyTodos(
             @PathVariable("pot_id") Long potId,

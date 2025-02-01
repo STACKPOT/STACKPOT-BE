@@ -13,7 +13,9 @@ public class MyPotTodoResponseDTO {
 
         private String userNickname;
         private Long userId;
+        private Integer todoCount;
         private List<TodoDetailDTO> todos;
+
 
         @Getter
         @Setter

@@ -117,18 +117,22 @@ public class MyPotServiceImpl implements MyPotService {
         // 특정 팟의 모든 To-Do 조회 (업데이트된 리스트)
         List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
 
+        // 📌 투두를 User 기준으로 그룹핑
+        Map<User, List<UserTodo>> groupedByUser = potTodos.stream()
+                .collect(Collectors.groupingBy(UserTodo::getUser));
+
         // 사용자별로 그룹화하여 반환
-        return potTodos.stream()
-                .collect(Collectors.groupingBy(UserTodo::getUser))
-                .entrySet().stream()
+        return groupedByUser.entrySet().stream()
                 .map(entry -> {
-                    // 해당 유저의 pot에서 potMember 역할 찾기
-                    String roleName = getUserRoleInPot(entry.getKey(), pot);
+                    User currentUser = entry.getKey();
+                    String roleName = getUserRoleInPot(currentUser, pot);
+                    List<UserTodo> userTodos = groupedByUser.getOrDefault(currentUser, List.of());
 
                     return MyPotTodoResponseDTO.builder()
-                            .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
-                            .userId(entry.getKey().getId())
-                            .todos(entry.getValue().stream()
+                            .userNickname(currentUser.getNickname() + getVegetableNameByRole(roleName))
+                            .userId(currentUser.getId())
+                            .todoCount(userTodos.size())
+                            .todos(userTodos.stream()
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
                                             .content(todo.getContent())
@@ -170,6 +174,8 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
         allPotMembers.add(pot.getUser()); // 팟 소유자 추가
 
+        allPotMembers.sort((u1, u2) -> u1.equals(user) ? -1 : (u2.equals(user) ? 1 : 0));
+
         // 📌 User 기준으로 페이징 적용
         int totalUsers = allPotMembers.size();
         int startIndex = (int) pageRequest.getOffset();
@@ -197,6 +203,7 @@ public class MyPotServiceImpl implements MyPotService {
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(member.getNickname() + getVegetableNameByRole(roleName))
                             .userId(member.getId())
+                            .todoCount(userTodos.size())
                             .todos(userTodos.isEmpty() ? null : userTodos.stream()
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
@@ -277,10 +284,12 @@ public class MyPotServiceImpl implements MyPotService {
                 .map(entry -> {
                     // 해당 유저의 pot에서 potMember 역할 찾기
                     String roleName = getUserRoleInPot(entry.getKey(), pot);
+                    List<UserTodo> userTodos = groupedByUser.getOrDefault(entry, List.of());
 
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
                             .userId(entry.getKey().getId())
+                            .todoCount(userTodos.size())
                             .todos(entry.getValue().stream()
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
@@ -323,6 +332,9 @@ public class MyPotServiceImpl implements MyPotService {
         // 특정 팟의 모든 To-Do 조회 후 반환
         List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
 
+        Map<User, List<UserTodo>> groupedByUser = potTodos.stream()
+                .collect(Collectors.groupingBy(UserTodo::getUser));
+
         return potTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser))
                 .entrySet().stream()
@@ -330,10 +342,12 @@ public class MyPotServiceImpl implements MyPotService {
                     // 소유자인지 확인하고 적절한 역할 적용
                     String roleName = getUserRoleInPot(entry.getKey(), pot);
                     String userNicknameWithRole = entry.getKey().getNickname() + getVegetableNameByRole(roleName);
+                    List<UserTodo> userTodos = groupedByUser.getOrDefault(entry, List.of());
 
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(userNicknameWithRole)
                             .userId(entry.getKey().getId())
+                            .todoCount(userTodos.size())
                             .todos(entry.getValue().stream()
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
