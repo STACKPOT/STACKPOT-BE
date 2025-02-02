@@ -1,6 +1,7 @@
 package stackpot.stackpot.web.dto;
 
 import lombok.*;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.enums.TodoStatus;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 public class MyPotTodoResponseDTO {
 
         private String userNickname;
+        private String userRole;
         private Long userId;
         private Integer todoCount;
         private List<TodoDetailDTO> todos;

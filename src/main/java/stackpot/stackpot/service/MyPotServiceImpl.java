@@ -173,7 +173,6 @@ public class MyPotServiceImpl implements MyPotService {
                 .stream()
                 .map(PotMember::getUser)
                 .collect(Collectors.toList());
-        allPotMembers.add(pot.getUser()); // 팟 소유자 추가
 
         allPotMembers.sort((u1, u2) -> u1.equals(user) ? -1 : (u2.equals(user) ? 1 : 0));
 
@@ -203,6 +202,7 @@ public class MyPotServiceImpl implements MyPotService {
 
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(member.getNickname() + getVegetableNameByRole(roleName))
+                            .userRole(roleName)
                             .userId(member.getId())
                             .todoCount(userTodos.size())
                             .todos(userTodos.isEmpty() ? null : userTodos.stream()
@@ -418,6 +418,7 @@ public class MyPotServiceImpl implements MyPotService {
                 })
                 .collect(Collectors.toList());
 
+
         return taskboardDtos.stream()
                 .collect(Collectors.groupingBy(MyPotTaskPreViewResponseDto::getStatus));
     }
@@ -510,17 +511,11 @@ public class MyPotServiceImpl implements MyPotService {
 
 
     private String getUserRoleInPot(User user, Pot pot) {
-        if (pot.getUser().equals(user)) {
-            // 소유자인 경우, 사용자의 역할을 직접 가져옴
-            return pot.getUser().getRole().name();
-        } else {
-            // 참여자인 경우, potMember에서 역할을 가져옴
-            return pot.getPotMembers().stream()
-                    .filter(member -> member.getUser().equals(user))
-                    .map(member -> member.getRoleName().name())  // ENUM -> String 변환
-                    .findFirst()
-                    .orElse("UNKNOWN");  // 기본값 설정
-        }
+        return pot.getPotMembers().stream()
+                .filter(member -> member.getUser().equals(user))
+                .map(member -> member.getRoleName().name())  // ENUM -> String 변환
+                .findFirst()
+                .orElse("UNKNOWN");  // 기본값 설정
     }
 
     private void updateUserData(Taskboard taskboard, MyPotTaskRequestDto.create request) {

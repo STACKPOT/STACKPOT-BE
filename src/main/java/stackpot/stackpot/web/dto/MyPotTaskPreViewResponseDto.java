@@ -18,6 +18,8 @@ public class MyPotTaskPreViewResponseDto {
         private Long taskboardId;
         private String title;
         private String description;
+        private String creatorNickname;
+        private Role creatorRole;
         private List<Role> category;
         private TaskboardStatus status;
         private String deadLine;
