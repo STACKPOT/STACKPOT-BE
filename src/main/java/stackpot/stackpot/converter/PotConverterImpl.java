@@ -93,22 +93,16 @@ public class PotConverterImpl implements PotConverter {
 
     @Override
 
-    public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts, Role userPotRole,List<BadgeDto> myBadges) {
+    public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts, Role userPotRole, List<BadgeDto> myBadges) {
         return CompletedPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStartDate(pot.getPotStartDate())
                 .potEndDate(pot.getPotEndDate())
-                .potDuration(pot.getPotDuration())
                 .potLan(pot.getPotLan())
-                .potContent(pot.getPotContent())
-                .potStatus(pot.getPotStatus())
-                .potModeOfOperation(pot.getPotModeOfOperation())
-                .potSummary(pot.getPotSummary())
-                .recruitmentDeadline(pot.getRecruitmentDeadline())
                 .recruitmentDetails(pot.getRecruitmentDetails().stream()
                         .map(rd -> RecruitmentDetailResponseDto.builder()
-                                .recruitmentRole(String.valueOf(rd.getRecruitmentRole()))
+                                .recruitmentRole(rd.getRecruitmentRole().name()) // Enum을 String으로 변환
                                 .recruitmentCount(rd.getRecruitmentCount())
                                 .build())
                         .collect(Collectors.toList()))
@@ -117,6 +111,7 @@ public class PotConverterImpl implements PotConverter {
                 .myBadges(myBadges)
                 .build();
     }
+
 
     public PotSearchResponseDto toSearchDto(Pot pot) {
         // 역할 이름 매핑 (유효한 역할만 처리)

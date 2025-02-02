@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.service.PotMemberService.PotMemberService;
 import stackpot.stackpot.web.dto.PotMemberAppealResponseDto;
+import stackpot.stackpot.web.dto.PotMemberInfoResponseDto;
 import stackpot.stackpot.web.dto.PotMemberRequestDto;
 import stackpot.stackpot.web.dto.UpdateAppealRequestDto;
 
@@ -24,11 +25,11 @@ public class PotMemberController {
 
     @Operation(summary = "팟 멤버 정보 (KAKAOID, 닉네임) 조회 API")
     @GetMapping // ✅ @PathVariable을 사용하려면 URL에 포함해야 함
-    public ResponseEntity<ApiResponse<List<PotMemberAppealResponseDto>>> getPotMembers(
+    public ResponseEntity<ApiResponse<List<PotMemberInfoResponseDto>>> getPotMembers(
             @PathVariable("pot_id") Long potId) {
 
         potMemberService.validateIsOwner(potId); // 팟 생성자 검증 추가
-        List<PotMemberAppealResponseDto> response = potMemberService.getPotMembers(potId);
+        List<PotMemberInfoResponseDto> response = potMemberService.getPotMembers(potId);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }

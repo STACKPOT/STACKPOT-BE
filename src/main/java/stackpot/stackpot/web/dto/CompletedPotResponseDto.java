@@ -1,11 +1,6 @@
 package stackpot.stackpot.web.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
-import lombok.Setter;
-import stackpot.stackpot.domain.enums.PotModeOfOperation;
+import lombok.*;
 import stackpot.stackpot.domain.enums.Role;
 
 import java.time.LocalDate;
@@ -22,14 +17,9 @@ public class CompletedPotResponseDto {
     private String potName; // 팟 이름
     private LocalDate potStartDate; // 시작 날짜
     private LocalDate potEndDate; // 종료 날짜
-    private String potDuration; // 팟 기간 설명
     private String potLan; // 사용 언어
-    private String potContent; // 팟 설명
-    private String potStatus; // 팟 상태
-    private PotModeOfOperation potModeOfOperation; // 운영 방식
     private String potSummary; // 요약 설명
-    private LocalDate recruitmentDeadline; // 모집 마감일
-    private List<RecruitmentDetailResponseDto> recruitmentDetails; // 수정된 부분 // 모집 세부 정보
+    private List<RecruitmentDetailResponseDto> recruitmentDetails;
     private Map<String, Integer> roleCounts; // 역할별 인원
     private Role userPotRole;
     private List<BadgeDto> myBadges;
