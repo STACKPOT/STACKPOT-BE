@@ -3,6 +3,7 @@ package stackpot.stackpot.converter;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.*;
 
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
     @Override
-    public CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, String appealContent) {
+    public CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, Role userPotRole, String appealContent) {
         // 날짜 포맷 설정
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy. M. d");
 
@@ -30,6 +31,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .potStatus(pot.getPotStatus())
                 .potSummary(pot.getPotSummary())
                 .appealContent(appealContent)
+                .userPotRole(userPotRole)
                 .build();
     }
 
@@ -64,7 +66,6 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .recruitmentDetails(recruitmentDetails)
                 .build();
     }
-
 
     private String getVegetableNameByRole(String role) {
         Map<String, String> roleToVegetableMap = Map.of(

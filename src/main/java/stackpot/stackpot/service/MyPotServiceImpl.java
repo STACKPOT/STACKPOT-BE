@@ -19,6 +19,7 @@ import stackpot.stackpot.converter.TaskboardConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.enums.TaskboardStatus;
 import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.PotMember;
@@ -574,7 +575,16 @@ public class MyPotServiceImpl implements MyPotService {
 
         String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
 
+        // 현재 사용자의 역할(Role) 결정
+        Role userPotRole;
+        if (pot.getUser().getId().equals(user.getId())) {
+            userPotRole = pot.getUser().getRole(); // Pot 생성자의 Role 반환
+        } else {
+            userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                    .orElse(pot.getUser().getRole());
+        }
+
         // DTO 반환
-        return potDetailConverter.toCompletedPotDetailDto(pot, appealContent);
+        return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
     }
 }
