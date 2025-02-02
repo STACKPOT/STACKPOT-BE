@@ -29,6 +29,7 @@ import stackpot.stackpot.repository.PotRepository.PotRecruitmentDetailsRepositor
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
+import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.Map;
@@ -213,21 +214,23 @@ public class PotServiceImpl implements PotService {
 
     @Transactional
     @Override
-    public List<PotAllResponseDTO.PotDetail> getAllPots(Role role, Integer page, Integer size) {
+    public List<PotPreviewResponseDto> getAllPots(Role role, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Pot> potPage;
-
-        if (role == null) {
-            potPage = potRepository.findAll(pageable);
-        } else {
-            potPage = potRepository.findByRecruitmentDetails_RecruitmentRole(role, pageable);
-        }
+        Page<Pot> potPage = (role == null) ? potRepository.findAll(pageable) :
+                potRepository.findByRecruitmentDetails_RecruitmentRole(role, pageable);
 
         return potPage.getContent().stream()
-                .map(pot -> PotAllResponseDTO.PotDetail.builder()
-                        .user(UserConverter.toDto(pot.getUser()))
-                        .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
-                        .build())
+                .map(pot -> {
+                    // recruitmentDetails에서 role을 리스트로 변환하여 ','로 합침
+                    List<String> roles = pot.getRecruitmentDetails().stream()
+                            .map(recruitmentDetails -> String.valueOf(recruitmentDetails.getRecruitmentRole()))
+                            .collect(Collectors.toList());
+
+                    // roles를 ", "로 연결하여 문자열로 변환
+                    String recruitmentRoleString = String.join(", ", roles);
+
+                    return potConverter.toPrviewDto(pot.getUser(), pot, recruitmentRoleString);
+                })
                 .collect(Collectors.toList());
     }
 

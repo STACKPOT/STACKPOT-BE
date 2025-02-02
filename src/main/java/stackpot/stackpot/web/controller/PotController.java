@@ -119,7 +119,7 @@ public class PotController {
 
         int adjustedPage = page - 1;
 
-        List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(roleEnum, adjustedPage, size);
+        List<PotPreviewResponseDto> pots = potService1.getAllPots(roleEnum, adjustedPage, size);
 
         Page<Pot> potPage = (roleEnum == null)
                 ? potRepository.findAll(PageRequest.of(adjustedPage, size))
