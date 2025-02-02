@@ -363,10 +363,17 @@ public class MyPotServiceImpl implements MyPotService {
 
     @Override
     public MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
 
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()-> new IllegalArgumentException("User not found with email: " + email));
+
         Taskboard taskboard = taskboardConverter.toTaskboard(pot, request);
+        taskboard.setUser(user);
         taskboardRepository.save(taskboard);
 
         List<Long> requestedParticipantIds = request.getParticipants();

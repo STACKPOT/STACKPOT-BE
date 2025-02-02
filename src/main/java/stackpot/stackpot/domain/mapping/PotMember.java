@@ -28,7 +28,7 @@ public class PotMember extends BaseEntity {
     private User user;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false)
+    @JoinColumn(name = "application_id", nullable = true)
     private PotApplication potApplication;
 
     @Enumerated(EnumType.STRING)

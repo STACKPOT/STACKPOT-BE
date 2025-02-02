@@ -17,14 +17,13 @@ public class PotMemberConverterImpl implements PotMemberConverter {
                 .user(user)
                 .pot(pot)
                 .potApplication(application)
-                .roleName(application != null ? application.getPotRole() : null) // PotRole Enum 그대로 사용
+                .roleName(application != null ? application.getPotRole() : user.getRole()) // PotRole Enum 그대로 사용
                 .owner(isOwner)
                 .appealContent(null)
                 .build();
     }
 
     @Override
-
     public PotMemberAppealResponseDto toDto(PotMember entity) {
         String roleName = entity.getRoleName() != null ? entity.getRoleName().name() : "멤버";
         String nicknameWithRole = entity.getUser().getNickname() + " "+mapRoleName(roleName) ;
