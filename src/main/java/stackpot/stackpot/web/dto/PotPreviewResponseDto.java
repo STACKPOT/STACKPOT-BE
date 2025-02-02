@@ -17,6 +17,6 @@ public class PotPreviewResponseDto {
     private Long potId;
     private String potName;
     private String potContent;
-    private String recruitmentRole;
+    private List<String> recruitmentRoles;
     private String dDay;
 }

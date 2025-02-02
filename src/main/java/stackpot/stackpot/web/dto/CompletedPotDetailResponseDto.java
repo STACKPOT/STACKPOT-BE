@@ -10,7 +10,7 @@ import stackpot.stackpot.domain.enums.Role;
 public class CompletedPotDetailResponseDto {
     private Long potId; // 팟 ID
     private String potName; // 팟 이름
-
+    private Long userId; // 유저 ID
     @Schema(description = "팟 시작 날짜 (형식: yyyy. M. d)", example = "2025. 2. 18")
     private String potStartDate; // 시작 날짜
     @Schema(description = "팟 종료 날짜 (형식: yyyy. M. d)", example = "2025. 3. 5")

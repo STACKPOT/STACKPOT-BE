@@ -39,6 +39,18 @@ public class PotMemberConverterImpl implements PotMemberConverter {
                 .kakaoId(entity.getUser().getKakaoId())
                 .build();
     }
+    @Override
+    public PotMemberInfoResponseDto toKaKaoMemberDto(PotMember entity) {
+        String roleName = entity.getRoleName() != null ? entity.getRoleName().name() : "멤버";
+        String nicknameWithRole = entity.getUser().getNickname() + " "+mapRoleName(roleName) ;
+
+        return PotMemberInfoResponseDto.builder()
+
+                .nickname(nicknameWithRole)
+//                .isOwner(entity.isOwner())
+                .kakaoId(entity.getUser().getKakaoId())
+                .build();
+    }
 
 
     private String mapRoleName(String potRole) {
