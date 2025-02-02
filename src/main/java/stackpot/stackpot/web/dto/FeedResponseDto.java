@@ -1,10 +1,9 @@
 package stackpot.stackpot.web.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import stackpot.stackpot.domain.enums.Category;
+import stackpot.stackpot.domain.enums.Role;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class FeedResponseDto {
@@ -27,7 +26,8 @@ public class FeedResponseDto {
     public static class FeedDto {
         private Long id;
         private String writer;
-        private Category category;
+        private Role writerRole;
+//        private Category category;
         private String title;
         private String content;
         private Long likeCount;

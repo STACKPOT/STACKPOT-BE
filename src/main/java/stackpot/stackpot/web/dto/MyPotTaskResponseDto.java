@@ -15,6 +15,7 @@ import java.util.List;
 @Setter
 public class MyPotTaskResponseDto {
     private Long taskboardId;
+    private Participant creator;
     private String title;
     private String description;
     private String deadLine;
@@ -29,9 +30,9 @@ public class MyPotTaskResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Participant {
-        private Long userId;
         private Long potMemberId;
         private String nickName;
     }
+
 
 }
