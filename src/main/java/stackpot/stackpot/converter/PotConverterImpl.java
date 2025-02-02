@@ -85,7 +85,7 @@ public class PotConverterImpl implements PotConverter {
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potContent(pot.getPotContent())
-                .recruitmentRoles(koreanRoles)  // ✅ 리스트 그대로 전달
+                .recruitmentRoles(koreanRoles)  //  리스트 그대로 전달
                 .dDay(dDay)
                 .build();
     }
@@ -186,8 +186,8 @@ public class PotConverterImpl implements PotConverter {
 
     private String getKoreanRoleName(String role) {
         Map<String, String> roleToKoreaneMap = Map.of(
-                "BACKEND", "백앤드",
-                "FRONTEND", "프론트앤드",
+                "BACKEND", "백엔드",
+                "FRONTEND", "프론트엔드",
                 "DESIGN", "디자인",
                 "PLANNING", "기획"
         );
