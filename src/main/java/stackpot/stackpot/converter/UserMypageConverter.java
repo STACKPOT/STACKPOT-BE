@@ -57,7 +57,6 @@ public class UserMypageConverter {
                 .potSummary(pot.getPotSummary())
                 .recruitmentDetails(pot.getRecruitmentDetails().stream()
                         .map(detail -> PotRecruitmentResponseDto.builder()
-                                .recruitmentId(detail.getRecruitmentId())
                                 .recruitmentRole(detail.getRecruitmentRole().name()) // Enum → String 변환
                                 .recruitmentCount(detail.getRecruitmentCount())
                                 .build())
