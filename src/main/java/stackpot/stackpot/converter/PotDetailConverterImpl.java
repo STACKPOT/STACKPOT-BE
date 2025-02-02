@@ -65,7 +65,6 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .build();
     }
 
-
     private String getVegetableNameByRole(String role) {
         Map<String, String> roleToVegetableMap = Map.of(
                 "BACKEND", " 양파",
