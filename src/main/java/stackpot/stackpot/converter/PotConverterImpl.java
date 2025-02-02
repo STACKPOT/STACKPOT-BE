@@ -59,7 +59,7 @@ public class PotConverterImpl implements PotConverter {
                 .build();
     }
 
-    public PotPreviewResponseDto toPrviewDto(User user, Pot pot, String recruitmentRoles) {
+    public PotPreviewResponseDto toPrviewDto(User user, Pot pot, List<String> recruitmentRoles) {
         LocalDate today = LocalDate.now();
         LocalDate deadline = pot.getRecruitmentDeadline();
 
@@ -74,6 +74,10 @@ public class PotConverterImpl implements PotConverter {
             dDay = "D+" + Math.abs(daysDiff);
         }
 
+        List<String> koreanRoles = recruitmentRoles.stream()
+                .map(this::getKoreanRoleName)  // 역할명을 한글로 변환
+                .collect(Collectors.toList());
+
         return PotPreviewResponseDto.builder()
                 .userId(user.getId())
                 .userRole(String.valueOf(user.getRole()))
@@ -81,7 +85,7 @@ public class PotConverterImpl implements PotConverter {
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potContent(pot.getPotContent())
-                .recruitmentRole(recruitmentRoles)  // 콤마로 연결된 역할 문자열
+                .recruitmentRoles(koreanRoles)  //  리스트 그대로 전달
                 .dDay(dDay)
                 .build();
     }
@@ -173,10 +177,20 @@ public class PotConverterImpl implements PotConverter {
 
     private String getKoreanModeOfOperation(String modeOfOperation) {
         Map<String, String> modeOfOperationToKoreanMap = Map.of(
-                "ONLINE", " 온라인",
-                "OFFLINE", " 오프라인",
-                "HYBRID", " 혼합"
+                "ONLINE", "온라인",
+                "OFFLINE", "오프라인",
+                "HYBRID", "혼합"
         );
         return modeOfOperationToKoreanMap.getOrDefault(modeOfOperation, "알 수 없음");
+    }
+
+    private String getKoreanRoleName(String role) {
+        Map<String, String> roleToKoreaneMap = Map.of(
+                "BACKEND", "백엔드",
+                "FRONTEND", "프론트엔드",
+                "DESIGN", "디자인",
+                "PLANNING", "기획"
+        );
+        return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
     }
 }
