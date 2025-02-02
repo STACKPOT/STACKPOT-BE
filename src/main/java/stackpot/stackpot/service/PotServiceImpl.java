@@ -624,14 +624,4 @@ public class PotServiceImpl implements PotService {
         return potConverter.toDto(pot, recruitmentDetails);
     }
 
-    private String getKoreanRoleName(String role) {
-        Map<String, String> roleToKoreaneMap = Map.of(
-                "BACKEND", " 백앤드",
-                "FRONTEND", " 프론트앤드",
-                "DESIGN", " 디자인",
-                "PLANNING", " 기획"
-        );
-        return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
-    }
-
 }
