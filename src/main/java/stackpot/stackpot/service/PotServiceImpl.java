@@ -223,15 +223,12 @@ public class PotServiceImpl implements PotService {
 
         return potPage.getContent().stream()
                 .map(pot -> {
-                    // recruitmentDetails에서 role을 리스트로 변환하여 ','로 합침
+                    //  recruitmentDetails에서 role을 리스트로 변환하여 그대로 전달
                     List<String> roles = pot.getRecruitmentDetails().stream()
                             .map(recruitmentDetails -> String.valueOf(recruitmentDetails.getRecruitmentRole()))
                             .collect(Collectors.toList());
 
-                    // roles를 ", "로 연결하여 문자열로 변환
-                    String recruitmentRoleString = String.join(", ", roles);
-
-                    return potConverter.toPrviewDto(pot.getUser(), pot, recruitmentRoleString);
+                    return potConverter.toPrviewDto(pot.getUser(), pot, roles);
                 })
                 .collect(Collectors.toList());
     }
