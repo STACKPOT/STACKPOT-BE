@@ -23,6 +23,7 @@ public class MyPotTaskResponseDto {
     private String deadLine;
     private TaskboardStatus status;
     private Long potId;
+    private String dDay;
     private List<Participant> participants;
 
 

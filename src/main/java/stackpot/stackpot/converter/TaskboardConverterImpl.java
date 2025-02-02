@@ -9,7 +9,9 @@ import stackpot.stackpot.web.dto.MyPotTaskPreViewResponseDto;
 import stackpot.stackpot.web.dto.MyPotTaskRequestDto;
 import stackpot.stackpot.web.dto.MyPotTaskResponseDto;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,6 +37,7 @@ public class TaskboardConverterImpl implements TaskboardConverter{
                 .creatorNickname(taskboard.getUser().getNickname()+getVegetableNameByRole(String.valueOf(taskboard.getUser().getRole())))
                 .creatorRole(taskboard.getUser().getRole())
                 .deadLine(formatDate(taskboard.getDeadLine()))
+                .dDay(dDayCount(taskboard.getDeadLine()))
                 .title(taskboard.getTitle())
                 .description(taskboard.getDescription())
                 .status(taskboard.getStatus())
@@ -59,11 +62,13 @@ public class TaskboardConverterImpl implements TaskboardConverter{
     }
 
     public MyPotTaskPreViewResponseDto toDto(Taskboard taskboard, List<PotMember> participants) {
+
         return MyPotTaskPreViewResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())
                 .title(taskboard.getTitle())
                 .creatorNickname(taskboard.getUser().getNickname()+getVegetableNameByRole(String.valueOf(taskboard.getUser().getRole())))
                 .creatorRole(taskboard.getUser().getRole())
+                .dDay(dDayCount(taskboard.getDeadLine()))
                 .description(taskboard.getDescription())
                 .category(determineCategories(participants)) // 카테고리 설정
                 .status(taskboard.getStatus()) // OPEN, IN_PROGRESS, CLOSED
@@ -91,5 +96,22 @@ public class TaskboardConverterImpl implements TaskboardConverter{
 
     private String formatDate(java.time.LocalDate date) {
         return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
+    }
+
+    private String dDayCount(LocalDate deadLine){
+        LocalDate today = LocalDate.now();
+        LocalDate deadline = deadLine;
+
+        long daysDiff = ChronoUnit.DAYS.between(today, deadline);
+
+        String dDay;
+        if (daysDiff == 0) {
+            dDay = "D-Day";
+        } else if (daysDiff > 0) {
+            dDay = "D-" + daysDiff;
+        } else {
+            dDay = "D+" + Math.abs(daysDiff);
+        }
+        return dDay;
     }
 }
