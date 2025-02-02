@@ -417,6 +417,7 @@ public class MyPotServiceImpl implements MyPotService {
                 })
                 .collect(Collectors.toList());
 
+
         return taskboardDtos.stream()
                 .collect(Collectors.groupingBy(MyPotTaskPreViewResponseDto::getStatus));
     }

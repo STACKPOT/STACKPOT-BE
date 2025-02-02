@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.enums.TaskboardStatus;
 
 import java.time.LocalDate;
@@ -15,7 +16,8 @@ import java.util.List;
 @Setter
 public class MyPotTaskResponseDto {
     private Long taskboardId;
-    private Participant creator;
+    private String creatorNickname;
+    private Role creatorRole;
     private String title;
     private String description;
     private String deadLine;
@@ -32,6 +34,7 @@ public class MyPotTaskResponseDto {
     public static class Participant {
         private Long potMemberId;
         private String nickName;
+        private Role role;
     }
 
 
