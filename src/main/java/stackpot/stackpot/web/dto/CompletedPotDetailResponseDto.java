@@ -3,6 +3,7 @@ package stackpot.stackpot.web.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import stackpot.stackpot.domain.enums.Role;
 
 @Getter
 @Builder
@@ -18,5 +19,6 @@ public class CompletedPotDetailResponseDto {
     private String potStatus; // 팟 상태
     private String potSummary; // 요약 설명
     private String appealContent;
+    private Role userPotRole;
 }
 

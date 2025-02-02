@@ -51,7 +51,7 @@ public class MyPotController {
     }
 
     @GetMapping("/{pot_id}/details")
-    @Operation(summary = "끓인 팟 상세 보기", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 Role : num과 나의 역할도 함께 반환합니다.")
+    @Operation(summary = "끓인 팟 상세 보기", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다.")
     public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
             @PathVariable("pot_id") Long potId) {
         CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
