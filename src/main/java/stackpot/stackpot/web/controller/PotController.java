@@ -16,6 +16,7 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
+import stackpot.stackpot.service.PotApplicationService.PotApplicationService;
 import stackpot.stackpot.service.PotService;
 import stackpot.stackpot.service.PotServiceImpl;
 import stackpot.stackpot.web.dto.*;
@@ -32,6 +33,7 @@ public class PotController {
 
 
     private final PotService potService1;
+    private final PotApplicationService potApplicationService;
 
     private final PotServiceImpl potService;
     private final PotRepository potRepository;
@@ -217,5 +219,12 @@ public class PotController {
 
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
+    @Operation(summary = "특정 Pot의 상세 정보 및 지원자 목록 조회 API", description = "모든 사용자가 Pot의 상세 정보를 조회할 수 있으며, 사용자가 팟의 소유자이고 상태가 'RECRUITING'이면 지원자 목록도 함께 반환됩니다.")
+    @GetMapping("/{pot_id}/details")
+    public ResponseEntity<ApiResponse<PotDetailWithApplicantsResponseDto>> getPotDetailsAndApplicants(
+            @PathVariable("pot_id") Long potId) {
 
+        PotDetailWithApplicantsResponseDto response = potApplicationService.getPotDetailsAndApplicants(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
 }
