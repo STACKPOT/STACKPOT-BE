@@ -38,4 +38,8 @@ public class Taskboard extends BaseEntity {
     @JoinColumn(name = "pot_id", nullable = false)
     private Pot pot;
 
+    @Setter
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }
