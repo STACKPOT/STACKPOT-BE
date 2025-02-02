@@ -14,4 +14,5 @@ public interface PotConverter {
     CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts, Role userPotRole,List<BadgeDto> myBadges);
     PotResponseDto toDto(Pot entity, List<PotRecruitmentDetails> recruitmentDetails);
     PotSearchResponseDto toSearchDto(Pot pot);
+    PotPreviewResponseDto toPrviewDto(User user, Pot pot, String recruitmentRoles);
 }

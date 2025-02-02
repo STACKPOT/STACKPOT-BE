@@ -10,8 +10,6 @@ import stackpot.stackpot.domain.enums.Role;
 @Setter
 @Builder
 public class PotRecruitmentResponseDto {
-    private Long recruitmentId;
     private String recruitmentRole;
     private Integer recruitmentCount;
-
 }
