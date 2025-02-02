@@ -32,6 +32,8 @@ public class TaskboardConverterImpl implements TaskboardConverter{
     public MyPotTaskResponseDto toDTO(Taskboard taskboard) {
         return MyPotTaskResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())
+                .creatorNickname(taskboard.getUser().getNickname()+getVegetableNameByRole(String.valueOf(taskboard.getUser().getRole())))
+                .creatorRole(taskboard.getUser().getRole())
                 .deadLine(formatDate(taskboard.getDeadLine()))
                 .title(taskboard.getTitle())
                 .description(taskboard.getDescription())
@@ -52,6 +54,7 @@ public class TaskboardConverterImpl implements TaskboardConverter{
         return MyPotTaskResponseDto.Participant.builder()
                 .potMemberId(participant.getPotMemberId())
                 .nickName(participant.getUser().getNickname() + getVegetableNameByRole(participant.getRoleName().toString()))
+                .role(participant.getRoleName())
                 .build();
     }
 
@@ -59,6 +62,8 @@ public class TaskboardConverterImpl implements TaskboardConverter{
         return MyPotTaskPreViewResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())
                 .title(taskboard.getTitle())
+                .creatorNickname(taskboard.getUser().getNickname()+getVegetableNameByRole(String.valueOf(taskboard.getUser().getRole())))
+                .creatorRole(taskboard.getUser().getRole())
                 .description(taskboard.getDescription())
                 .category(determineCategories(participants)) // 카테고리 설정
                 .status(taskboard.getStatus()) // OPEN, IN_PROGRESS, CLOSED

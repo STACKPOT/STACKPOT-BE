@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.EnumHandler;
+import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.enums.TaskboardStatus;
+import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.service.MyPotService;
 import stackpot.stackpot.service.PotService;
 import stackpot.stackpot.web.dto.*;
@@ -32,6 +34,7 @@ public class MyPotController {
 
     private final MyPotService myPotService;
     private final PotService potService;
+    private final PotRepository potRepository;
 
     // 사용자가 만든 진행 중인 팟 조회
     @Operation(summary = "나의 진행 중인 팟 조회 API", description = "'나의 팟 첫 페이지'의 정보를 리턴합니다. 사용자가 생성했거나, 참여하고 있으며 진행 중(ONGOING)인 팟들 리스트를 조회합니다. \n")
@@ -88,12 +91,14 @@ public class MyPotController {
             throw new EnumHandler(ErrorStatus.INVALID_PAGE);
         }
         int adjustedPage = page - 1;
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(()->new IllegalArgumentException("pot을 찾을 수 없습니다."));
 
         // 서비스 호출하여 데이터 조회
         Page<MyPotTodoResponseDTO> pagedTodos = myPotService.getTodo(potId, PageRequest.of(adjustedPage, size));
-
         // 응답 데이터 구성
         Map<String, Object> response = new HashMap<>();
+        response.put("potName", pot.getPotName());
         response.put("todos", pagedTodos.getContent());
         response.put("totalPages", pagedTodos.getTotalPages());
         response.put("currentPage", pagedTodos.getNumber() + 1);
