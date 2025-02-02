@@ -119,7 +119,7 @@ public class PotController {
 
         int adjustedPage = page - 1;
 
-        List<PotAllResponseDTO.PotDetail> pots = potService1.getAllPots(roleEnum, adjustedPage, size);
+        List<PotPreviewResponseDto> pots = potService1.getAllPots(roleEnum, adjustedPage, size);
 
         Page<Pot> potPage = (roleEnum == null)
                 ? potRepository.findAll(PageRequest.of(adjustedPage, size))
@@ -137,8 +137,8 @@ public class PotController {
     // 특정 팟의 상세정보 조회
     @Operation(summary = "팟 상세 조회 API", description = "'타인의 팟 상세보기-지원하기 버튼' 페이지에서 사용되는 정보를 리턴합니다.\n모든 팟에서 특정 팟을 선택하면 리턴하는 정보입니다.\npotId를 통해 특정 팟에 대한 상세정보를 조회할 수 있습니다.\n 모든 팟에서 특정 팟을 선택했을 때 보이는 상세 정보를 리턴합니다.")
     @GetMapping("/{pot_id}")
-    public ResponseEntity<ApiResponse<ApplicantResponseDTO>> getPotDetails(@PathVariable("pot_id") Long potId) {
-        ApplicantResponseDTO potDetails = potService1.getPotDetails(potId);
+    public ResponseEntity<ApiResponse<PotDetailResponseDto>> getPotDetails(@PathVariable("pot_id") Long potId) {
+        PotDetailResponseDto potDetails = potService1.getPotDetails(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(potDetails));
     }
 

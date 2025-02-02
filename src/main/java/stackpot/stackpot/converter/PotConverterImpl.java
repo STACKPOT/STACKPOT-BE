@@ -8,6 +8,8 @@ import stackpot.stackpot.domain.enums.PotModeOfOperation;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.*;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,12 +53,39 @@ public class PotConverterImpl implements PotConverter {
                 .potSummary(entity.getPotSummary())
                 .recruitmentDeadline(entity.getRecruitmentDeadline())
                 .recruitmentDetails(recruitmentDetails.stream().map(r -> PotRecruitmentResponseDto.builder()
-                        .recruitmentId(r.getRecruitmentId())
                         .recruitmentRole(r.getRecruitmentRole().name())
                         .recruitmentCount(r.getRecruitmentCount())
                         .build()).collect(Collectors.toList()))
                 .build();
     }
+
+    public PotPreviewResponseDto toPrviewDto(User user, Pot pot, String recruitmentRoles) {
+        LocalDate today = LocalDate.now();
+        LocalDate deadline = pot.getRecruitmentDeadline();
+
+        long daysDiff = ChronoUnit.DAYS.between(today, deadline);
+
+        String dDay;
+        if (daysDiff == 0) {
+            dDay = "D-Day";
+        } else if (daysDiff > 0) {
+            dDay = "D-" + daysDiff;
+        } else {
+            dDay = "D+" + Math.abs(daysDiff);
+        }
+
+        return PotPreviewResponseDto.builder()
+                .userId(user.getId())
+                .userRole(String.valueOf(user.getRole()))
+                .userNickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
+                .potId(pot.getPotId())
+                .potName(pot.getPotName())
+                .potContent(pot.getPotContent())
+                .recruitmentRole(recruitmentRoles)  // 콤마로 연결된 역할 문자열
+                .dDay(dDay)
+                .build();
+    }
+
 
     private String formatDate(java.time.LocalDate date) {
         return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
@@ -130,5 +159,24 @@ public class PotConverterImpl implements PotConverter {
             case "PLANNING" -> "당근";
             default -> "멤버";
         };
+    }
+
+    private String getVegetableNameByRole(String role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯",
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근"
+        );
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
+    }
+
+    private String getKoreanModeOfOperation(String modeOfOperation) {
+        Map<String, String> modeOfOperationToKoreanMap = Map.of(
+                "ONLINE", " 온라인",
+                "OFFLINE", " 오프라인",
+                "HYBRID", " 혼합"
+        );
+        return modeOfOperationToKoreanMap.getOrDefault(modeOfOperation, "알 수 없음");
     }
 }
