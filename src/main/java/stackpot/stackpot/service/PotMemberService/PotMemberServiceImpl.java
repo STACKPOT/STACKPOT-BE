@@ -47,6 +47,9 @@ public class PotMemberServiceImpl implements PotMemberService {
     @Transactional
     @Override
     public List<PotMemberAppealResponseDto> addMembersToPot (Long potId, PotMemberRequestDto requestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
         // 1. 팟 조회
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
@@ -83,6 +86,12 @@ public class PotMemberServiceImpl implements PotMemberService {
             PotMember member = potMemberConverter.toEntity(user, pot, application, false);
             newMembers.add(member);
         }
+
+        User potCreatUser = userRepository.findByEmail(email)
+                .orElseThrow(()-> new IllegalArgumentException("유저를 찾을 수 없스니다. 유저 email : " + email));
+
+        PotMember member = potMemberConverter.toEntity(potCreatUser, pot, null, true);
+        newMembers.add(member);
 
         // 5. 저장 및 응답 반환
         List<PotMember> savedMembers = potMemberRepository.saveAll(newMembers);

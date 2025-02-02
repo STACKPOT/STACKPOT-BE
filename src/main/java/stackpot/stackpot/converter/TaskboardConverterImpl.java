@@ -51,7 +51,6 @@ public class TaskboardConverterImpl implements TaskboardConverter{
 
         return MyPotTaskResponseDto.Participant.builder()
                 .potMemberId(participant.getPotMemberId())
-                .userId(participant.getUser().getUserId())
                 .nickName(participant.getUser().getNickname() + getVegetableNameByRole(participant.getRoleName().toString()))
                 .build();
     }
