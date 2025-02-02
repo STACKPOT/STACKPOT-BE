@@ -53,7 +53,6 @@ public class PotConverterImpl implements PotConverter {
                 .potSummary(entity.getPotSummary())
                 .recruitmentDeadline(entity.getRecruitmentDeadline())
                 .recruitmentDetails(recruitmentDetails.stream().map(r -> PotRecruitmentResponseDto.builder()
-                        .recruitmentId(r.getRecruitmentId())
                         .recruitmentRole(r.getRecruitmentRole().name())
                         .recruitmentCount(r.getRecruitmentCount())
                         .build()).collect(Collectors.toList()))
@@ -170,5 +169,14 @@ public class PotConverterImpl implements PotConverter {
                 "PLANNING", " 당근"
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
+    }
+
+    private String getKoreanModeOfOperation(String modeOfOperation) {
+        Map<String, String> modeOfOperationToKoreanMap = Map.of(
+                "ONLINE", " 온라인",
+                "OFFLINE", " 오프라인",
+                "HYBRID", " 혼합"
+        );
+        return modeOfOperationToKoreanMap.getOrDefault(modeOfOperation, "알 수 없음");
     }
 }

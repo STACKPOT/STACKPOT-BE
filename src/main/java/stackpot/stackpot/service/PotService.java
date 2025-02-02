@@ -20,7 +20,7 @@ public interface PotService {
     List<PotPreviewResponseDto>  getAllPots(Role role, Integer page, Integer size);
 
     // 특정 팟의 세부 정보 조회
-    ApplicantResponseDTO getPotDetails(Long potId);
+    PotDetailResponseDto getPotDetails(Long potId);
 
     // 특정 지원자의 좋아요 상태 수정
     void patchLikes(Long potId, Long applicationId, Boolean liked);

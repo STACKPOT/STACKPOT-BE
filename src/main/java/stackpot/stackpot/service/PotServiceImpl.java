@@ -16,6 +16,7 @@ import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.PotConverter;
+import stackpot.stackpot.converter.PotDetailConverter;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
@@ -43,6 +44,7 @@ public class PotServiceImpl implements PotService {
     private final PotRepository potRepository;
     private final PotRecruitmentDetailsRepository recruitmentDetailsRepository;
     private final PotConverter potConverter;
+    private final PotDetailConverter potDetailConverter;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final PotMemberRepository potMemberRepository;
@@ -236,25 +238,18 @@ public class PotServiceImpl implements PotService {
 
 
     @Override
-    public ApplicantResponseDTO getPotDetails(Long potId) {
+    public PotDetailResponseDto getPotDetails(Long potId) {
+        // Pot 조회
         Pot pot = potRepository.findPotWithRecruitmentDetailsByPotId(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        // 지원자 정보를 DTO로 변환
-        List<ApplicantResponseDTO.ApplicantDto> applicantDto = pot.getPotApplication().stream()
-                .map(app -> ApplicantResponseDTO.ApplicantDto.builder()
-                        .applicationId(app.getApplicationId())
-                        .potRole(String.valueOf(app.getPotRole()))
-                        .liked(app.getLiked())
-                        .build())
-                .collect(Collectors.toList());
+        // recruitmentDetails 리스트를 "FRONTEND(1), BACKEND(3)" 형태의 String으로 변환
+        String recruitmentDetails = pot.getRecruitmentDetails().stream()
+                .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name()) + "(" + recruitmentDetail.getRecruitmentCount() + ")")
+                .collect(Collectors.joining(", "));
 
-
-        return ApplicantResponseDTO.builder()
-                .user(UserConverter.toDto(pot.getUser()))
-                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
-                .applicant(applicantDto)
-                .build();
+        // 변환기(PotDetailConverter) 사용
+        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails);
     }
 
     // 특정 팟 지원자의 좋아요 상태 변경
@@ -630,6 +625,16 @@ public class PotServiceImpl implements PotService {
 
         // DTO로 변환 후 반환
         return potConverter.toDto(pot, recruitmentDetails);
+    }
+
+    private String getKoreanRoleName(String role) {
+        Map<String, String> roleToKoreaneMap = Map.of(
+                "BACKEND", " 백앤드",
+                "FRONTEND", " 프론트앤드",
+                "DESIGN", " 디자인",
+                "PLANNING", " 기획"
+        );
+        return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
     }
 
 }
