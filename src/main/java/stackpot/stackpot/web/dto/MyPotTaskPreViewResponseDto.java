@@ -20,6 +20,7 @@ public class MyPotTaskPreViewResponseDto {
         private String description;
         private String creatorNickname;
         private Role creatorRole;
+        private String dDay;
         private List<Role> category;
         private TaskboardStatus status;
         private String deadLine;

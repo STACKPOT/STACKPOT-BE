@@ -16,7 +16,7 @@ public class FeedResponseDto {
     @NoArgsConstructor
     public static class FeedPreviewList {
         private List<FeedDto> feeds;
-        private String nextCursor; // 다음 커서 값
+        private Integer nextCursor; // 다음 커서 값
     }
 
     @Data

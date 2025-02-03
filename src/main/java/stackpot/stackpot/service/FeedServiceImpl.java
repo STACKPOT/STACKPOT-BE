@@ -20,10 +20,8 @@ import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Category;
 import stackpot.stackpot.domain.mapping.FeedLike;
-import stackpot.stackpot.domain.mapping.FeedSave;
 import stackpot.stackpot.repository.FeedLikeRepository;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
-import stackpot.stackpot.repository.FeedSaveRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.FeedRequestDto;
 import stackpot.stackpot.web.dto.FeedResponseDto;
@@ -48,24 +46,44 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, String cursor, int limit) {
-        LocalDateTime lastCreatedAt;
-        int lastLikeCount = Integer.MAX_VALUE;  // 🔹 기본값을 최대로 설정 (popular 정렬을 위한 초기값)
+//        LocalDateTime lastCreatedAt;
+        Integer lastFeedId = Integer.MAX_VALUE;  // 기본적으로 가장 큰 ID부터 조회
 
         if (cursor != null && !cursor.isEmpty()) {
-            if (sort.equals("popular") && cursor.contains("|")) {
-                String[] parts = cursor.split("\\|");
-                lastLikeCount = Integer.parseInt(parts[0]);
-                lastCreatedAt = LocalDateTime.parse(parts[1]);
-            } else {
-                lastCreatedAt = LocalDateTime.parse(cursor);
-            }
-        } else {
-            if ("old".equals(sort)) {
-                lastCreatedAt = LocalDateTime.of(1970, 1, 1, 0, 0);  // UNIX epoch 기준 (최소값)
-            } else {
-                lastCreatedAt = LocalDateTime.now();
-            }
+            lastFeedId = Integer.parseInt(cursor);  // 🔹 cursor를 int로 변환
         }
+        else if (sort.equals("old")) {
+            lastFeedId = 0;
+        }
+
+//        int lastLikeCount = Integer.MAX_VALUE;  // 🔹 기본값을 최대로 설정 (popular 정렬을 위한 초기값)
+//        long lastFeedId = -1;
+//
+//        if(cursor!= 0 ){
+//                lastFeedId = cursor;
+//        }
+//        else{
+//            if(sort.equals("old")){
+//                lastFeedId = Integer.MAX_VALUE;
+//            }
+//            else{
+//                lastFeedId = 0;
+//            }
+//        }
+
+
+//        if (cursor != null && !cursor.isEmpty()) {
+//            if (sort.equals("popular")) {
+//            } else {
+//                lastCreatedAt = LocalDateTime.parse(cursor);
+//            }
+//        } else {
+//            if ("old".equals(sort)) {
+//                lastCreatedAt = LocalDateTime.of(1970, 1, 1, 0, 0);  // UNIX epoch 기준 (최소값)
+//            } else {
+//                lastCreatedAt = LocalDateTime.now();
+//            }
+//        }
 
         Category category = null;
         if (categoryStr != null && !categoryStr.isEmpty()) {
@@ -81,7 +99,7 @@ public class FeedServiceImpl implements FeedService {
         }
         Pageable pageable = PageRequest.ofSize(limit);
 
-        List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastCreatedAt, lastLikeCount, pageable);
+        List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastFeedId, pageable);
 
         List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
                 .map(feed -> feedConverter.feedDto(feed))
@@ -90,15 +108,12 @@ public class FeedServiceImpl implements FeedService {
         String nextCursor = null;
         if (!feedResults.isEmpty()) {
             Feed lastFeed = feedResults.get(feedResults.size() - 1);
-
-            if (sort.equals("popular")) {
-                nextCursor = lastFeed.getLikeCount() + "|" + lastFeed.getCreatedAt().toString();
-            } else {
-                nextCursor = lastFeed.getCreatedAt().toString();
-            }
+            nextCursor = lastFeed.getFeedId().toString();  // 🔹 int 값으로 변환하여 반환
         }
 
-        return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
+
+
+        return new FeedResponseDto.FeedPreviewList(feedDtoList, Integer.valueOf(nextCursor));
     }
 
     @Override
@@ -148,7 +163,7 @@ public class FeedServiceImpl implements FeedService {
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
-                .nextCursor(nextCursorResult)
+//                .nextCursor(nextCursorResult)
                 .build();
     }
 
@@ -183,7 +198,7 @@ public class FeedServiceImpl implements FeedService {
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
-                .nextCursor(nextCursorResult)
+//                .nextCursor(nextCursorResult)
                 .build();
     }
 
@@ -243,40 +258,6 @@ public class FeedServiceImpl implements FeedService {
             return true; // 좋아요 성공
         }
     }
-
-//    @Override
-//    public boolean toggleSave(Long feedId) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String userEmail = authentication.getName();
-//
-//        Feed feed = feedRepository.findById(feedId)
-//                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
-//
-//        User user = userRepository.findByEmail(userEmail)
-//                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-//
-//        Optional<FeedSave> existingSave = feedSaveRepository.findByFeedAndUser(feed, user);
-//
-//        if (existingSave.isPresent()) {
-//            feedSaveRepository.delete(existingSave.get());
-//            return false;
-//        } else {
-//            FeedSave feedSave = FeedSave.builder()
-//                    .feed(feed)
-//                    .user(user)
-//                    .build();
-//
-//            feedSaveRepository.save(feedSave);
-//            return true; // 좋아요 성공
-//        }
-//    }
-
-//    @Override
-//    public Long getSaveCount(Long feedId) {
-//        Feed feed = feedRepository.findById(feedId)
-//                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
-//        return feedSaveRepository.countByFeed(feed);
-//    }
 
     @Override
     public Long getLikeCount(Long feedId) {
