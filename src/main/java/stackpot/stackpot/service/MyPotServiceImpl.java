@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.converter.MyPotConverter;
 import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.converter.PotDetailConverter;
 import stackpot.stackpot.converter.TaskboardConverter;
@@ -35,6 +36,8 @@ import stackpot.stackpot.web.dto.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 @Slf4j
 @Service
@@ -50,36 +53,23 @@ public class MyPotServiceImpl implements MyPotService {
     private final PotMemberRepository potMemberRepository;
     private final TaskRepository taskRepository;
     private final PotDetailConverter potDetailConverter;
+    private final MyPotConverter myPotConverter;
 
     @Override
-    public Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> getMyOnGoingPots() {
+    public List<OngoingPotResponseDto> getMyOnGoingPots() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        // 1. 내가 PotMember로 참여 중이고 상태가 'ONGOING'인 팟 조회
+        //  내가 PotMember로 참여 중이고 상태가 'ONGOING'인 팟 조회 (내가 만든 팟 제외)
         List<Pot> ongoingMemberPots = potRepository.findByPotMembers_UserIdAndPotStatus(user.getId(), "ONGOING");
 
-        // 2. 내가 만든 팟 중 상태가 'ONGOING'인 팟 조회
-        List<Pot> ongoingOwnedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "ONGOING");
-
-        // Pot 리스트를 DTO로 변환
-        List<MyPotResponseDTO.OngoingPotsDetail> memberPotsDetails = ongoingMemberPots.stream()
-                .map(this::convertToOngoingPotDetail)
+        //  해당 팟 리스트를 DTO로 변환하여 반환
+        return ongoingMemberPots.stream()
+                .map(myPotConverter::convertToOngoingPotResponseDto)
                 .collect(Collectors.toList());
-
-        List<MyPotResponseDTO.OngoingPotsDetail> ownedPotsDetails = ongoingOwnedPots.stream()
-                .map(this::convertToOngoingPotDetail)
-                .collect(Collectors.toList());
-
-        // 결과를 분류하여 반환
-        Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> result = new HashMap<>();
-        result.put("joinedOngoingPots", memberPotsDetails);
-        result.put("ownedOngoingPots", ownedPotsDetails);
-
-        return result;
     }
 
 

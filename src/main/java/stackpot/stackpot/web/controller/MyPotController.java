@@ -37,10 +37,10 @@ public class MyPotController {
     private final PotRepository potRepository;
 
     // 사용자가 만든 진행 중인 팟 조회
-    @Operation(summary = "나의 진행 중인 팟 조회 API", description = "'나의 팟 첫 페이지'의 정보를 리턴합니다. 사용자가 생성했거나, 참여하고 있으며 진행 중(ONGOING)인 팟들 리스트를 조회합니다. \n")
+    @Operation(summary = "나의 진행 중인 팟 조회 API", description = "'나의 팟 첫 페이지'의 정보를 리턴합니다. 사용자가 생성했거나, 참여하고 있으며 진행 중(ONGOING)인 팟들 리스트를 조회합니다.")
     @GetMapping("")
-    public ResponseEntity<ApiResponse<Map<String, List<MyPotResponseDTO.OngoingPotsDetail>>>> getMyOngoingPots() {
-        Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> response = myPotService.getMyOnGoingPots();
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyOngoingPots() {
+        List<OngoingPotResponseDto> response = myPotService.getMyOnGoingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

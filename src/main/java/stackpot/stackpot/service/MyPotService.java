@@ -15,9 +15,7 @@ import java.util.Map;
 public interface MyPotService {
 
     // 사용자의 진행 중인 팟 조회
-    Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> getMyOnGoingPots();
-
-
+    List<OngoingPotResponseDto> getMyOnGoingPots();
     // 사용자의 특정 팟에서의 생성
     List<MyPotTodoResponseDTO> postTodo(Long potId, MyPotTodoRequestDTO requestDTO);
 
