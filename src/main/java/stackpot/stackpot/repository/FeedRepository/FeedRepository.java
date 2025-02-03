@@ -25,7 +25,6 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             ") " +
             "ORDER BY " +
             "     (CASE WHEN :sort = 'popular' THEN f.likeCount ELSE 0 END) DESC, " +
-            "     (CASE WHEN :sort = 'popular' THEN f.feedId ELSE NULL END) DESC, " +  // ✅ 같은 likeCount면 ID 큰 순서로 정렬
             "     (CASE WHEN :sort = 'new' THEN f.feedId ELSE NULL END) DESC, " +
             "     (CASE WHEN :sort = 'old' THEN f.feedId ELSE NULL END) ASC")  // ✅ `old` 정렬을 ASC로 변경
     List<Feed> findFeeds(
