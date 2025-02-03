@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.hibernate.query.sqm.tree.SqmNode.log;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -107,7 +105,12 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 관심사
         user.setInterest(request.getInterest());
         //한줄 소개
-        user.setUserIntroduction(user.getRole()+"에 관심있는 "+user.getNickname()+" "+getVegetableNameByRole(String.valueOf(user.getRole()))+"입니다.");
+        //user.setUserIntroduction(user.getRole()+"에 관심있는 "+user.getNickname()+getVegetableNameByRole(String.valueOf(user.getRole()))+"입니다.");
+        user.setUserIntroduction(
+                user.getRole().name().trim() + "에 관심있는 " +
+                        user.getNickname().trim() +
+                        getVegetableNameByRole(String.valueOf(user.getRole())).trim() + "입니다."
+        );
     }
 
     @Override
@@ -148,51 +151,33 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
 
-    @Override
-    public UserMypageResponseDto getMypages(String dataType) {
+    public UserMyPageResponseDto getMypages(String dataType) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
+        return getMypageByUser(user.getId(), dataType);
+    }
+
+    public UserMyPageResponseDto getUserMypage(Long userId, String dataType) {
+        return getMypageByUser(userId, dataType);
+    }
+
+    private UserMyPageResponseDto getMypageByUser(Long userId, String dataType) {
         List<Pot> completedPots = List.of();
         List<Feed> feeds = List.of();
 
-        if (dataType == null || dataType.isBlank()) {
-            // 모든 데이터 반환 (pot + feed)
-            completedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "COMPLETED");
-            feeds = feedRepository.findByUser_Id(user.getId());
-        } else if ("pot".equalsIgnoreCase(dataType)) {
-            // 팟 정보만 반환
-            completedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "COMPLETED");
-        } else if ("feed".equalsIgnoreCase(dataType)) {
-            // 피드 정보만 반환
-            feeds = feedRepository.findByUser_Id(user.getId());
-        } else {
-            throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
-        }
-
-        return userMypageConverter.toDto(user, completedPots, feeds);
-    }
-
-    @Transactional
-    public UserMypageResponseDto getUserMypage(Long userId, String dataType) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        List<Pot> completedPots = List.of();
-        List<Feed> feeds = List.of();
-
         if (dataType == null || dataType.isBlank()) {
-            // 모든 데이터 반환 (pot + feed)
             completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
             feeds = feedRepository.findByUser_Id(userId);
         } else if ("pot".equalsIgnoreCase(dataType)) {
-            // 팟 정보만 반환
             completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
         } else if ("feed".equalsIgnoreCase(dataType)) {
-            // 피드 정보만 반환
             feeds = feedRepository.findByUser_Id(userId);
         } else {
             throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
@@ -200,7 +185,6 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         return userMypageConverter.toDto(user, completedPots, feeds);
     }
-
 
 
     @Transactional
@@ -252,10 +236,10 @@ public class UserCommandServiceImpl implements UserCommandService{
     // 역할에 따른 채소명을 반환하는 메서드
     private String getVegetableNameByRole(String role) {
         Map<String, String> roleToVegetableMap = Map.of(
-                "BACKEND", " 양파",
-                "FRONTEND", " 버섯",
-                "DESIGN", " 브로콜리",
-                "PLANNING", " 당근"
+                "BACKEND", "양파",
+                "FRONTEND", "버섯",
+                "DESIGN", "브로콜리",
+                "PLANNING", "당근"
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
