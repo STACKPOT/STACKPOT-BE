@@ -9,14 +9,16 @@ import org.springframework.stereotype.Service;
 import stackpot.stackpot.converter.PotMemberConverter.PotMemberConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.ApplicationStatus;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.repository.PotApplicationRepository.PotApplicationRepository;
 import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
-import stackpot.stackpot.web.dto.PotMemberRequestDto;
 import stackpot.stackpot.web.dto.PotMemberAppealResponseDto;
+import stackpot.stackpot.web.dto.PotMemberInfoResponseDto;
+import stackpot.stackpot.web.dto.PotMemberRequestDto;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -35,13 +37,13 @@ public class PotMemberServiceImpl implements PotMemberService {
 
     @Transactional
     @Override
-    public List<PotMemberAppealResponseDto> getPotMembers(Long potId) {
+    public List<PotMemberInfoResponseDto> getPotMembers(Long potId) {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
 
         List<PotMember> potMembers = potMemberRepository.findByPotId(potId);
         return potMembers.stream()
-                .map(potMemberConverter::toDto)
+                .map(potMemberConverter::toKaKaoMemberDto)
                 .collect(Collectors.toList());
     }
     @Transactional
@@ -66,25 +68,32 @@ public class PotMemberServiceImpl implements PotMemberService {
         potCreator.setUserTemperature(potCreator.getUserTemperature() + 3); // 3도 증가
         userRepository.save(potCreator);   // 변경 사항 저장
 
-        // 4. 선택된 지원자들을 멤버로 추가
-        List<Long> applicantIds = requestDto.getApplicantIds();
+
+        List<PotApplication> allApplications = potApplicationRepository.findByPot_PotId(potId);
+
+
+        List<Long> approvedApplicantIds = requestDto.getApplicantIds();
         List<PotMember> newMembers = new ArrayList<>();
 
-        for (Long applicantId : applicantIds) {
 
-            PotApplication application = potApplicationRepository.findById(applicantId)
-                    .orElseThrow(() -> new IllegalArgumentException("지원자를 찾을 수 없습니다."));
+        for (PotApplication application : allApplications) {
             User user = application.getUser();
 
+            if (approvedApplicantIds.contains(application.getApplicationId())) {
+                // ✅ 선택된 지원자 → APPROVED & 멤버로 추가
+                application.setStatus(ApplicationStatus.APPROVED);
 
-            // 지원자의 temperature 증가
-            user.setUserTemperature(user.getUserTemperature() + 3);
-            userRepository.save(user);  // 변경 사항 저장
+                // 지원자의 temperature 증가
+                user.setUserTemperature(user.getUserTemperature() + 3);
+                userRepository.save(user);
 
-
-
-            PotMember member = potMemberConverter.toEntity(user, pot, application, false);
-            newMembers.add(member);
+                PotMember member = potMemberConverter.toEntity(user, pot, application, false);
+                newMembers.add(member);
+            } else {
+                // ✅ 선택되지 않은 지원자 → REJECTED
+                application.setStatus(ApplicationStatus.REJECTED);
+            }
+            potApplicationRepository.save(application);
         }
 
         User potCreatUser = userRepository.findByEmail(email)

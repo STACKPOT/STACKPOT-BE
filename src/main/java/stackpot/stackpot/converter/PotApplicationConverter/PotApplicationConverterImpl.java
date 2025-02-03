@@ -46,12 +46,12 @@ public class PotApplicationConverterImpl implements PotApplicationConverter {
         }
 
         return PotApplicationResponseDto.builder()
-                .applicationId(entity.getApplicationId())
+//                .applicationId(entity.getApplicationId())
                 .potRole(entity.getPotRole().name())
-                .liked(entity.getLiked())
+//                .liked(entity.getLiked())
                 .status(entity.getStatus() != null ? entity.getStatus().name() : "UNKNOWN") // 상태가 null이면 기본값 설정
-                .appliedAt(entity.getAppliedAt()) // null 가능성을 허용
-                .potId(entity.getPot().getPotId()) // Pot 엔티티에서 potId 가져오기
+//                .appliedAt(entity.getAppliedAt()) // null 가능성을 허용
+//                .potId(entity.getPot().getPotId()) // Pot 엔티티에서 potId 가져오기
                 .userId(entity.getUser().getId()) // User 엔티티에서 id 가져오기
                 .userNickname(entity.getUser().getNickname() + " "+getVegetableNameByRole(String.valueOf(entity.getUser().getRole())))
                 .build();
