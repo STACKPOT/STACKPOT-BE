@@ -10,7 +10,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.Authentication;
+import stackpot.stackpot.domain.RefreshToken;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.web.dto.TokenServiceResponse;
 
 import java.security.Key;
@@ -22,6 +24,8 @@ import static org.hibernate.query.sqm.tree.SqmNode.log;
 @Component
 @Slf4j
 public class JwtTokenProvider {
+
+    private final RefreshTokenRepository refreshTokenRepository;
     
     @Value("${jwt.secret}")
     private String secretKey;
@@ -48,6 +52,10 @@ public class JwtTokenProvider {
                 .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
+
+        RefreshToken redis = new RefreshToken(refreshToken, user.getEmail());
+        refreshTokenRepository.save(redis);
+
         return TokenServiceResponse.of(accessToken, refreshToken);
     }
 
@@ -68,15 +76,6 @@ public class JwtTokenProvider {
         }
         return false;
     }
-
-//    public boolean validateToken(String token) {
-//        try {
-//            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
-//            return true;
-//        } catch (JwtException | IllegalArgumentException e) {
-//            return false;
-//        }
-//    }
 
     public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
