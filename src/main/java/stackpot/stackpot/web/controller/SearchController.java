@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.service.SearchService;
 import stackpot.stackpot.web.dto.FeedSearchResponseDto;
-import stackpot.stackpot.web.dto.PotSearchResponseDto;
+import stackpot.stackpot.web.dto.PotPreviewResponseDto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,24 +34,19 @@ public class SearchController {
     @Operation(summary = "팟 검색 API", description = "키워드로 팟 이름 및 내용을 검색합니다.",
             parameters = {
                     @Parameter(name = "keyword", description = "검색 키워드", example = "JAVA"),
-
             })
-    public ResponseEntity<ApiResponse<Page<PotSearchResponseDto>>> searchPots(
+    public ResponseEntity<ApiResponse<Page<PotPreviewResponseDto>>> searchPots(
             @RequestParam(required = false, defaultValue = "") String keyword,
-            @PageableDefault(size = 3, sort = "createdAt") Pageable pageable){
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size) {
 
-
-
-        // 키워드가 없는 경우 예외 처리 또는 전체 조회 처리
-//        if (keyword.trim().isEmpty()) {
-//            return ResponseEntity.badRequest()
-//                    .body(ApiResponse.onError("400", "검색 키워드를 입력해주세요."));
-//        }
-
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         // 서비스 호출 및 검색 수행
-        Page<PotSearchResponseDto> response = searchService.searchPots(keyword, pageable);
+        Page<PotPreviewResponseDto> response = searchService.searchPots(keyword, pageable);
+
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
 
 
     @Operation(summary = "피드 검색 API", description = "키워드로 피드 제목 및 내용을 검색합니다.",
@@ -67,7 +61,10 @@ public class SearchController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
 
-        Page<FeedSearchResponseDto> feedPage = searchService.searchFeeds(keyword, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<FeedSearchResponseDto> feedPage = searchService.searchFeeds(keyword, pageable);
+
 
         Map<String, Object> response = new HashMap<>();
         response.put("feeds", feedPage.getContent());
@@ -90,7 +87,10 @@ public class SearchController {
         public ResponseEntity<ApiResponse<Page<?>>> search(
                 @RequestParam String type,
                 @RequestParam String keyword,
-                @PageableDefault(size = 10) Pageable pageable) {
+                @RequestParam(defaultValue = "0") Integer page,
+                @RequestParam(defaultValue = "10") Integer size) {
+
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
             Page<?> response;
             if ("pot".equalsIgnoreCase(type)) {

@@ -1,6 +1,5 @@
 package stackpot.stackpot.config.security;
 
-import io.netty.handler.codec.http.HttpMethod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +14,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @EnableWebSecurity
 @Configuration
@@ -52,6 +49,7 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("http://localhost:5173");
         configuration.addAllowedOrigin("http://localhost:8080");
         configuration.addAllowedOrigin("https://stackpot.co.kr");
+        configuration.addAllowedOrigin("https://www.stackpot.co.kr");
         configuration.addAllowedOrigin("https://api.stackpot.co.kr");
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");

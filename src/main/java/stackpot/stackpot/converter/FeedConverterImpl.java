@@ -53,11 +53,11 @@ public class FeedConverterImpl implements FeedConverter{
         String nicknameWithRole = feed.getUser().getNickname() + " " + mapRoleName(roleName) ;
 
         return FeedSearchResponseDto.builder()
+                .userId(feed.getUser().getId())
                 .feedId(feed.getFeedId())
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .creatorNickname(nicknameWithRole) // 닉네임과 역할 포함
-                .creatorRole(roleName) // 역할 이름
                 .createdAt(formatLocalDateTime(feed.getCreatedAt())) // 시간 포맷 적용
                 .likeCount(feed.getLikeCount()) // 좋아요 개수 포함
                 .build();
