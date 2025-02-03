@@ -9,10 +9,10 @@ import lombok.*;
 @AllArgsConstructor
 public class FeedSearchResponseDto {
     private Long feedId;
+    private Long userId;
     private String title;
     private String content;
     private String creatorNickname;
-    private String creatorRole;
     private String createdAt;
     private Long likeCount;
 }
