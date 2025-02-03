@@ -5,14 +5,13 @@ import stackpot.stackpot.domain.enums.Role;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CompletedPotResponseDto {
+public class CompletedPotBadgeResponseDto {
     private Long potId; // 팟 ID
     private String potName; // 팟 이름
     private LocalDate potStartDate; // 시작 날짜
@@ -20,5 +19,6 @@ public class CompletedPotResponseDto {
     private String potLan; // 사용 언어
     private String members;
     private Role userPotRole;
+    private List<BadgeDto> myBadges;
 }
 

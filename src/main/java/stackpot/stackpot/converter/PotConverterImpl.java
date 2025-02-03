@@ -96,23 +96,15 @@ public class PotConverterImpl implements PotConverter {
     }
 
     @Override
-
-    public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts, Role userPotRole, List<BadgeDto> myBadges) {
+    public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, String formattedMembers, Role userPotRole) {
         return CompletedPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStartDate(pot.getPotStartDate())
                 .potEndDate(pot.getPotEndDate())
                 .potLan(pot.getPotLan())
-                .recruitmentDetails(pot.getRecruitmentDetails().stream()
-                        .map(rd -> RecruitmentDetailResponseDto.builder()
-                                .recruitmentRole(rd.getRecruitmentRole().name()) // Enum을 String으로 변환
-                                .recruitmentCount(rd.getRecruitmentCount())
-                                .build())
-                        .collect(Collectors.toList()))
-                .roleCounts(roleCounts)
+                .members(formattedMembers)  // ✅ 변환된 "프론트엔드(2), 백엔드(1)" 형식 적용
                 .userPotRole(userPotRole)
-                .myBadges(myBadges)
                 .build();
     }
 
