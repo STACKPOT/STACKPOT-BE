@@ -2,11 +2,7 @@ package stackpot.stackpot.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import stackpot.stackpot.domain.Pot;
-import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.enums.TaskboardStatus;
-import stackpot.stackpot.domain.mapping.UserTodo;
 import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
@@ -15,7 +11,7 @@ import java.util.Map;
 public interface MyPotService {
 
     // 사용자의 진행 중인 팟 조회
-    List<OngoingPotResponseDto> getMyOnGoingPots();
+    List<OngoingPotResponseDto> getMyPots();
     // 사용자의 특정 팟에서의 생성
     List<MyPotTodoResponseDTO> postTodo(Long potId, MyPotTodoRequestDTO requestDTO);
 
@@ -34,5 +30,6 @@ public interface MyPotService {
     CompletedPotDetailResponseDto getCompletedPotDetail(Long potId);
     List<CompletedPotBadgeResponseDto> getCompletedPotsWithBadges();
     List<CompletedPotBadgeResponseDto> getUserCompletedPotsWithBadges(Long userId);
+    List<OngoingPotResponseDto> getMyOngoingPots();
 
 }

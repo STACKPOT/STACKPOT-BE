@@ -45,4 +45,6 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
             "JOIN PotMember pm ON pm.pot = p " +
             "WHERE p.potStatus = 'COMPLETED' AND pm.user.id = :userId")
     List<Pot> findCompletedPotsByUserId(@Param("userId") Long userId);
+
+    List<Pot> findByPotMembers_User_Id(Long potMembersUserId);
 }

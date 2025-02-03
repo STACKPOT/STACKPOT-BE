@@ -59,7 +59,7 @@ public class MyPotServiceImpl implements MyPotService {
     private final PotMemberBadgeRepository potMemberBadgeRepository;
 
     @Override
-    public List<OngoingPotResponseDto> getMyOnGoingPots() {
+    public List<OngoingPotResponseDto> getMyPots() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -67,10 +67,27 @@ public class MyPotServiceImpl implements MyPotService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
         //  내가 PotMember로 참여 중이고 상태가 'ONGOING'인 팟 조회 (내가 만든 팟 제외)
-        List<Pot> ongoingMemberPots = potRepository.findByPotMembers_UserIdAndPotStatus(user.getId(), "ONGOING");
+        List<Pot> ongoingMemberPots = potRepository.findByPotMembers_User_Id(user.getId());
 
         //  해당 팟 리스트를 DTO로 변환하여 반환
         return ongoingMemberPots.stream()
+                .map(myPotConverter::convertToOngoingPotResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OngoingPotResponseDto> getMyOngoingPots() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        //  내가 생성한 ONGOING 상태의 팟 조회
+        List<Pot> ongoingOwnedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "ONGOING");
+
+        //  해당 팟 리스트를 DTO로 변환하여 반환
+        return ongoingOwnedPots.stream()
                 .map(myPotConverter::convertToOngoingPotResponseDto)
                 .collect(Collectors.toList());
     }
