@@ -84,10 +84,11 @@ public class FeedServiceImpl implements FeedService {
                 .collect(Collectors.toList());
 
         Long nextCursor = null;
-        if (!feedResults.isEmpty()) {
+        if (!feedResults.isEmpty() && feedResults.size() >= limit) {
             Feed lastFeed = feedResults.get(feedResults.size() - 1);
             nextCursor = lastFeed.getFeedId();  // 🔹 int 값으로 변환하여 반환
         }
+
 
         return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
     }
@@ -135,7 +136,7 @@ public class FeedServiceImpl implements FeedService {
                 .collect(Collectors.toList());
 
         // 다음 커서 설정 (마지막 피드의 createdAt)
-        Long nextCursorResult = feeds.isEmpty() ? null : feeds.get(feeds.size() - 1).getFeedId();
+        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null ;
 
 
 
@@ -173,7 +174,7 @@ public class FeedServiceImpl implements FeedService {
                 .collect(Collectors.toList());
 
         // 다음 커서 설정 (마지막 피드의 createdAt)
-        Long nextCursorResult = feeds.isEmpty() ? null : feeds.get(feeds.size() - 1).getFeedId();
+        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null ;
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
