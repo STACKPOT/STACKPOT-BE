@@ -236,10 +236,10 @@ public class UserCommandServiceImpl implements UserCommandService{
     // 역할에 따른 채소명을 반환하는 메서드
     private String getVegetableNameByRole(String role) {
         Map<String, String> roleToVegetableMap = Map.of(
-                "BACKEND", "양파",
-                "FRONTEND", "버섯",
-                "DESIGN", "브로콜리",
-                "PLANNING", "당근"
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯",
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근"
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
