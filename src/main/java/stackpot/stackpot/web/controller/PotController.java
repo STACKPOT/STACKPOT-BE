@@ -28,7 +28,7 @@ import java.util.Map;
 
 @Tag(name = "Pot  Management", description = "팟 관리 API")
 @RestController
-@RequestMapping("/pots")
+@RequestMapping(value ="/pots",produces = "application/json; charset=UTF-8")
 @RequiredArgsConstructor
 public class PotController {
 

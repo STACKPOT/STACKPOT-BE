@@ -10,6 +10,7 @@ import lombok.*;
 public class FeedSearchResponseDto {
     private Long feedId;
     private Long userId;
+    private String creatorRole;
     private String title;
     private String content;
     private String creatorNickname;
