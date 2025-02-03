@@ -21,7 +21,6 @@ public class PotBadgeMemberConverterImpl implements PotBadgeMemberConverter {
         return PotBadgeMemberDto.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname() + " " + roleName )
-                .kakaoId(user.getKakaoId())
                 .badgeId(badge.getBadgeId())
                 .badgeName(badge.getName())
                 .build();

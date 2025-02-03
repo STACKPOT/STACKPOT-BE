@@ -6,9 +6,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,10 +34,10 @@ public class MyPotController {
     private final PotRepository potRepository;
 
     // 사용자가 만든 진행 중인 팟 조회
-    @Operation(summary = "나의 진행 중인 팟 조회 API", description = "'나의 팟 첫 페이지'의 정보를 리턴합니다. 사용자가 생성했거나, 참여하고 있으며 진행 중(ONGOING)인 팟들 리스트를 조회합니다. \n")
+    @Operation(summary = "나의 팟 조회 API", description = "'나의 팟 첫 페이지'의 정보를 리턴합니다. 사용자가 생성했거나, 참여하고 있는 팟들을 조회합니다.")
     @GetMapping("")
-    public ResponseEntity<ApiResponse<Map<String, List<MyPotResponseDTO.OngoingPotsDetail>>>> getMyOngoingPots() {
-        Map<String, List<MyPotResponseDTO.OngoingPotsDetail>> response = myPotService.getMyOnGoingPots();
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyPots() {
+        List<OngoingPotResponseDto> response = myPotService.getMyPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -54,10 +51,26 @@ public class MyPotController {
     }
 
     @GetMapping("/{pot_id}/details")
-    @Operation(summary = "끓인 팟 상세 보기", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다.")
+    @Operation(summary = "마이페이지 끓인 팟 상세 보기 모달", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다.")
     public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
             @PathVariable("pot_id") Long potId) {
         CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @GetMapping("/badges")
+    @Operation(summary = "나의 끓인 팟 조회 API (뱃지)", description = "사용자가 참여한 potStatus가 COMPLETED 상태의 팟을 뱃지와 함께 반환합니다.")
+    public ResponseEntity<ApiResponse<List<CompletedPotBadgeResponseDto>>> getCompletedPotsWithBadges() {
+        List<CompletedPotBadgeResponseDto> response = myPotService.getCompletedPotsWithBadges();
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @GetMapping("/{user_id}/badges")
+    @Operation(summary = "사용자별 끓인 팟 조회 API (뱃지)", description = "userId를 통해 사용자별 참여한 potStatus가 COMPLETED 상태의 팟을 뱃지와 함께 반환합니다.")
+    public ResponseEntity<ApiResponse<List<CompletedPotBadgeResponseDto>>> getUserCompletedPotsWithBadges(
+            @PathVariable("user_id") Long userId
+    ) {
+        List<CompletedPotBadgeResponseDto> response = myPotService.getUserCompletedPotsWithBadges(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

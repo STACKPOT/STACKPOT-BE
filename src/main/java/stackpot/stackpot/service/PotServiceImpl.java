@@ -15,6 +15,7 @@ import stackpot.stackpot.apiPayload.exception.handler.ApplicationHandler;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.config.security.JwtTokenProvider;
+import stackpot.stackpot.converter.MyPotConverter;
 import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.converter.PotDetailConverter;
 import stackpot.stackpot.converter.UserConverter;
@@ -50,6 +51,8 @@ public class PotServiceImpl implements PotService {
     private final PotMemberRepository potMemberRepository;
     private final PotMemberBadgeRepository potMemberBadgeRepository;
     private final UserTodoService userTodoService;
+    private final MyPotConverter myPotConverter;
+
 
     @Transactional
     public PotResponseDto createPotWithRecruitments(PotRequestDto requestDto) {
@@ -144,7 +147,7 @@ public class PotServiceImpl implements PotService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 사용자가 참여하거나 생성한 COMPLETED 상태의 팟 가져오기
-        List<Pot> pots = potRepository.findCompletedPotsByCursor(user.getId(), cursor);
+        List<Pot> pots = potRepository.findCompletedPotsCreatedByUser(user.getId(), cursor);
 
         // 커서 및 데이터 반환
         List<Pot> result = pots.size() > size ? pots.subList(0, size) : pots;
@@ -152,19 +155,18 @@ public class PotServiceImpl implements PotService {
 
         List<CompletedPotResponseDto> content = result.stream()
                 .map(pot -> {
-                    List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
-                            .stream()
-                            .map(potMemberBadge -> new BadgeDto(
-                                    potMemberBadge.getBadge().getBadgeId(),
-                                    potMemberBadge.getBadge().getName()
-                            ))
-                            .collect(Collectors.toList());
+                    // 역할별 인원 수 조회 및 변환
                     List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
                     Map<String, Integer> roleCountsMap = roleCounts.stream()
                             .collect(Collectors.toMap(
                                     roleCount -> ((Role) roleCount[0]).name(),
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
+
+                    // 역할 정보를 "프론트엔드(2), 백엔드(1)" 형식으로 변환
+                    String formattedMembers = roleCountsMap.entrySet().stream()
+                            .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
+                            .collect(Collectors.joining(", "));
 
                     // 현재 사용자의 역할(Role) 결정
                     Role userPotRole;
@@ -176,7 +178,7 @@ public class PotServiceImpl implements PotService {
                     }
 
                     // Pot -> CompletedPotResponseDto 변환
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole, myBadges);
+                    return potConverter.toCompletedPotResponseDto(pot, formattedMembers, userPotRole);
                 })
                 .collect(Collectors.toList());
 
@@ -223,15 +225,12 @@ public class PotServiceImpl implements PotService {
 
         return potPage.getContent().stream()
                 .map(pot -> {
-                    // recruitmentDetails에서 role을 리스트로 변환하여 ','로 합침
+                    //  recruitmentDetails에서 role을 리스트로 변환하여 그대로 전달
                     List<String> roles = pot.getRecruitmentDetails().stream()
                             .map(recruitmentDetails -> String.valueOf(recruitmentDetails.getRecruitmentRole()))
                             .collect(Collectors.toList());
 
-                    // roles를 ", "로 연결하여 문자열로 변환
-                    String recruitmentRoleString = String.join(", ", roles);
-
-                    return potConverter.toPrviewDto(pot.getUser(), pot, recruitmentRoleString);
+                    return potConverter.toPrviewDto(pot.getUser(), pot, roles);
                 })
                 .collect(Collectors.toList());
     }
@@ -319,7 +318,7 @@ public class PotServiceImpl implements PotService {
 
 
     @Override
-    public List<PotAllResponseDTO.PotDetail> getAppliedPots() {
+    public List<PotDetailResponseDto> getAppliedPots() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -332,81 +331,19 @@ public class PotServiceImpl implements PotService {
             throw new ApplicationHandler(ErrorStatus.APPLICATION_NOT_FOUND);
         }
 
-
         return appliedPots.stream()
-                .map(pot -> PotAllResponseDTO.PotDetail.builder()
-                        .user(UserConverter.toDto(pot.getUser()))
-                        .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))
-                        .build()
-                )
-                .collect(Collectors.toList());
-    }
-
-    // 사용자가 만든 팟 조회
-    @Override
-    public List<PotAllResponseDTO> getMyPots() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-
-        // 사용자가 만든 팟 조회
-        List<Pot> myPots = potRepository.findByUserId(user.getId());
-
-        // 모집중인 팟 리스트 (recruiting 상태 필터링)
-        List<PotAllResponseDTO.PotDetail> recruitingPots = myPots.stream()
-                .filter(pot -> "RECRUITING".equalsIgnoreCase(pot.getPotStatus()))  // 소문자 비교
-                .map(this::convertToPotDetail)
-                .collect(Collectors.toList());
-
-        // 진행 중인 팟 리스트 (ongoing 상태 필터링)
-        List<MyPotResponseDTO.OngoingPotsDetail> ongoingPots = myPots.stream()
-                .filter(pot -> "ONGOING".equalsIgnoreCase(pot.getPotStatus()))  // 소문자 비교
-                .map(this::convertToOngoingPotDetail)
-                .collect(Collectors.toList());
-
-        // 끓인 팟 리스트 (COMPLETED 상태 필터링)
-        List<CompletedPotResponseDto> completedPots = myPots.stream()
-                .filter(pot -> "COMPLETED".equalsIgnoreCase(pot.getPotStatus()))
                 .map(pot -> {
-                    //  이 팟에서 사용자가 받은 뱃지 조회
-                    List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
-                            .stream()
-                            .map(potMemberBadge -> new BadgeDto(
-                                    potMemberBadge.getBadge().getBadgeId(),
-                                    potMemberBadge.getBadge().getName()
-                            ))
-                            .collect(Collectors.toList());
+                    // recruitmentDetails 리스트를 "프론트앤드(1), 백앤드(3)" 형태의 String으로 변환
+                    String recruitmentDetails = pot.getRecruitmentDetails().stream()
+                            .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name())
+                                    + "(" + recruitmentDetail.getRecruitmentCount() + ")")
+                            .collect(Collectors.joining(", "));
 
-                    List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
-                    Map<String, Integer> roleCountsMap = roleCounts.stream()
-                            .collect(Collectors.toMap(
-                                    roleCount -> ((Role) roleCount[0]).name(),
-                                    roleCount -> ((Long) roleCount[1]).intValue()
-                            ));
-
-                    // 현재 사용자의 역할(Role) 결정
-                    Role userPotRole;
-                    if (pot.getUser().getId().equals(user.getId())) {
-                        userPotRole = pot.getUser().getRole(); // Pot 생성자의 Role 반환
-                    } else {
-                        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
-                                .orElse(pot.getUser().getRole());
-                    }
-
-                    // Pot -> CompletedPotResponseDto 변환
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole, myBadges);
+                    return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails);
                 })
                 .collect(Collectors.toList());
-
-        return List.of(PotAllResponseDTO.builder()
-                .recruitingPots(recruitingPots)
-                .ongoingPots(ongoingPots)
-                .completedPots(completedPots) // 끓인 팟을 CompletedPotResponseDto로 반환
-                .build());
-
     }
+
 
     @Override
     public PotSummaryResponseDTO getPotSummary(Long potId) {
@@ -441,22 +378,18 @@ public class PotServiceImpl implements PotService {
         // Pot -> DTO 변환
         List<CompletedPotResponseDto> content = result.stream()
                 .map(pot -> {
-                    //  이 팟에서 사용자가 받은 뱃지 조회
-                    List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
-                            .stream()
-                            .map(potMemberBadge -> new BadgeDto(
-                                    potMemberBadge.getBadge().getBadgeId(),
-                                    potMemberBadge.getBadge().getName()
-                            ))
-                            .collect(Collectors.toList());
-
-                    // 역할별 참여자 수 조회
+                    //  역할별 참여자 수 조회
                     List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
                     Map<String, Integer> roleCountsMap = roleCounts.stream()
                             .collect(Collectors.toMap(
                                     roleCount -> ((Role) roleCount[0]).name(),
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
+
+                    //  역할 정보를 "프론트엔드(2), 백엔드(1)" 형식으로 변환
+                    String formattedMembers = roleCountsMap.entrySet().stream()
+                            .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
+                            .collect(Collectors.joining(", "));
 
                     // 현재 사용자의 역할(Role) 결정
                     Role userPotRole;
@@ -468,39 +401,12 @@ public class PotServiceImpl implements PotService {
                     }
 
                     // Pot -> CompletedPotResponseDto 변환
-                    return potConverter.toCompletedPotResponseDto(pot, roleCountsMap, userPotRole, myBadges);
+                    return potConverter.toCompletedPotResponseDto(pot, formattedMembers, userPotRole);
                 })
                 .collect(Collectors.toList());
 
         // 반환 데이터 구성
         return new CursorPageResponse<>(content, nextCursor, pots.size() > size);
-    }
-
-    // Pot을 PotAllResponseDTO.PotDetail로 변환하는 메서드
-    private PotAllResponseDTO.PotDetail convertToPotDetail(Pot pot) {
-
-        return PotAllResponseDTO.PotDetail.builder()
-                .user(UserConverter.toDto(pot.getUser()))
-                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
-                .build();
-    }
-
-    // 진행 중인 팟 변환 메서드 (멤버 포함)
-    private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
-
-        List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
-                .map(member -> PotMemberResponseDTO.builder()
-                        .potMemberId(member.getPotMemberId())
-                        .roleName(member.getRoleName())
-                        .build())
-                .collect(Collectors.toList());
-
-
-        return MyPotResponseDTO.OngoingPotsDetail.builder()
-                .user(UserConverter.toDto(pot.getUser()))
-                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))  // 변환기 사용
-                .potMembers(potMembers)
-                .build();
     }
 
     @Transactional
@@ -627,12 +533,38 @@ public class PotServiceImpl implements PotService {
         return potConverter.toDto(pot, recruitmentDetails);
     }
 
+    @Override
+    public List<PotDetailResponseDto> getRecruitingPots() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        //  사용자가 만든 팟 중 'RECRUITING' 상태인 팟만 조회
+        List<Pot> myRecruitingPots = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING");
+
+        //  Pot -> PotDetailResponseDto 변환
+        return myRecruitingPots.stream()
+                .map(pot -> {
+                    //  모집 정보 변환 ("FRONTEND(1), BACKEND(3)")
+                    String recruitmentDetails = pot.getRecruitmentDetails().stream()
+                            .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name()) + "(" + recruitmentDetail.getRecruitmentCount() + ")")
+                            .collect(Collectors.joining(", "));
+
+                    //  Pot -> DTO 변환
+                    return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails);
+                })
+                .collect(Collectors.toList());
+    }
+
+
     private String getKoreanRoleName(String role) {
         Map<String, String> roleToKoreaneMap = Map.of(
-                "BACKEND", " 백앤드",
-                "FRONTEND", " 프론트앤드",
-                "DESIGN", " 디자인",
-                "PLANNING", " 기획"
+                "BACKEND", "백엔드",
+                "FRONTEND", "프론트엔드",
+                "DESIGN", "디자인",
+                "PLANNING", "기획"
         );
         return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
     }
