@@ -77,6 +77,19 @@ public class JwtTokenProvider {
         return false;
     }
 
+    public boolean isTokenExpired(String token) {
+        try {
+            Date expiration = Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
+            return expiration.before(new Date()); // 현재 시간보다 이전이면 만료됨
+        } catch (ExpiredJwtException e) {
+            return true; // 이미 만료된 토큰
+        }
+    }
+
     public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)

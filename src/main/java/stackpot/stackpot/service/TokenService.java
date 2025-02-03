@@ -22,12 +22,19 @@ public class TokenService {
     private final JwtTokenProvider jwtTokenProvider;
 
     public TokenServiceResponse generateAccessToken(final RefreshToken refreshToken) {
+
+        if (!jwtTokenProvider.validateToken(refreshToken.getRefreshToken())) {
+            refreshTokenRepository.deleteById(refreshToken.getRefreshToken()); // 유효하지 않은 토큰 삭제
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired refresh token. Please log in again.");
+        }
+
         RefreshToken refreshToken1 = refreshTokenRepository.findById(refreshToken.getRefreshToken())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token not found."));
 
-        User user = userRepository.findByEmail(refreshToken1.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        User user = userRepository.findByEmail(jwtTokenProvider.getEmailFromToken(refreshToken1.getRefreshToken()))
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        refreshTokenRepository.deleteById(refreshToken.getRefreshToken());
         return jwtTokenProvider.createToken(user);
     }
 }
