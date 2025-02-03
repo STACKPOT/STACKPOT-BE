@@ -21,7 +21,7 @@ public class FeedConverterImpl implements FeedConverter{
     public FeedResponseDto.FeedDto feedDto(Feed feed) {
         return FeedResponseDto.FeedDto.builder()
                 .id(feed.getFeedId())
-                .writer(feed.getUser().getNickname()+mapRoleName(String.valueOf(feed.getUser().getRole())))
+                .writer(feed.getUser().getNickname()+""+mapRoleName(String.valueOf(feed.getUser().getRole())))
                 .writerRole(feed.getUser().getRole())
 //                .category(feed.getCategory())
                 .title(feed.getTitle())
