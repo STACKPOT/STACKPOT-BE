@@ -32,8 +32,6 @@ public class FeedController {
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> createFeeds(@Valid @RequestBody FeedRequestDto.createDto requset) {
         // 정상 처리
         Feed feed = feedService.createFeed(requset);
-        Long feedId = feed.getFeedId();
-        Long likeCount = feedService.getLikeCount(feedId);
 
         FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
@@ -64,7 +62,6 @@ public class FeedController {
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> getDetailFeed(@PathVariable Long feedId) {
 
         Feed feed = feedService.getFeed(feedId);
-        Long likeCount = feedService.getLikeCount(feedId);
 
         FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
