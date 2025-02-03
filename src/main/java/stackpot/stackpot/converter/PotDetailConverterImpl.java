@@ -13,12 +13,12 @@ import java.util.Map;
 
 @Component
 public class PotDetailConverterImpl implements PotDetailConverter {
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy. MM. dd");
 
     @Override
     public CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, String userPotRole, String appealContent) {
         // 날짜 포맷 설정
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy. MM. dd");
 
         return CompletedPotDetailResponseDto.builder()
                 .potId(pot.getPotId())

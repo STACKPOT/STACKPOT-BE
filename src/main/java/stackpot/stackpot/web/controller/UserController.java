@@ -10,20 +10,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
-import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.*;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Tag(name = "User Management", description = "유저 관리 API")
 @Slf4j
@@ -93,19 +88,19 @@ public class UserController {
 
     @Operation(summary = "나의 마이페이지 조회 API", description = "토큰을 통해 자신의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)")
     @GetMapping("/mypages")
-    public ResponseEntity<ApiResponse<UserMypageResponseDto>> usersMypages(
+    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> usersMypages(
             @RequestParam(required = false) String dataType){
-        UserMypageResponseDto userDetails = userCommandService.getMypages(dataType);
+        UserMyPageResponseDto userDetails = userCommandService.getMypages(dataType);
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
 
     @Operation(summary = "사용자별 마이페이지 조회 API", description = "userId를 통해 사용자의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)")
     @GetMapping("/{userId}/mypages")
-    public ResponseEntity<ApiResponse<UserMypageResponseDto>> getUserMypage(
+    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> getUserMypage(
             @PathVariable Long userId,
             @RequestParam(required = false) String dataType) {
-        UserMypageResponseDto response = userCommandService.getUserMypage(userId, dataType);
+        UserMyPageResponseDto response = userCommandService.getUserMypage(userId, dataType);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
