@@ -32,4 +32,7 @@ public interface MyPotService {
     MyPotTaskResponseDto modfiyTask(Long taskId, MyPotTaskRequestDto.create request);
     void deleteTaskboard(Long potId, Long taskboardId);
     CompletedPotDetailResponseDto getCompletedPotDetail(Long potId);
+    List<CompletedPotBadgeResponseDto> getCompletedPotsWithBadges();
+    List<CompletedPotBadgeResponseDto> getUserCompletedPotsWithBadges(Long userId);
+
 }

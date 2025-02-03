@@ -54,10 +54,26 @@ public class MyPotController {
     }
 
     @GetMapping("/{pot_id}/details")
-    @Operation(summary = "끓인 팟 상세 보기", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다.")
+    @Operation(summary = "마이페이지 끓인 팟 상세 보기 모달", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다.")
     public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
             @PathVariable("pot_id") Long potId) {
         CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @GetMapping("/badges")
+    @Operation(summary = "나의 뱃지가 있는 끓인 팟 조회 API", description = "사용자가 참여한 potStatus가 COMPLETED 상태의 팟을 뱃지와 함께 반환합니다.")
+    public ResponseEntity<ApiResponse<List<CompletedPotBadgeResponseDto>>> getCompletedPotsWithBadges() {
+        List<CompletedPotBadgeResponseDto> response = myPotService.getCompletedPotsWithBadges();
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @GetMapping("/{user_id}/badges")
+    @Operation(summary = "사용자별 뱃지가 있는 끓인 팟 조회 API", description = "사용자가 참여한 potStatus가 COMPLETED 상태의 팟을 뱃지와 함께 반환합니다.")
+    public ResponseEntity<ApiResponse<List<CompletedPotBadgeResponseDto>>> getUserCompletedPotsWithBadges(
+            @PathVariable("user_id") Long userId
+    ) {
+        List<CompletedPotBadgeResponseDto> response = myPotService.getUserCompletedPotsWithBadges(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

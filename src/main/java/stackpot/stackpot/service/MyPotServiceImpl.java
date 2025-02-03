@@ -26,6 +26,8 @@ import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.domain.mapping.Task;
 import stackpot.stackpot.domain.mapping.UserTodo;
+import stackpot.stackpot.repository.BadgeRepository.BadgeRepository;
+import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
 import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
@@ -54,6 +56,7 @@ public class MyPotServiceImpl implements MyPotService {
     private final TaskRepository taskRepository;
     private final PotDetailConverter potDetailConverter;
     private final MyPotConverter myPotConverter;
+    private final PotMemberBadgeRepository potMemberBadgeRepository;
 
     @Override
     public List<OngoingPotResponseDto> getMyOnGoingPots() {
@@ -571,5 +574,109 @@ public class MyPotServiceImpl implements MyPotService {
 
         // DTO 반환
         return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
+    }
+
+    @Transactional
+    @Override
+    public List<CompletedPotBadgeResponseDto> getCompletedPotsWithBadges() {
+        // 현재 인증된 사용자 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        //  사용자가 참여한 모든 COMPLETED 상태의 팟 조회 (뱃지 유무와 관계없이 가져옴)
+        List<Pot> completedPots = potRepository.findCompletedPotsByUserId(user.getId());
+
+
+        //  Pot -> DTO 변환
+        return completedPots.stream()
+                .map(pot -> {
+                    //  역할별 참여자 수 조회 및 변환
+                    List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
+                    Map<String, Integer> roleCountsMap = roleCounts.stream()
+                            .collect(Collectors.toMap(
+                                    roleCount -> ((Role) roleCount[0]).name(),
+                                    roleCount -> ((Long) roleCount[1]).intValue()
+                            ));
+
+                    //  "프론트엔드(2), 백엔드(1)" 형식으로 변환
+                    String formattedMembers = roleCountsMap.entrySet().stream()
+                            .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
+                            .collect(Collectors.joining(", "));
+
+                    //  현재 사용자의 역할(Role) 결정
+                    Role userPotRole = pot.getUser().getId().equals(user.getId()) ?
+                            pot.getUser().getRole() :
+                            potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId()).orElse(pot.getUser().getRole());
+
+                    //  사용자의 뱃지 조회 (뱃지가 없으면 빈 리스트 반환)
+                    List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
+                            .stream()
+                            .map(potMemberBadge -> new BadgeDto(
+                                    potMemberBadge.getBadge().getBadgeId(),
+                                    potMemberBadge.getBadge().getName()
+                            ))
+                            .collect(Collectors.toList());
+
+                    //  Pot -> CompletedPotBadgeResponseDto 변환
+                    return myPotConverter.toCompletedPotBadgeResponseDto(pot, formattedMembers, userPotRole, myBadges);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public List<CompletedPotBadgeResponseDto> getUserCompletedPotsWithBadges(Long userId) {
+
+        //  사용자가 참여한 모든 COMPLETED 상태의 팟 조회 (뱃지 유무와 관계없이 가져옴)
+        List<Pot> completedPots = potRepository.findCompletedPotsByUserId(userId);
+
+        //  Pot -> DTO 변환
+        return completedPots.stream()
+                .map(pot -> {
+                    //  역할별 참여자 수 조회 및 변환
+                    List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
+                    Map<String, Integer> roleCountsMap = roleCounts.stream()
+                            .collect(Collectors.toMap(
+                                    roleCount -> ((Role) roleCount[0]).name(),
+                                    roleCount -> ((Long) roleCount[1]).intValue()
+                            ));
+
+                    //  "프론트엔드(2), 백엔드(1)" 형식으로 변환
+                    String formattedMembers = roleCountsMap.entrySet().stream()
+                            .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
+                            .collect(Collectors.joining(", "));
+
+                    //  현재 사용자의 역할(Role) 결정
+                    Role userPotRole = pot.getUser().getId().equals(userId) ?
+                            pot.getUser().getRole() :
+                            potMemberRepository.findRoleByUserId(pot.getPotId(), userId).orElse(pot.getUser().getRole());
+
+                    //  사용자의 뱃지 조회 (뱃지가 없으면 빈 리스트 반환)
+                    List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), userId)
+                            .stream()
+                            .map(potMemberBadge -> new BadgeDto(
+                                    potMemberBadge.getBadge().getBadgeId(),
+                                    potMemberBadge.getBadge().getName()
+                            ))
+                            .collect(Collectors.toList());
+
+                    //  Pot -> CompletedPotBadgeResponseDto 변환
+                    return myPotConverter.toCompletedPotBadgeResponseDto(pot, formattedMembers, userPotRole, myBadges);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private String getKoreanRoleName(String role) {
+        Map<String, String> roleToKoreanMap = Map.of(
+                "BACKEND", "백엔드",
+                "FRONTEND", "프론트엔드",
+                "DESIGN", "디자인",
+                "PLANNING", "기획"
+        );
+        return roleToKoreanMap.getOrDefault(role, "알 수 없음");
     }
 }

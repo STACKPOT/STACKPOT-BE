@@ -18,7 +18,7 @@ public class CompletedPotBadgeResponseDto {
     private LocalDate potEndDate; // 종료 날짜
     private String potLan; // 사용 언어
     private String members;
-    private Role userPotRole;
+    private String userPotRole;
     private List<BadgeDto> myBadges;
 }
 

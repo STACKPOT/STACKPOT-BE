@@ -14,11 +14,17 @@ import java.util.Optional;
 
 public interface PotRepository extends JpaRepository<Pot, Long> {
     Page<Pot> findByRecruitmentDetails_RecruitmentRole(Role recruitmentRole, Pageable pageable);
+
     Optional<Pot> findPotWithRecruitmentDetailsByPotId(Long potId);
+
     List<Pot> findByPotApplication_User_Id(Long userId);
+
     List<Pot> findByUserId(Long userId);
+
     Page<Pot> findAll(Pageable pageable);
+
     List<Pot> findByPotMembers_UserIdAndPotStatus(Long userId, String status);
+
     List<Pot> findByUserIdAndPotStatus(Long userId, String status);
 
     @Query("SELECT p FROM Pot p " +
@@ -35,4 +41,8 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
             "ORDER BY p.potId DESC")
     List<Pot> findCompletedPotsByCursor(@Param("userId") Long userId, @Param("cursor") Long cursor);
 
+    @Query("SELECT DISTINCT p FROM Pot p " +
+            "JOIN PotMember pm ON pm.pot = p " +
+            "WHERE p.potStatus = 'COMPLETED' AND pm.user.id = :userId")
+    List<Pot> findCompletedPotsByUserId(@Param("userId") Long userId);
 }

@@ -3,6 +3,9 @@ package stackpot.stackpot.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.enums.Role;
+import stackpot.stackpot.web.dto.BadgeDto;
+import stackpot.stackpot.web.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.web.dto.OngoingPotResponseDto;
 
 import java.util.List;
@@ -27,5 +30,30 @@ public class MyPotConverterImpl implements MyPotConverter{
                 .potStatus(pot.getPotStatus())  // 진행 중인 팟 상태
                 .members(roleCountMap)  // 역할 개수 Map 적용
                 .build();
+    }
+
+    @Override
+    public CompletedPotBadgeResponseDto toCompletedPotBadgeResponseDto(
+            Pot pot, String formattedMembers, Role userPotRole, List<BadgeDto> myBadges) {
+        return CompletedPotBadgeResponseDto.builder()
+                .potId(pot.getPotId())
+                .potName(pot.getPotName())
+                .potStartDate(pot.getPotStartDate())
+                .potEndDate(pot.getPotEndDate())
+                .potLan(pot.getPotLan())
+                .members(formattedMembers)  //  "프론트엔드(2), 백엔드(1)" 형식 적용
+                .userPotRole(getKoreanRoleName(String.valueOf(userPotRole)))
+                .myBadges(myBadges) //  사용자의 뱃지 포함
+                .build();
+    }
+
+    private String getKoreanRoleName(String role) {
+        Map<String, String> roleToKoreanMap = Map.of(
+                "BACKEND", "백엔드",
+                "FRONTEND", "프론트엔드",
+                "DESIGN", "디자인",
+                "PLANNING", "기획"
+        );
+        return roleToKoreanMap.getOrDefault(role, "알 수 없음");
     }
 }
