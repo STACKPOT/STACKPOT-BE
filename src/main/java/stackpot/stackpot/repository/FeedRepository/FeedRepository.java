@@ -32,7 +32,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     List<Feed> findFeeds(
             @Param("category") Category category,
             @Param("sort") String sort,
-            @Param("lastFeedId") Integer lastFeedId, // ✅ Integer로 변경
+            @Param("lastFeedId") long lastFeedId, // ✅ Integer로 변경
             @Param("lastLikeCount") long lastLikeCount, // ✅ likeCount 기준 페이징을 위한 추가 파라미터
             Pageable pageable);
     List<Feed> findByUser_Id(Long userId);
@@ -42,7 +42,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     List<Feed> findByUser_Id(Long userId, Pageable pageable);
 
     // 커서 기반 페이징 조회
-    List<Feed> findByUserIdAndCreatedAtBefore(Long userId, LocalDateTime createdAt, Pageable pageable);
+    List<Feed> findByUserIdAndFeedIdBefore(Long userId, Long cursorFeedId, Pageable pageable);
 
     default String getNextCursor(List<Feed> feeds) {
         if (feeds.isEmpty()) {

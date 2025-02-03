@@ -48,7 +48,7 @@ public class FeedController {
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getPreViewFeeds(
             @RequestParam(value = "category", required = false, defaultValue = "ALL") Category category,
             @RequestParam(value = "sort", required = false, defaultValue = "new") String sort,
-            @RequestParam(value = "cursor", required = false) String cursor,
+            @RequestParam(value = "cursor", required = false) Long cursor,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
 
         FeedResponseDto.FeedPreviewList response = feedService.getPreViewFeeds(String.valueOf(category), sort, cursor, limit);
@@ -96,7 +96,7 @@ public class FeedController {
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeedsByUserId(
             @PathVariable Long userId,
-            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "10") int size) {
 
         FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeedsByUserId(userId, cursor, size);
@@ -106,7 +106,7 @@ public class FeedController {
     @Operation(summary = "나의 Feed 조회 API")
     @GetMapping("/my-feeds")
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeeds(
-            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "10") int size) {
 
         FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeeds(cursor, size);
