@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.config.security.JwtTokenProvider;
+import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
@@ -105,11 +106,9 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 관심사
         user.setInterest(request.getInterest());
         //한줄 소개
-        //user.setUserIntroduction(user.getRole()+"에 관심있는 "+user.getNickname()+getVegetableNameByRole(String.valueOf(user.getRole()))+"입니다.");
         user.setUserIntroduction(
                 user.getRole().name().trim() + "에 관심있는 " +
-                        user.getNickname().trim() +
-                        getVegetableNameByRole(String.valueOf(user.getRole())).trim() + "입니다."
+                        user.getNickname().trim() + getVegetableNameByRole(String.valueOf(user.getRole())).trim() + "입니다."
         );
     }
 
@@ -122,15 +121,7 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // User 정보를 UserResponseDto로 변환
-        return UserResponseDto.Userdto.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
-                .role(user.getRole())
-                .interest(user.getInterest())
-                .userTemperature(user.getUserTemperature())
-                .kakaoId(user.getKakaoId())
-                .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
-                .build();
+        return UserConverter.toDto(user);
     }
 
     @Override
@@ -138,16 +129,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         User user = userRepository.findById(UserId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // User 정보를 UserResponseDto로 변환
-        return UserResponseDto.Userdto.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
-                .role(user.getRole())
-                .interest(user.getInterest())
-                .userTemperature(user.getUserTemperature())
-                .kakaoId(user.getKakaoId())
-                .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
-                .build();
+        return UserConverter.toDto(user);
     }
 
 
@@ -213,15 +195,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 저장 후 DTO로 변환하여 반환
         userRepository.save(user);
 
-        return UserResponseDto.Userdto.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
-                .role(user.getRole())
-                .interest(user.getInterest())
-                .userTemperature(user.getUserTemperature())
-                .kakaoId(user.getKakaoId())
-                .userIntroduction(user.getUserIntroduction())
-                .build();
+        return UserConverter.toDto(user);
     }
 
     @Override
