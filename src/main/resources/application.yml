@@ -1,4 +1,10 @@
 spring:
+  mvc:
+    servlet:
+      encoding:
+        charset: UTF-8
+        enabled: true
+        force: true
   jackson:
     time-zone: Asia/Seoul
   config:
