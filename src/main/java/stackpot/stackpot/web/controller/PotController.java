@@ -166,8 +166,8 @@ public class PotController {
     // 사용자가 지원한 팟 조회
     @Operation(summary = "지원한 팟 조회 API", description = "'지원한 팟 조회'에 필요한 본인이 지원한 팟들 리스트를 리턴합니다.")
     @GetMapping("/apply")
-    public ResponseEntity<ApiResponse<List<PotAllResponseDTO.PotDetail>>> getAppliedPots() {
-        List<PotAllResponseDTO.PotDetail> appliedPots = potService1.getAppliedPots();
+    public ResponseEntity<ApiResponse<List<PotDetailResponseDto>>> getAppliedPots() {
+        List<PotDetailResponseDto> appliedPots = potService1.getAppliedPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(appliedPots));
     }
 

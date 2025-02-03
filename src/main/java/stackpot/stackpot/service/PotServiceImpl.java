@@ -316,7 +316,7 @@ public class PotServiceImpl implements PotService {
 
 
     @Override
-    public List<PotAllResponseDTO.PotDetail> getAppliedPots() {
+    public List<PotDetailResponseDto> getAppliedPots() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -329,13 +329,16 @@ public class PotServiceImpl implements PotService {
             throw new ApplicationHandler(ErrorStatus.APPLICATION_NOT_FOUND);
         }
 
-
         return appliedPots.stream()
-                .map(pot -> PotAllResponseDTO.PotDetail.builder()
-                        .user(UserConverter.toDto(pot.getUser()))
-                        .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))
-                        .build()
-                )
+                .map(pot -> {
+                    // recruitmentDetails 리스트를 "프론트앤드(1), 백앤드(3)" 형태의 String으로 변환
+                    String recruitmentDetails = pot.getRecruitmentDetails().stream()
+                            .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name())
+                                    + "(" + recruitmentDetail.getRecruitmentCount() + ")")
+                            .collect(Collectors.joining(", "));
+
+                    return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails);
+                })
                 .collect(Collectors.toList());
     }
 
