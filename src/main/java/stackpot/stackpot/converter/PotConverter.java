@@ -11,7 +11,7 @@ import java.util.Map;
 
 public interface PotConverter {
     Pot toEntity(PotRequestDto dto,User user);
-    CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, Map<String, Integer> roleCounts, Role userPotRole,List<BadgeDto> myBadges);
+    CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, String formattedMembers, Role userPotRole);
     PotResponseDto toDto(Pot entity, List<PotRecruitmentDetails> recruitmentDetails);
     PotSearchResponseDto toSearchDto(Pot pot);
     PotPreviewResponseDto toPrviewDto(User user, Pot pot, List<String> recruitmentRoles);

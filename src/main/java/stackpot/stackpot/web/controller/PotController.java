@@ -16,6 +16,7 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
+import stackpot.stackpot.service.MyPotService;
 import stackpot.stackpot.service.PotApplicationService.PotApplicationService;
 import stackpot.stackpot.service.PotService;
 import stackpot.stackpot.service.PotServiceImpl;
@@ -33,6 +34,7 @@ public class PotController {
 
 
     private final PotService potService1;
+    private final MyPotService myPotService;
     private final PotApplicationService potApplicationService;
 
     private final PotServiceImpl potService;
@@ -79,7 +81,7 @@ public class PotController {
 
 
     @GetMapping("/completed")
-    @Operation(summary = "나의 끓인 팟 조회 API", description = "potStatus가 COMPLETED인 팟의 목록을 커서 기반 페이지네이션으로 가져옵니다.",
+    @Operation(summary = "내가 만든 팟 - 끓인 나의 팟 조회 API", description = "potStatus가 COMPLETED인 팟의 목록을 커서 기반 페이지네이션으로 가져옵니다.",
             parameters = {
                     @Parameter(name = "cursor", description = "현재 페이지의 마지막 potId 값", example = "10"),
                     @Parameter(name = "size", description = "한 페이지에 가져올 데이터 개수", example = "3")
@@ -164,19 +166,11 @@ public class PotController {
     }
 
     // 사용자가 지원한 팟 조회
-    @Operation(summary = "지원한 팟 조회 API", description = "'지원한 팟 조회'에 필요한 본인이 지원한 팟들 리스트를 리턴합니다.")
+    @Operation(summary = "내가 지원한 팟 조회 API", description = "'지원한 팟 조회'에 필요한 본인이 지원한 팟들 리스트를 리턴합니다.")
     @GetMapping("/apply")
-    public ResponseEntity<ApiResponse<List<PotAllResponseDTO.PotDetail>>> getAppliedPots() {
-        List<PotAllResponseDTO.PotDetail> appliedPots = potService1.getAppliedPots();
+    public ResponseEntity<ApiResponse<List<PotDetailResponseDto>>> getAppliedPots() {
+        List<PotDetailResponseDto> appliedPots = potService1.getAppliedPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(appliedPots));
-    }
-
-    // 사용자가 만든 팟 조회
-    @Operation(summary = "내가 만든 팟 조회 API", description = "'내가 만든 팟'의 메인 view에 필요한 정보들을 리턴합니다.\n모집 중인 나의 팟 /  진행 중인 나의 팟 / 끓인 나의 팟을 구분하여 리스트 형식으로 전달합니다. 진행 중(ONGOING)인 팟의 경우 멤버들의 아이콘이 보여야 하기에 potMembers 정보를 함께 전달합니다.")
-    @GetMapping("/my-pots")
-    public ResponseEntity<ApiResponse<List<PotAllResponseDTO>>> getMyPots() {
-        List<PotAllResponseDTO> myPots = potService1.getMyPots();
-        return ResponseEntity.ok(ApiResponse.onSuccess(myPots));
     }
 
 
@@ -225,6 +219,20 @@ public class PotController {
             @PathVariable("pot_id") Long potId) {
 
         PotDetailWithApplicantsResponseDto response = potApplicationService.getPotDetailsAndApplicants(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "내가 만든 팟 - 진행 중인 팟 조회 API", description = "내가 만든 팟의 진행 중인 팟을 조회합니다. members의 {FRONTEND : 1}는 팟 멤버들의 역할별 멤버수를 나타내므로 프로필 아이콘(버섯, 양파 등)을 나타내실 때 사용하시면 됩니다.")
+    @GetMapping("/ongoing")
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyOngoingPots() {
+        List<OngoingPotResponseDto> response = myPotService.getMyOngoingPots();
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "내가 만든 팟 - 모집 중인 팟 조회 API", description = "내가 만든 팟의 모집 중인 팟을 조회합니다.")
+    @GetMapping("/recruiting")
+    public ResponseEntity<ApiResponse<List<PotDetailResponseDto>>> getRecruitingPots() {
+        List<PotDetailResponseDto> response = potService.getRecruitingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }
