@@ -46,20 +46,19 @@ public class FeedServiceImpl implements FeedService {
 
 
     @Override
-    public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, String cursor, int limit) {
-        Integer lastFeedId = Integer.MAX_VALUE;  // 기본적으로 가장 큰 ID부터 조회
-        long lastFeedLike = 0;
+    public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, Long cursor, int limit) {
+        Long lastFeedId = Long.MAX_VALUE;  // 기본적으로 가장 큰 ID부터 조회
+        Long lastFeedLike = 0L;
 
-        if (cursor != null && !cursor.isEmpty()) {
-            lastFeedId = Integer.parseInt(cursor);  // 🔹 cursor를 int로 변환
-
-            Feed lastdFeed = feedRepository.findById(Long.valueOf(cursor))
+        if ( cursor != null ) {
+            lastFeedId = cursor;
+            Feed lastdFeed = feedRepository.findById(lastFeedId)
                     .orElseThrow(()-> new IllegalArgumentException("feed를 찾을 수 없습니다."));
 
             lastFeedLike = lastdFeed.getLikeCount();
         }
         else if (sort.equals("old")) {
-            lastFeedId = 0;
+            lastFeedId = 0L;
         } else if (sort.equals("popular")) {
             lastFeedLike = Long.MAX_VALUE;
         }
@@ -84,13 +83,13 @@ public class FeedServiceImpl implements FeedService {
                 .map(feed -> feedConverter.feedDto(feed))
                 .collect(Collectors.toList());
 
-        String nextCursor = null;
+        Long nextCursor = null;
         if (!feedResults.isEmpty()) {
             Feed lastFeed = feedResults.get(feedResults.size() - 1);
-            nextCursor = lastFeed.getFeedId().toString();  // 🔹 int 값으로 변환하여 반환
+            nextCursor = lastFeed.getFeedId();  // 🔹 int 값으로 변환하여 반환
         }
 
-        return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor != null ? Integer.valueOf(nextCursor) : -1);
+        return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
     }
 
     @Override
@@ -116,17 +115,17 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Transactional
-    public FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, String nextCursor, int pageSize) {
+    public FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, Long nextCursor, int pageSize) {
         // 피드 조회 (페이징 처리 추가)
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
         List<Feed> feeds;
 
-        if (nextCursor == null || nextCursor.isBlank()) {
+        if (nextCursor == null) {
             // 첫 페이지 조회
             feeds = feedRepository.findByUser_Id(userId, pageable);
         } else {
             // 다음 페이지 조회 (Cursor 기반 페이징)
-            long cursorFeedId = Long.valueOf(nextCursor);
+            Long cursorFeedId = nextCursor;
             feeds = feedRepository.findByUserIdAndFeedIdBefore(userId, cursorFeedId, pageable);
         }
 
@@ -136,18 +135,18 @@ public class FeedServiceImpl implements FeedService {
                 .collect(Collectors.toList());
 
         // 다음 커서 설정 (마지막 피드의 createdAt)
-        String nextCursorResult = feeds.isEmpty() ? null : feeds.get(feeds.size() - 1).getCreatedAt().toString();
+        Long nextCursorResult = feeds.isEmpty() ? null : feeds.get(feeds.size() - 1).getFeedId();
 
 
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
-                .nextCursor( nextCursorResult != null ? Integer.valueOf(nextCursorResult) : -1 )
+                .nextCursor( nextCursorResult )
                 .build();
     }
 
     @Override
-    public FeedResponseDto.FeedPreviewList getFeeds(String nextCursor, int pageSize) {
+    public FeedResponseDto.FeedPreviewList getFeeds(Long nextCursor, int pageSize) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -155,16 +154,15 @@ public class FeedServiceImpl implements FeedService {
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 피드 조회 (페이징 처리 추가)
-//        Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
         List<Feed> feeds;
 
-        if (nextCursor == null || nextCursor.isBlank()) {
+        if (nextCursor == null) {
             // 첫 페이지 조회
             feeds = feedRepository.findByUser_Id(user.getId(), pageable);
         } else {
             // 다음 페이지 조회 (Cursor 기반 페이징)
-            long cursorFeedId = Long.valueOf(nextCursor);
+            Long cursorFeedId = nextCursor;
             feeds = feedRepository.findByUserIdAndFeedIdBefore(user.getId(), cursorFeedId, pageable);
 
         }
@@ -175,11 +173,11 @@ public class FeedServiceImpl implements FeedService {
                 .collect(Collectors.toList());
 
         // 다음 커서 설정 (마지막 피드의 createdAt)
-        String nextCursorResult = feeds.isEmpty() ? null : feeds.get(feeds.size() - 1).getFeedId().toString();
+        Long nextCursorResult = feeds.isEmpty() ? null : feeds.get(feeds.size() - 1).getFeedId();
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
-                .nextCursor(nextCursorResult != null ? Integer.valueOf(nextCursorResult) : -1)
+                .nextCursor(nextCursorResult)
                 .build();
     }
 
