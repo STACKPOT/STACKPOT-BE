@@ -11,12 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
-import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
-import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
-import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.converter.FeedConverter;
 import stackpot.stackpot.domain.Feed;
-import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Category;
 import stackpot.stackpot.domain.mapping.FeedLike;
@@ -26,13 +22,9 @@ import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.FeedRequestDto;
 import stackpot.stackpot.web.dto.FeedResponseDto;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static stackpot.stackpot.domain.enums.Category.*;
 
 @Slf4j
 @Service
@@ -76,6 +68,13 @@ public class FeedServiceImpl implements FeedService {
             }
         }
         Pageable pageable = PageRequest.ofSize(limit);
+
+        //  7초 동안 응답을 지연
+        try {
+            Thread.sleep(7000);  // 7초 대기
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
         List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastFeedId, lastFeedLike, pageable);
 
