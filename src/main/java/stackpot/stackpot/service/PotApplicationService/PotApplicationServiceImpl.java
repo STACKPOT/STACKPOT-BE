@@ -153,8 +153,8 @@ public class PotApplicationServiceImpl implements PotApplicationService {
 
     private String getKoreanRoleName(String role) {
         Map<String, String> roleToKoreaneMap = Map.of(
-                "BACKEND", " 백앤드",
-                "FRONTEND", " 프론트앤드",
+                "BACKEND", " 백엔드",
+                "FRONTEND", " 프론트엔드",
                 "DESIGN", " 디자인",
                 "PLANNING", " 기획"
         );
