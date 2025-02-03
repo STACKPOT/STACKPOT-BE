@@ -42,7 +42,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     List<Feed> findByUser_Id(Long userId, Pageable pageable);
 
     // 커서 기반 페이징 조회
-    List<Feed> findByUserIdAndCreatedAtBefore(Long userId, LocalDateTime createdAt, Pageable pageable);
+    List<Feed> findByUserIdAndFeedIdBefore(Long userId, Long cursorFeedId, Pageable pageable);
 
     default String getNextCursor(List<Feed> feeds) {
         if (feeds.isEmpty()) {
