@@ -26,6 +26,7 @@ import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.FeedRequestDto;
 import stackpot.stackpot.web.dto.FeedResponseDto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -46,44 +47,22 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, String cursor, int limit) {
-//        LocalDateTime lastCreatedAt;
         Integer lastFeedId = Integer.MAX_VALUE;  // 기본적으로 가장 큰 ID부터 조회
+        long lastFeedLike = 0;
 
         if (cursor != null && !cursor.isEmpty()) {
             lastFeedId = Integer.parseInt(cursor);  // 🔹 cursor를 int로 변환
+
+            Feed lastdFeed = feedRepository.findById(Long.valueOf(cursor))
+                    .orElseThrow(()-> new IllegalArgumentException("feed를 찾을 수 없습니다."));
+
+            lastFeedLike = lastdFeed.getLikeCount();
         }
         else if (sort.equals("old")) {
             lastFeedId = 0;
+        } else if (sort.equals("popular")) {
+            lastFeedLike = Long.MAX_VALUE;
         }
-
-//        int lastLikeCount = Integer.MAX_VALUE;  // 🔹 기본값을 최대로 설정 (popular 정렬을 위한 초기값)
-//        long lastFeedId = -1;
-//
-//        if(cursor!= 0 ){
-//                lastFeedId = cursor;
-//        }
-//        else{
-//            if(sort.equals("old")){
-//                lastFeedId = Integer.MAX_VALUE;
-//            }
-//            else{
-//                lastFeedId = 0;
-//            }
-//        }
-
-
-//        if (cursor != null && !cursor.isEmpty()) {
-//            if (sort.equals("popular")) {
-//            } else {
-//                lastCreatedAt = LocalDateTime.parse(cursor);
-//            }
-//        } else {
-//            if ("old".equals(sort)) {
-//                lastCreatedAt = LocalDateTime.of(1970, 1, 1, 0, 0);  // UNIX epoch 기준 (최소값)
-//            } else {
-//                lastCreatedAt = LocalDateTime.now();
-//            }
-//        }
 
         Category category = null;
         if (categoryStr != null && !categoryStr.isEmpty()) {
@@ -99,7 +78,7 @@ public class FeedServiceImpl implements FeedService {
         }
         Pageable pageable = PageRequest.ofSize(limit);
 
-        List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastFeedId, pageable);
+        List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastFeedId, lastFeedLike, pageable);
 
         List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
                 .map(feed -> feedConverter.feedDto(feed))
@@ -111,9 +90,7 @@ public class FeedServiceImpl implements FeedService {
             nextCursor = lastFeed.getFeedId().toString();  // 🔹 int 값으로 변환하여 반환
         }
 
-
-
-        return new FeedResponseDto.FeedPreviewList(feedDtoList, Integer.valueOf(nextCursor));
+        return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor != null ? Integer.valueOf(nextCursor) : -1);
     }
 
     @Override
@@ -163,7 +140,7 @@ public class FeedServiceImpl implements FeedService {
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
-//                .nextCursor(nextCursorResult)
+                .nextCursor(Integer.valueOf(nextCursorResult))
                 .build();
     }
 
@@ -198,7 +175,7 @@ public class FeedServiceImpl implements FeedService {
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
-//                .nextCursor(nextCursorResult)
+                .nextCursor(Integer.valueOf(nextCursorResult))
                 .build();
     }
 
