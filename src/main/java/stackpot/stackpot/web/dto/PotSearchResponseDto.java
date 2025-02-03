@@ -18,3 +18,4 @@ public class PotSearchResponseDto {
     private String recruitmentPart;
     private LocalDate recruitmentDeadline;
 }
+
