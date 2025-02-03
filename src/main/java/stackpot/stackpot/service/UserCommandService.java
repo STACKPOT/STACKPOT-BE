@@ -12,9 +12,9 @@ public interface UserCommandService {
     UserResponseDto.Userdto getMyUsers();
     UserResponseDto.Userdto getUsers(Long UserId);
 
-    UserMypageResponseDto getMypages(String dataType);
+    UserMyPageResponseDto getMypages(String dataType);
 
-    UserMypageResponseDto getUserMypage(Long userId, String dataType);
+    UserMyPageResponseDto getUserMypage(Long userId, String dataType);
 
     UserResponseDto.Userdto updateUserProfile(UserUpdateRequestDto requestDto);
 

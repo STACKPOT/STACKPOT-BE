@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class PotConverterImpl implements PotConverter {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy. MM. dd");
 
     @Override
     public Pot toEntity(PotRequestDto requestDto, User user) {

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Component
 public class TaskboardConverterImpl implements TaskboardConverter{
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy. MM. dd");
     @Override
     public Taskboard toTaskboard(Pot pot, MyPotTaskRequestDto.create requset) {
         return Taskboard.builder()

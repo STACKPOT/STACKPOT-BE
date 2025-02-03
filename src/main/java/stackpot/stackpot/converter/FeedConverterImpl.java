@@ -65,10 +65,10 @@ public class FeedConverterImpl implements FeedConverter{
 
     private String mapRoleName(String roleName) {
         return switch (roleName) {
-            case "BACKEND" -> "양파";
-            case "FRONTEND" -> "버섯";
-            case "DESIGN" -> "브로콜리";
-            case "PLANNING" -> "당근";
+            case "BACKEND" -> " 양파";
+            case "FRONTEND" -> " 버섯";
+            case "DESIGN" -> " 브로콜리";
+            case "PLANNING" -> " 당근";
             default -> "멤버";
         };
     }
