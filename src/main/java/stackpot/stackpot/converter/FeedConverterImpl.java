@@ -53,11 +53,11 @@ public class FeedConverterImpl implements FeedConverter{
         String nicknameWithRole = feed.getUser().getNickname() + " " + mapRoleName(roleName) ;
 
         return FeedSearchResponseDto.builder()
+                .userId(feed.getUser().getId())
                 .feedId(feed.getFeedId())
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .creatorNickname(nicknameWithRole) // 닉네임과 역할 포함
-                .creatorRole(roleName) // 역할 이름
                 .createdAt(formatLocalDateTime(feed.getCreatedAt())) // 시간 포맷 적용
                 .likeCount(feed.getLikeCount()) // 좋아요 개수 포함
                 .build();
@@ -65,10 +65,10 @@ public class FeedConverterImpl implements FeedConverter{
 
     private String mapRoleName(String roleName) {
         return switch (roleName) {
-            case "BACKEND" -> "양파";
-            case "FRONTEND" -> "버섯";
-            case "DESIGN" -> "브로콜리";
-            case "PLANNING" -> "당근";
+            case "BACKEND" -> " 양파";
+            case "FRONTEND" -> " 버섯";
+            case "DESIGN" -> " 브로콜리";
+            case "PLANNING" -> " 당근";
             default -> "멤버";
         };
     }

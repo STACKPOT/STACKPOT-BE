@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class MyPotConverterImpl implements MyPotConverter{
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy. MM. dd");
     private String formatDate(java.time.LocalDate date) {
         return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
     }

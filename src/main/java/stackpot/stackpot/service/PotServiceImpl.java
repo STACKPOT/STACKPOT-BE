@@ -333,7 +333,7 @@ public class PotServiceImpl implements PotService {
 
         return appliedPots.stream()
                 .map(pot -> {
-                    // recruitmentDetails 리스트를 "프론트앤드(1), 백앤드(3)" 형태의 String으로 변환
+                    // recruitmentDetails 리스트를 "프론트엔드(1), 백엔드(3)" 형태의 String으로 변환
                     String recruitmentDetails = pot.getRecruitmentDetails().stream()
                             .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name())
                                     + "(" + recruitmentDetail.getRecruitmentCount() + ")")

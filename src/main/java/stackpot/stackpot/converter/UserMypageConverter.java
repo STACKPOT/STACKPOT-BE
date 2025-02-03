@@ -5,10 +5,10 @@ import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
 import stackpot.stackpot.repository.FeedLikeRepository;
 import stackpot.stackpot.repository.PotMemberRepository;
-import stackpot.stackpot.web.dto.PotRecruitmentResponseDto;
-import stackpot.stackpot.web.dto.UserMypageResponseDto;
+import stackpot.stackpot.web.dto.*;
 import stackpot.stackpot.domain.enums.Role;
 
 import java.time.LocalDateTime;
@@ -22,61 +22,57 @@ import static com.mysql.cj.util.TimeUtil.DATE_FORMATTER;
 @Component
 @RequiredArgsConstructor
 public class UserMypageConverter {
-    private final PotMemberRepository potMemberRepository; // 추가
-
-    public UserMypageResponseDto toDto(User user, List<Pot> completedPots, List<Feed> feeds) {
-        return UserMypageResponseDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
-                .role(user.getRole())
-                .interest(user.getInterest())
-                .userTemperature(user.getUserTemperature())
-                .kakaoId(user.getKakaoId())
-                .userIntroduction(user.getUserIntroduction())
-                .completedPots(completedPots.stream().map(this::convertToCompletedPotDto).collect(Collectors.toList()))
-                .feeds(feeds.stream().map(this::convertToFeedDto).collect(Collectors.toList()))
-                .build();
-    }
-
-
-    private UserMypageResponseDto.CompletedPotDto convertToCompletedPotDto(Pot pot) {
-        // 역할별 참여자 수 계산
-        List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
-        Map<String, Integer> roleCountsMap = roleCounts.stream()
-                .collect(Collectors.toMap(
-                        roleCount -> ((Role) roleCount[0]).name(),
-                        roleCount -> ((Long) roleCount[1]).intValue()
-                ));
-
-        return UserMypageResponseDto.CompletedPotDto.builder()
-                .potId(pot.getPotId())
-                .potName(pot.getPotName())
-                .potStartDate(formatDate(pot.getPotStartDate()))
-                .potEndDate(formatDate(pot.getPotEndDate()))
-                .potSummary(pot.getPotSummary())
-                .recruitmentDetails(pot.getRecruitmentDetails().stream()
-                        .map(detail -> PotRecruitmentResponseDto.builder()
-                                .recruitmentRole(detail.getRecruitmentRole().name()) // Enum → String 변환
-                                .recruitmentCount(detail.getRecruitmentCount())
-                                .build())
-                        .collect(Collectors.toList()))
-                .roleCounts(roleCountsMap)
-                .build();
-    }
-
+    private final PotMemberRepository potMemberRepository;
     private final FeedLikeRepository feedLikeRepository;
+    private final FeedConverter feedConverter;
+    private final MyPotConverter myPotConverter;
+    private final PotMemberBadgeRepository potMemberBadgeRepository;
 
-    private UserMypageResponseDto.FeedDto convertToFeedDto(Feed feed) {
-        return UserMypageResponseDto.FeedDto.builder()
-                .feedId(feed.getFeedId())
-                .title(feed.getTitle())
-                .content(feed.getContent())
-                .category(feed.getCategory())
-                .likeCount(feedLikeRepository.countByFeed(feed))
-                .createdAt(formatLocalDateTime(feed.getCreatedAt()))
+
+    public UserMyPageResponseDto toDto(User user, List<Pot> completedPots, List<Feed> feeds) {
+        return UserMyPageResponseDto.builder()
+                .id(user.getId())
+                .nickname(user.getNickname() + getVegetableNameByRole(String.valueOf(user.getRole())))
+                .role(user.getRole())
+                .userTemperature(user.getUserTemperature())
+                .userIntroduction(user.getUserIntroduction())
+                .completedPots(completedPots.stream()
+                        .map(pot -> {
+                            // 기존 로직 활용
+                            List<Object[]> roleCounts = potMemberRepository.findRoleCountsByPotId(pot.getPotId());
+                            Map<String, Integer> roleCountsMap = roleCounts.stream()
+                                    .collect(Collectors.toMap(
+                                            roleCount -> ((Role) roleCount[0]).name(),
+                                            roleCount -> ((Long) roleCount[1]).intValue()
+                                    ));
+
+                            String formattedMembers = roleCountsMap.entrySet().stream()
+                                    .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
+                                    .collect(Collectors.joining(", "));
+
+                            Role userPotRole = pot.getUser().getId().equals(user.getId()) ?
+                                    pot.getUser().getRole() :
+                                    potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                                            .orElse(pot.getUser().getRole());
+
+                            List<BadgeDto> myBadges = potMemberBadgeRepository
+                                    .findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
+                                    .stream()
+                                    .map(potMemberBadge -> new BadgeDto(
+                                            potMemberBadge.getBadge().getBadgeId(),
+                                            potMemberBadge.getBadge().getName()
+                                    ))
+                                    .collect(Collectors.toList());
+
+                            return myPotConverter.toCompletedPotBadgeResponseDto(pot, formattedMembers, userPotRole, myBadges);
+                        })
+                        .collect(Collectors.toList()))
+                .feeds(feeds.stream()
+                        .map(feedConverter::feedDto)
+                        .collect(Collectors.toList()))
                 .build();
     }
+
 
     private String getVegetableNameByRole(String role) {
         Map<String, String> roleToVegetableMap = Map.of(
@@ -88,13 +84,13 @@ public class UserMypageConverter {
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 
-    private String formatDate(java.time.LocalDate date) {
-        return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
-    }
-
-    // 날짜 포맷 적용 메서드
-    private String formatLocalDateTime(LocalDateTime dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일 H:mm");
-        return (dateTime != null) ? dateTime.format(formatter) : "날짜 없음";
+    private String getKoreanRoleName(String role) {
+        Map<String, String> roleToKoreanMap = Map.of(
+                "BACKEND", "백엔드",
+                "FRONTEND", "프론트엔드",
+                "DESIGN", "디자인",
+                "PLANNING", "기획"
+        );
+        return roleToKoreanMap.getOrDefault(role, "알 수 없음");
     }
 }

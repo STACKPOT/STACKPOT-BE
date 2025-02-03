@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.config.security.JwtTokenProvider;
+import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
@@ -21,8 +22,6 @@ import stackpot.stackpot.web.dto.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 @Slf4j
 @Service
@@ -107,7 +106,10 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 관심사
         user.setInterest(request.getInterest());
         //한줄 소개
-        user.setUserIntroduction(user.getRole()+"에 관심있는 "+user.getNickname()+" "+getVegetableNameByRole(String.valueOf(user.getRole()))+"입니다.");
+        user.setUserIntroduction(
+                user.getRole().name().trim() + "에 관심있는 " +
+                        user.getNickname().trim() + getVegetableNameByRole(String.valueOf(user.getRole())).trim() + "입니다."
+        );
     }
 
     @Override
@@ -119,15 +121,7 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // User 정보를 UserResponseDto로 변환
-        return UserResponseDto.Userdto.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
-                .role(user.getRole())
-                .interest(user.getInterest())
-                .userTemperature(user.getUserTemperature())
-                .kakaoId(user.getKakaoId())
-                .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
-                .build();
+        return UserConverter.toDto(user);
     }
 
     @Override
@@ -135,64 +129,37 @@ public class UserCommandServiceImpl implements UserCommandService{
         User user = userRepository.findById(UserId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // User 정보를 UserResponseDto로 변환
-        return UserResponseDto.Userdto.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
-                .role(user.getRole())
-                .interest(user.getInterest())
-                .userTemperature(user.getUserTemperature())
-                .kakaoId(user.getKakaoId())
-                .userIntroduction(user.getUserIntroduction())  // 한 줄 소개 추가
-                .build();
+        return UserConverter.toDto(user);
     }
 
 
-    @Override
-    public UserMypageResponseDto getMypages(String dataType) {
+    public UserMyPageResponseDto getMypages(String dataType) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
+        return getMypageByUser(user.getId(), dataType);
+    }
+
+    public UserMyPageResponseDto getUserMypage(Long userId, String dataType) {
+        return getMypageByUser(userId, dataType);
+    }
+
+    private UserMyPageResponseDto getMypageByUser(Long userId, String dataType) {
         List<Pot> completedPots = List.of();
         List<Feed> feeds = List.of();
 
-        if (dataType == null || dataType.isBlank()) {
-            // 모든 데이터 반환 (pot + feed)
-            completedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "COMPLETED");
-            feeds = feedRepository.findByUser_Id(user.getId());
-        } else if ("pot".equalsIgnoreCase(dataType)) {
-            // 팟 정보만 반환
-            completedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "COMPLETED");
-        } else if ("feed".equalsIgnoreCase(dataType)) {
-            // 피드 정보만 반환
-            feeds = feedRepository.findByUser_Id(user.getId());
-        } else {
-            throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
-        }
-
-        return userMypageConverter.toDto(user, completedPots, feeds);
-    }
-
-    @Transactional
-    public UserMypageResponseDto getUserMypage(Long userId, String dataType) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        List<Pot> completedPots = List.of();
-        List<Feed> feeds = List.of();
-
         if (dataType == null || dataType.isBlank()) {
-            // 모든 데이터 반환 (pot + feed)
             completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
             feeds = feedRepository.findByUser_Id(userId);
         } else if ("pot".equalsIgnoreCase(dataType)) {
-            // 팟 정보만 반환
             completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
         } else if ("feed".equalsIgnoreCase(dataType)) {
-            // 피드 정보만 반환
             feeds = feedRepository.findByUser_Id(userId);
         } else {
             throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
@@ -200,7 +167,6 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         return userMypageConverter.toDto(user, completedPots, feeds);
     }
-
 
 
     @Transactional
@@ -229,15 +195,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 저장 후 DTO로 변환하여 반환
         userRepository.save(user);
 
-        return UserResponseDto.Userdto.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))  // 닉네임 + 역할
-                .role(user.getRole())
-                .interest(user.getInterest())
-                .userTemperature(user.getUserTemperature())
-                .kakaoId(user.getKakaoId())
-                .userIntroduction(user.getUserIntroduction())
-                .build();
+        return UserConverter.toDto(user);
     }
 
     @Override
