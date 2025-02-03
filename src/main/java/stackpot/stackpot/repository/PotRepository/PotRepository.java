@@ -47,4 +47,7 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
     List<Pot> findCompletedPotsByUserId(@Param("userId") Long userId);
 
     List<Pot> findByPotMembers_User_Id(Long potMembersUserId);
+
+    @Query("SELECT p FROM Pot p WHERE p.user.id = :userId AND p.potStatus = 'COMPLETED' AND (:cursor IS NULL OR p.potId < :cursor) ORDER BY p.potId DESC")
+    List<Pot> findCompletedPotsCreatedByUser(@Param("userId") Long userId, @Param("cursor") Long cursor);
 }

@@ -100,11 +100,11 @@ public class PotConverterImpl implements PotConverter {
         return CompletedPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(pot.getPotStartDate())
-                .potEndDate(pot.getPotEndDate())
+                .potStartDate(formatDate(pot.getPotStartDate()))
+                .potEndDate(formatDate(pot.getPotEndDate()))
                 .potLan(pot.getPotLan())
-                .members(formattedMembers)  // ✅ 변환된 "프론트엔드(2), 백엔드(1)" 형식 적용
-                .userPotRole(userPotRole)
+                .members(formattedMembers)  //  변환된 "프론트엔드(2), 백엔드(1)" 형식 적용
+                .userPotRole(getKoreanRoleName(String.valueOf(userPotRole)))
                 .build();
     }
 

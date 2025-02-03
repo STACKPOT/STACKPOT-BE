@@ -445,25 +445,6 @@ public class MyPotServiceImpl implements MyPotService {
         return response;
     }
 
-    private MyPotResponseDTO.OngoingPotsDetail convertToOngoingPotDetail(Pot pot) {
-        List<PotMemberResponseDTO> potMembers = pot.getPotMembers().stream()
-                .map(member -> PotMemberResponseDTO.builder()
-                        .potMemberId(member.getPotMemberId())
-                        .roleName(member.getRoleName())
-                        .appealContent(member.getAppealContent())
-                        .build())
-                .collect(Collectors.toList());
-
-        return MyPotResponseDTO.OngoingPotsDetail.builder()
-                .user(UserResponseDto.Userdto.builder()
-                        .nickname(pot.getUser().getNickname())
-                        .role(pot.getUser().getRole())
-                        .build())
-                .pot(potConverter.toDto(pot, pot.getRecruitmentDetails()))
-                .potMembers(potMembers)
-                .build();
-    }
-
 
     @Override
     public MyPotTaskResponseDto modfiyTask(Long taskId, MyPotTaskRequestDto.create request) {
@@ -580,13 +561,15 @@ public class MyPotServiceImpl implements MyPotService {
 
         String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
 
-        // 현재 사용자의 역할(Role) 결정
-        Role userPotRole;
+        String userPotRole;
         if (pot.getUser().getId().equals(user.getId())) {
-            userPotRole = pot.getUser().getRole(); // Pot 생성자의 Role 반환
+            //  Pot 생성자의 Role 반환 (한글 변환 적용)
+            userPotRole = getKoreanRoleName(pot.getUser().getRole().name());
         } else {
+            // Pot 멤버의 Role 조회 후 변환
             userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
-                    .orElse(pot.getUser().getRole());
+                    .map(role -> getKoreanRoleName(role.name())) //  Optional<Role>을 String으로 변환 후 한글 적용
+                    .orElse(getKoreanRoleName(pot.getUser().getRole().name())); // 기본값: Pot 생성자의 Role
         }
 
         // DTO 반환

@@ -8,6 +8,7 @@ import stackpot.stackpot.web.dto.BadgeDto;
 import stackpot.stackpot.web.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.web.dto.OngoingPotResponseDto;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,6 +16,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Component
 public class MyPotConverterImpl implements MyPotConverter{
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    private String formatDate(java.time.LocalDate date) {
+        return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
+    }
+
 
     public OngoingPotResponseDto convertToOngoingPotResponseDto(Pot pot) {
         // Role별 인원 수 집계
@@ -38,8 +45,8 @@ public class MyPotConverterImpl implements MyPotConverter{
         return CompletedPotBadgeResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(pot.getPotStartDate())
-                .potEndDate(pot.getPotEndDate())
+                .potStartDate(formatDate(pot.getPotStartDate()))
+                .potEndDate(formatDate(pot.getPotEndDate()))
                 .potLan(pot.getPotLan())
                 .members(formattedMembers)  //  "프론트엔드(2), 백엔드(1)" 형식 적용
                 .userPotRole(getKoreanRoleName(String.valueOf(userPotRole)))

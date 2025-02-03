@@ -8,7 +8,7 @@ import stackpot.stackpot.web.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.web.dto.PotDetailResponseDto;
 
 public interface PotDetailConverter {
-    CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, Role userPotRole, String appealContent);
+    CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, String userPotRole, String appealContent);
     PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails);
 }
 

@@ -14,8 +14,8 @@ import java.util.List;
 public class CompletedPotBadgeResponseDto {
     private Long potId; // 팟 ID
     private String potName; // 팟 이름
-    private LocalDate potStartDate; // 시작 날짜
-    private LocalDate potEndDate; // 종료 날짜
+    private String potStartDate; // 시작 날짜
+    private String potEndDate; // 종료 날짜
     private String potLan; // 사용 언어
     private String members;
     private String userPotRole;

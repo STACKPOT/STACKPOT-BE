@@ -16,9 +16,9 @@ public class PotDetailConverterImpl implements PotDetailConverter {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
     @Override
-    public CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, Role userPotRole, String appealContent) {
+    public CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, String userPotRole, String appealContent) {
         // 날짜 포맷 설정
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy. M. d");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
         return CompletedPotDetailResponseDto.builder()
                 .potId(pot.getPotId())
@@ -86,5 +86,15 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 "HYBRID", "혼합"
         );
         return modeOfOperationToKoreanMap.getOrDefault(modeOfOperation, "알 수 없음");
+    }
+
+    private String getKoreanRoleName(String role) {
+        Map<String, String> roleToKoreanMap = Map.of(
+                "BACKEND", "백엔드",
+                "FRONTEND", "프론트엔드",
+                "DESIGN", "디자인",
+                "PLANNING", "기획"
+        );
+        return roleToKoreanMap.getOrDefault(role, "알 수 없음");
     }
 }
