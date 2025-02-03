@@ -19,23 +19,20 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             "FROM Feed f " +
             "WHERE (:category IS NULL OR f.category = :category) " +
             "AND ( " +
-            "     (:sort = 'new' AND f.createdAt < :lastCreatedAt) OR " +
-            "     (:sort = 'old' AND f.createdAt > :lastCreatedAt) OR " +
-            "     (:sort = 'popular' AND (f.likeCount < :lastLikeCount OR (f.likeCount = :lastLikeCount AND f.createdAt < :lastCreatedAt))) " +
+            "     (:sort = 'new' AND f.feedId < :lastFeedId) OR " +
+            "     (:sort = 'old' AND f.feedId > :lastFeedId) OR " +
+            "     (:sort = 'popular' AND f.feedId < :lastFeedId) " + // ✅ feedId 기준으로 페이징
             ") " +
             "ORDER BY " +
             "     (CASE WHEN :sort = 'popular' THEN f.likeCount ELSE 0 END) DESC, " +
-            "     (CASE WHEN :sort = 'popular' THEN f.createdAt ELSE NULL END) DESC, " +
-            "     (CASE WHEN :sort = 'new' THEN f.createdAt ELSE NULL END) DESC, " +
-            "     (CASE WHEN :sort = 'old' THEN f.createdAt ELSE NULL END) ASC, " +
-            "     f.id ASC")
+            "     (CASE WHEN :sort = 'popular' THEN f.feedId ELSE NULL END) DESC, " +  // ✅ 같은 likeCount면 ID 큰 순서로 정렬
+            "     (CASE WHEN :sort = 'new' THEN f.feedId ELSE NULL END) DESC, " +
+            "     (CASE WHEN :sort = 'old' THEN f.feedId ELSE NULL END) ASC")  // ✅ `old` 정렬을 ASC로 변경
     List<Feed> findFeeds(
             @Param("category") Category category,
             @Param("sort") String sort,
-            @Param("lastCreatedAt") LocalDateTime lastCreatedAt,
-            @Param("lastLikeCount") Integer lastLikeCount,
+            @Param("lastFeedId") Integer lastFeedId, // ✅ Integer로 변경
             Pageable pageable);
-
     List<Feed> findByUser_Id(Long userId);
     Page<Feed> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String titleKeyword, String contentKeyword, Pageable pageable);
 
