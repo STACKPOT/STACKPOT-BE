@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.domain.mapping.Task;
 import stackpot.stackpot.domain.mapping.UserTodo;
-import stackpot.stackpot.repository.BadgeRepository.BadgeRepository;
 import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
 import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
@@ -40,7 +38,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 @Slf4j
@@ -68,12 +65,12 @@ public class MyPotServiceImpl implements MyPotService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        //  내가 PotMember로 참여 중이고 상태가 'ONGOING'인 팟 조회 (내가 만든 팟 제외)
-        List<Pot> ongoingMemberPots = potRepository.findByPotMembers_User_Id(user.getId());
+        // 내가 PotMember로 참여 중이고 상태가 'ONGOING'인 팟 조회 (내가 만든 팟 제외)
+        List<Pot> ongoingMemberPots = potRepository.findByPotMembers_UserIdAndPotStatusOrderByCreatedAtDesc(user.getId(), "ONGOING");
 
-        //  해당 팟 리스트를 DTO로 변환하여 반환
+        // DTO 변환 시 userId 추가
         return ongoingMemberPots.stream()
-                .map(myPotConverter::convertToOngoingPotResponseDto)
+                .map(pot -> myPotConverter.convertToOngoingPotResponseDto(pot, user.getId()))
                 .collect(Collectors.toList());
     }
 
@@ -85,12 +82,12 @@ public class MyPotServiceImpl implements MyPotService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        //  내가 생성한 ONGOING 상태의 팟 조회
+        // 내가 생성한 ONGOING 상태의 팟 조회
         List<Pot> ongoingOwnedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "ONGOING");
 
-        //  해당 팟 리스트를 DTO로 변환하여 반환
+        // DTO 변환 시 userId 추가
         return ongoingOwnedPots.stream()
-                .map(myPotConverter::convertToOngoingPotResponseDto)
+                .map(pot -> myPotConverter.convertToOngoingPotResponseDto(pot, user.getId()))
                 .collect(Collectors.toList());
     }
 
@@ -122,7 +119,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .pot(pot)
                 .user(user)
                 .content(requestDTO.getContent())
-                .status(requestDTO.getStatus())
+                .status(requestDTO.getStatus() != null ? requestDTO.getStatus() : TodoStatus.NOT_STARTED)
                 .build();
 
         myPotRepository.save(userTodo);
@@ -130,7 +127,7 @@ public class MyPotServiceImpl implements MyPotService {
         // 특정 팟의 모든 To-Do 조회 (업데이트된 리스트)
         List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
 
-        // 📌 투두를 User 기준으로 그룹핑
+        //  투두를 User 기준으로 그룹핑
         Map<User, List<UserTodo>> groupedByUser = potTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
@@ -272,6 +269,7 @@ public class MyPotServiceImpl implements MyPotService {
 
         for (MyPotTodoUpdateRequestDTO request : requestList) {
             if (request.getTodoId() != null && existingTodoMap.containsKey(request.getTodoId())) {
+                // 기존 투두 수정 (status 변경 없이 유지)
                 UserTodo existingTodo = existingTodoMap.get(request.getTodoId());
 
                 if (!existingTodo.getUser().equals(user)) {
@@ -279,8 +277,10 @@ public class MyPotServiceImpl implements MyPotService {
                 }
 
                 existingTodo.setContent(request.getContent());
+                // 기존 상태 유지 (status 변경 없음)
                 updatedOrNewTodos.add(existingTodo);
             } else {
+                // 새로운 투두 생성
                 UserTodo newTodo = UserTodo.builder()
                         .user(user)
                         .pot(pot)
@@ -291,12 +291,12 @@ public class MyPotServiceImpl implements MyPotService {
             }
         }
 
+        // 삭제할 기존 투두 (삭제 요청이 없는 것만 남김)
         List<UserTodo> todosToDelete = existingTodos.stream()
                 .filter(todo -> !requestedTodoIds.contains(todo.getTodoId()) && todo.getUser().equals(user)) // 본인만 삭제 가능
                 .collect(Collectors.toList());
 
         myPotRepository.saveAll(updatedOrNewTodos);
-
         myPotRepository.deleteAll(todosToDelete);
 
         Map<User, List<UserTodo>> groupedByUser = updatedOrNewTodos.stream()
@@ -306,17 +306,17 @@ public class MyPotServiceImpl implements MyPotService {
                 .map(entry -> {
                     // 해당 유저의 pot에서 potMember 역할 찾기
                     String roleName = getUserRoleInPot(entry.getKey(), pot);
-                    List<UserTodo> userTodos = groupedByUser.getOrDefault(entry, List.of());
+                    List<UserTodo> userTodos = groupedByUser.getOrDefault(entry.getKey(), List.of());
 
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
                             .userId(entry.getKey().getId())
                             .todoCount(userTodos.size())
-                            .todos(entry.getValue().stream()
+                            .todos(userTodos.stream()
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
                                             .content(todo.getContent())
-                                            .status(todo.getStatus())
+                                            .status(todo.getStatus()) // 기존 상태 유지
                                             .build())
                                     .collect(Collectors.toList()))
                             .build();
@@ -584,15 +584,12 @@ public class MyPotServiceImpl implements MyPotService {
         String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
 
         String userPotRole;
-        if (pot.getUser().getId().equals(user.getId())) {
-            //  Pot 생성자의 Role 반환 (한글 변환 적용)
-            userPotRole = getKoreanRoleName(pot.getUser().getRole().name());
-        } else {
-            // Pot 멤버의 Role 조회 후 변환
-            userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
-                    .map(role -> getKoreanRoleName(role.name())) //  Optional<Role>을 String으로 변환 후 한글 적용
-                    .orElse(getKoreanRoleName(pot.getUser().getRole().name())); // 기본값: Pot 생성자의 Role
-        }
+
+        // Pot 멤버의 Role 조회 후 변환
+        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                .map(role -> getKoreanRoleName(role.name())) //  Optional<Role>을 String으로 변환 후 한글 적용
+                .orElse(getKoreanRoleName(pot.getUser().getRole().name())); // 기본값: Pot 생성자의 Role
+
 
         // DTO 반환
         return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
@@ -629,10 +626,8 @@ public class MyPotServiceImpl implements MyPotService {
                             .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
                             .collect(Collectors.joining(", "));
 
-                    //  현재 사용자의 역할(Role) 결정
-                    Role userPotRole = pot.getUser().getId().equals(user.getId()) ?
-                            pot.getUser().getRole() :
-                            potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId()).orElse(pot.getUser().getRole());
+                    Role userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                            .orElse(Role.FRONTEND);
 
                     //  사용자의 뱃지 조회 (뱃지가 없으면 빈 리스트 반환)
                     List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
@@ -672,10 +667,7 @@ public class MyPotServiceImpl implements MyPotService {
                             .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
                             .collect(Collectors.joining(", "));
 
-                    //  현재 사용자의 역할(Role) 결정
-                    Role userPotRole = pot.getUser().getId().equals(userId) ?
-                            pot.getUser().getRole() :
-                            potMemberRepository.findRoleByUserId(pot.getPotId(), userId).orElse(pot.getUser().getRole());
+                    Optional<Role> userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), userId);
 
                     //  사용자의 뱃지 조회 (뱃지가 없으면 빈 리스트 반환)
                     List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), userId)
@@ -687,9 +679,28 @@ public class MyPotServiceImpl implements MyPotService {
                             .collect(Collectors.toList());
 
                     //  Pot -> CompletedPotBadgeResponseDto 변환
-                    return myPotConverter.toCompletedPotBadgeResponseDto(pot, formattedMembers, userPotRole, myBadges);
+                    return myPotConverter.toCompletedPotBadgeResponseDto(pot, formattedMembers, userPotRole.orElse(null), myBadges);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public MyPotTaskStatusResponseDto updateTaskStatus(Long potId, Long taskId, TaskboardStatus status) {
+        Taskboard taskboard = taskboardRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskId));
+
+         //Taskboard가 해당 Pot에 속해 있는지 확인
+        if (!taskboard.getPot().getPotId().equals(potId)) {
+            throw new IllegalArgumentException("The taskboard does not belong to the specified pot.");
+        }
+
+        // 입력받은 status 값으로 업데이트
+        taskboard.setStatus(status);
+
+        // 변경 사항 저장
+        taskboardRepository.save(taskboard);
+
+        return taskboardConverter.toTaskStatusDto(taskboard, status);
     }
 
     private String getKoreanRoleName(String role) {

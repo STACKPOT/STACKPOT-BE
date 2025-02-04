@@ -97,6 +97,13 @@ public class PotConverterImpl implements PotConverter {
 
     @Override
     public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, String formattedMembers, Role userPotRole) {
+        // Role별 인원 수 집계
+        Map<String, Integer> roleCountMap = pot.getPotMembers().stream()
+                .collect(Collectors.groupingBy(
+                        member -> member.getRoleName().name(), // Role Enum을 문자열로 변환
+                        Collectors.reducing(0, e -> 1, Integer::sum) // 각 역할의 개수를 세기
+                ));
+
         return CompletedPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
@@ -105,6 +112,7 @@ public class PotConverterImpl implements PotConverter {
                 .potLan(pot.getPotLan())
                 .members(formattedMembers)  //  변환된 "프론트엔드(2), 백엔드(1)" 형식 적용
                 .userPotRole(getKoreanRoleName(String.valueOf(userPotRole)))
+                .memberCounts(roleCountMap)
                 .build();
     }
 

@@ -3,6 +3,7 @@ package stackpot.stackpot.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import stackpot.stackpot.domain.enums.TaskboardStatus;
+import stackpot.stackpot.domain.mapping.Task;
 import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
@@ -31,5 +32,7 @@ public interface MyPotService {
     List<CompletedPotBadgeResponseDto> getCompletedPotsWithBadges();
     List<CompletedPotBadgeResponseDto> getUserCompletedPotsWithBadges(Long userId);
     List<OngoingPotResponseDto> getMyOngoingPots();
+
+    MyPotTaskStatusResponseDto updateTaskStatus(Long potId, Long taskId, TaskboardStatus status);
 
 }
