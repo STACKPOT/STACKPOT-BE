@@ -34,7 +34,7 @@ public class MyPotController {
     private final PotRepository potRepository;
 
     // 사용자가 만든 진행 중인 팟 조회
-    @Operation(summary = "나의 팟 조회 API", description = "'나의 팟 첫 페이지'의 정보를 리턴합니다. 사용자가 생성했거나, 참여하고 있는 진행 중인 팟들을 조회합니다.")
+    @Operation(summary = "나의 팟 조회 API", description = "'나의 팟 첫 페이지'의 정보를 리턴합니다. 사용자가 생성했거나, 참여하고 있는 진행 중인 팟들을 조회합니다. isOwner를 통해 생성자인지 아닌지를 판단할 수 있습니다. 팟 생성일 기준 최신순으로 정렬합니다.")
     @GetMapping("")
     public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyPots() {
         List<OngoingPotResponseDto> response = myPotService.getMyPots();

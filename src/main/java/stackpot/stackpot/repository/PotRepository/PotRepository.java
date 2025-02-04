@@ -23,7 +23,7 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
 
     Page<Pot> findAll(Pageable pageable);
 
-    List<Pot> findByPotMembers_UserIdAndPotStatus(Long userId, String status);
+    List<Pot> findByPotMembers_UserIdAndPotStatusOrderByCreatedAtDesc(Long userId, String status);
 
     List<Pot> findByUserIdAndPotStatus(Long userId, String status);
 

@@ -66,7 +66,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
         // 내가 PotMember로 참여 중이고 상태가 'ONGOING'인 팟 조회 (내가 만든 팟 제외)
-        List<Pot> ongoingMemberPots = potRepository.findByPotMembers_UserIdAndPotStatus(user.getId(), "ONGOING");
+        List<Pot> ongoingMemberPots = potRepository.findByPotMembers_UserIdAndPotStatusOrderByCreatedAtDesc(user.getId(), "ONGOING");
 
         // DTO 변환 시 userId 추가
         return ongoingMemberPots.stream()
