@@ -15,7 +15,7 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.repository.BlacklistRepository;
+//import stackpot.stackpot.repository.BlacklistRepository;
 //import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.UserCommandService;
@@ -34,7 +34,7 @@ public class UserController {
     private final KakaoService kakaoService;
     private final JwtTokenProvider jwtTokenProvider;
 //    private final RefreshTokenRepository refreshTokenRepository;
-    private final BlacklistRepository blacklistRepository;
+//    private final BlacklistRepository blacklistRepository;
 
     @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
