@@ -7,7 +7,6 @@ import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
-import java.util.Map;
 
 public interface PotConverter {
     Pot toEntity(PotRequestDto dto,User user);

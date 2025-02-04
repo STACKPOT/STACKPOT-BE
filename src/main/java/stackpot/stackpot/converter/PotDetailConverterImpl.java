@@ -65,6 +65,39 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .build();
     }
 
+    @Override
+    public AppliedPotResponseDto toAppliedPotResponseDto(User user, Pot pot, String recruitmentDetails) {
+        LocalDate today = LocalDate.now();
+        LocalDate deadline = pot.getRecruitmentDeadline();
+
+        long daysDiff = ChronoUnit.DAYS.between(today, deadline);
+
+        String dDay;
+        if (daysDiff == 0) {
+            dDay = "D-Day";
+        } else if (daysDiff > 0) {
+            dDay = "D-" + daysDiff;
+        } else {
+            dDay = "D+" + Math.abs(daysDiff);
+        }
+
+        return AppliedPotResponseDto.builder()
+                .userId(user.getId())
+                .userRole(String.valueOf(user.getRole()))
+                .userNickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
+                .potId(pot.getPotId())
+                .potStatus(getPotStatus(pot.getPotStatus()))
+                .potName(pot.getPotName())
+                .potStartDate(formatDate(pot.getPotStartDate()))
+                .potDuration(pot.getPotDuration())
+                .potLan(pot.getPotLan())
+                .potModeOfOperation(getKoreanModeOfOperation(String.valueOf(pot.getPotModeOfOperation())))
+                .potContent(pot.getPotContent())
+                .dDay(dDay)
+                .recruitmentDetails(recruitmentDetails)
+                .build();
+    }
+
     private String getVegetableNameByRole(String role) {
         Map<String, String> roleToVegetableMap = Map.of(
                 "BACKEND", " 양파",
@@ -73,6 +106,12 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 "PLANNING", " 당근"
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
+    }
+
+    private String getPotStatus(String  status) {
+        if(!status.equals("RECRUITING"))
+            return "모집 완료";
+        else return "모집 중";
     }
 
     private String formatDate(java.time.LocalDate date) {

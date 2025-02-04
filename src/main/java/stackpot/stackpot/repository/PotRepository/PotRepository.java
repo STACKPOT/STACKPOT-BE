@@ -23,7 +23,7 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
 
     Page<Pot> findAll(Pageable pageable);
 
-    List<Pot> findByPotMembers_UserIdAndPotStatus(Long userId, String status);
+    List<Pot> findByPotMembers_UserIdAndPotStatusOrderByCreatedAtDesc(Long userId, String status);
 
     List<Pot> findByUserIdAndPotStatus(Long userId, String status);
 
@@ -41,9 +41,8 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
             "ORDER BY p.potId DESC")
     List<Pot> findCompletedPotsByCursor(@Param("userId") Long userId, @Param("cursor") Long cursor);
 
-    @Query("SELECT DISTINCT p FROM Pot p " +
-            "JOIN PotMember pm ON pm.pot = p " +
-            "WHERE p.potStatus = 'COMPLETED' AND pm.user.id = :userId")
+    @Query("SELECT p FROM Pot p WHERE p.potStatus = 'COMPLETED' AND EXISTS (" +
+            "SELECT pm FROM PotMember pm WHERE pm.pot = p AND pm.user.id = :userId)")
     List<Pot> findCompletedPotsByUserId(@Param("userId") Long userId);
 
     List<Pot> findByPotMembers_User_Id(Long potMembersUserId);
