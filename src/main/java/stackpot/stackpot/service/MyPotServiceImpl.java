@@ -269,6 +269,7 @@ public class MyPotServiceImpl implements MyPotService {
 
         for (MyPotTodoUpdateRequestDTO request : requestList) {
             if (request.getTodoId() != null && existingTodoMap.containsKey(request.getTodoId())) {
+                // 기존 투두 수정 (status 변경 없이 유지)
                 UserTodo existingTodo = existingTodoMap.get(request.getTodoId());
 
                 if (!existingTodo.getUser().equals(user)) {
@@ -276,8 +277,10 @@ public class MyPotServiceImpl implements MyPotService {
                 }
 
                 existingTodo.setContent(request.getContent());
+                // 기존 상태 유지 (status 변경 없음)
                 updatedOrNewTodos.add(existingTodo);
             } else {
+                // 새로운 투두 생성
                 UserTodo newTodo = UserTodo.builder()
                         .user(user)
                         .pot(pot)
@@ -288,12 +291,12 @@ public class MyPotServiceImpl implements MyPotService {
             }
         }
 
+        // 삭제할 기존 투두 (삭제 요청이 없는 것만 남김)
         List<UserTodo> todosToDelete = existingTodos.stream()
                 .filter(todo -> !requestedTodoIds.contains(todo.getTodoId()) && todo.getUser().equals(user)) // 본인만 삭제 가능
                 .collect(Collectors.toList());
 
         myPotRepository.saveAll(updatedOrNewTodos);
-
         myPotRepository.deleteAll(todosToDelete);
 
         Map<User, List<UserTodo>> groupedByUser = updatedOrNewTodos.stream()
@@ -303,17 +306,17 @@ public class MyPotServiceImpl implements MyPotService {
                 .map(entry -> {
                     // 해당 유저의 pot에서 potMember 역할 찾기
                     String roleName = getUserRoleInPot(entry.getKey(), pot);
-                    List<UserTodo> userTodos = groupedByUser.getOrDefault(entry, List.of());
+                    List<UserTodo> userTodos = groupedByUser.getOrDefault(entry.getKey(), List.of());
 
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(entry.getKey().getNickname() + getVegetableNameByRole(roleName))
                             .userId(entry.getKey().getId())
                             .todoCount(userTodos.size())
-                            .todos(entry.getValue().stream()
+                            .todos(userTodos.stream()
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
                                             .content(todo.getContent())
-                                            .status(todo.getStatus() != null ? todo.getStatus() : TodoStatus.NOT_STARTED)
+                                            .status(todo.getStatus()) // 기존 상태 유지
                                             .build())
                                     .collect(Collectors.toList()))
                             .build();

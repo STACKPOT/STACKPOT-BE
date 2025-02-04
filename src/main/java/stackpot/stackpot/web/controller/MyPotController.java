@@ -78,7 +78,7 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    // 팟에서의 투두 생성
+    /*// 팟에서의 투두 생성
     @Operation(
             summary = "Todo 생성 API",
             description = """
@@ -93,7 +93,7 @@ public class MyPotController {
 
         List<MyPotTodoResponseDTO> response = myPotService.postTodo(potId, request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
+    }*/
 
     // 팟에서의 투두 조회
     @Operation(summary = "Todo 조회 API",
@@ -129,13 +129,14 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Todo 수정 API",
-            description = "사용자의 모든 투두 내용을 한 번에 수정할 수 있는 API입니다.\n\n" +
-                    "이 API는 리스트를 통한 생성 방식과 유사하지만, 기존에 생성된 투두의 경우 " +
+    @Operation(summary = "Todo 생성 및 수정 API",
+            description = "사용자의 모든 투두 내용을 한 번에 수정할 수 있는 API입니다. 이 API는 리스트를 통한 생성 방식과 유사하지만, 기존에 생성된 투두의 경우 " +
                     "status 값을 유지해야 하므로 todoId를 함께 보내야 합니다.\n\n" +
-                    "- **기존 투두 수정**: `todoId`를 포함하여 요청해야 합니다.\n" +
-                    "- **새로운 투두 생성**: `todoId`를 `null`로 보내면 새롭게 생성됩니다.\n" +
-                    "- **status 필드**: `null`로 보내면 기본값인 `NOT_STARTED`로 설정됩니다.\n" +
+                    "- **기존 투두 수정**: `todoId`를 포함하여 요청해야 합니다. content만 수정 가능합니다.\n" +
+                    "- **새로운 투두 생성**: `todoId`를 `null` 또는 `기존에 없었던` todoId로 보내면 새롭게 생성됩니다.\n" +
+                    "- **status 필드** : Null, 아무값 처리 완료\n" +
+                    "   - 기존 투두 : `기존의 값` 유지 \n" +
+                    "   - 새로운 투두 : `NOT_STARTED`\n"+
                     "- **Example**: \"todoId\" : null")
     @PatchMapping("/{pot_id}/todos")
     public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> updateMyTodos(
