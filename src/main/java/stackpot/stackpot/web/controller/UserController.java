@@ -12,8 +12,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.*;
@@ -29,6 +32,10 @@ public class UserController {
 
     private final UserCommandService userCommandService;
     private final KakaoService kakaoService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistRepository blacklistRepository;
+
     @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
     public ResponseEntity<String> testEndpoint(Authentication authentication) {
@@ -69,6 +76,26 @@ public class UserController {
 
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        String accessToken = token.replace("Bearer ", "");
+
+        // Access Token에서 User ID 추출
+        String userEmail = jwtTokenProvider.getEmailFromToken(accessToken);
+
+        // 1. Refresh Token 삭제 (Redis에서 삭제)
+        refreshTokenRepository.deleteById(accessToken);
+
+        // 2. Access Token 만료 시간 가져오기
+        long expiration = jwtTokenProvider.getExpiration(accessToken);
+
+        // 3. Access Token을 블랙리스트에 추가
+        blacklistRepository.addToBlacklist(accessToken, expiration);
+
+        return ResponseEntity.ok("로그아웃 성공");
+    }
+
 
     @Operation(summary = "나의 정보 조회 API", description = "토큰을 통해 '설정 페이지'와 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 자신의 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
     @GetMapping("")

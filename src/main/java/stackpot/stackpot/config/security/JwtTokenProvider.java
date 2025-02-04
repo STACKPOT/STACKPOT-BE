@@ -53,7 +53,7 @@ public class JwtTokenProvider {
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
 
-        RefreshToken redis = new RefreshToken(refreshToken, user.getEmail());
+        RefreshToken redis = new RefreshToken(accessToken, refreshToken);
         refreshTokenRepository.save(redis);
 
         return TokenServiceResponse.of(accessToken, refreshToken);
@@ -103,5 +103,20 @@ public class JwtTokenProvider {
         String email = getEmailFromToken(token);
         UserDetails userDetails = userDetailsService.loadUserByUsername(email); // 이메일로 사용자 로드
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
+    public long getExpiration(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getExpiration().getTime() - System.currentTimeMillis();
+        } catch (ExpiredJwtException e) {
+            return 0; // 이미 만료된 경우 0 반환
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid JWT Token");
+        }
     }
 }

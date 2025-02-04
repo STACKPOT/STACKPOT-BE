@@ -15,7 +15,7 @@ import stackpot.stackpot.web.dto.TokenServiceResponse;
 public class TokenController {
 
 private final TokenService tokenService;
-    @PostMapping("/token")
+    @PostMapping("/reissue")
     public ResponseEntity<ApiResponse<TokenServiceResponse>> getToken(@RequestBody RefreshToken refreshToken) {
         return ResponseEntity.ok(ApiResponse.onSuccess(tokenService.generateAccessToken(refreshToken)));
     }
