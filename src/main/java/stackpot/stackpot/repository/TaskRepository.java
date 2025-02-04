@@ -11,5 +11,6 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByTaskboard(Taskboard taskboard);
+    void deleteByTaskboard(Taskboard taskboard);
 
 }

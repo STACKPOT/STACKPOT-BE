@@ -31,17 +31,19 @@ public class TaskboardConverterImpl implements TaskboardConverter{
                 .build();
     }
     @Override
-    public MyPotTaskResponseDto toDTO(Taskboard taskboard) {
+    public MyPotTaskResponseDto toDTO(Taskboard taskboard, List<PotMember> participants) {
         return MyPotTaskResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())
+                .title(taskboard.getTitle())
+                .creatorUserId(taskboard.getUser().getUserId())
                 .creatorNickname(taskboard.getUser().getNickname()+getVegetableNameByRole(String.valueOf(taskboard.getUser().getRole())))
                 .creatorRole(taskboard.getUser().getRole())
                 .deadLine(formatDate(taskboard.getDeadLine()))
                 .dDay(dDayCount(taskboard.getDeadLine()))
-                .title(taskboard.getTitle())
                 .description(taskboard.getDescription())
                 .status(taskboard.getStatus())
                 .potId(taskboard.getPot().getPotId())
+                .participants(toParticipantDtoList(participants)) // 참여자 리스트 변환
                 .build();
     }
     @Override
@@ -56,13 +58,13 @@ public class TaskboardConverterImpl implements TaskboardConverter{
 
         return MyPotTaskResponseDto.Participant.builder()
                 .potMemberId(participant.getPotMemberId())
+                .userId(participant.getUser().getId())
                 .nickName(participant.getUser().getNickname() + getVegetableNameByRole(participant.getRoleName().toString()))
                 .role(participant.getRoleName())
                 .build();
     }
 
     public MyPotTaskPreViewResponseDto toDto(Taskboard taskboard, List<PotMember> participants) {
-
         return MyPotTaskPreViewResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())
                 .title(taskboard.getTitle())
