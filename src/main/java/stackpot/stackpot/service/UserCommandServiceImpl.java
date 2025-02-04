@@ -15,7 +15,7 @@ import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.repository.BlacklistRepository;
+//import stackpot.stackpot.repository.BlacklistRepository;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 //import stackpot.stackpot.repository.RefreshTokenRepository;
@@ -38,7 +38,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     private final PotSummarizationService potSummarizationService;
     private final JwtTokenProvider jwtTokenProvider;
 //    private final RefreshTokenRepository refreshTokenRepository;
-    private final BlacklistRepository blacklistRepository;
+//    private final BlacklistRepository blacklistRepository;
 
     @Override
     @Transactional
