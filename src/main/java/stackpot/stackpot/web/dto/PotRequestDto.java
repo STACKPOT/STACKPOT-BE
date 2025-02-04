@@ -18,7 +18,7 @@ public class PotRequestDto {
 
     private LocalDate potStartDate;
 
-//    private LocalDate potEndDate;
+    private LocalDate potEndDate;
 
     @NotBlank(message = "예상 기간은 필수입니다.")
     private String potDuration;
@@ -28,12 +28,13 @@ public class PotRequestDto {
 
     private String potContent;
 
-//    private String potStatus;
+    @NotBlank(message = "팟 상태는 필수입니다.")
+    private String potStatus;
 
     private String potModeOfOperation;
-//
+
     private String potSummary;
-//
+
     private LocalDate recruitmentDeadline;
 
     private List<PotRecruitmentRequestDto> recruitmentDetails;

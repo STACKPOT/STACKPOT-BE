@@ -14,8 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
+import stackpot.stackpot.repository.BlacklistRepository;
 
 @EnableWebSecurity
 @Configuration
@@ -35,8 +34,7 @@ public class SecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-//                .cors().and()
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors().and()
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -51,15 +49,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173",
-                "http://localhost:8080",
-                "https://stackpot.co.kr",
-                "https://www.stackpot.co.kr",
-                "https://api.stackpot.co.kr"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")); // OPTIONS 추가
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedOrigin("http://localhost:8080");
+        configuration.addAllowedOrigin("https://stackpot.co.kr");
+        configuration.addAllowedOrigin("https://www.stackpot.co.kr");
+        configuration.addAllowedOrigin("https://api.stackpot.co.kr");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true); // 인증 정보 포함 허용
         configuration.setMaxAge(3600L); // CORS 요청 캐싱 시간 (1시간)
 
@@ -67,6 +63,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 //    @Bean
 //    public PasswordEncoder passwordEncoder() {
 //        return new BCryptPasswordEncoder();

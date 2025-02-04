@@ -92,15 +92,6 @@ public class PotController {
         CursorPageResponse<CompletedPotResponseDto> response = potService.getMyCompletedPots(cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-    @Operation(summary = "특정 사용자의 끓인 팟 상세 조회")
-    @GetMapping("/{pot_id}/users/{user_id}")
-    public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
-            @PathVariable("pot_id") Long potId,
-            @PathVariable("user_id") Long userId) {
-
-        CompletedPotDetailResponseDto response = potService.getCompletedPotDetail(potId, userId);
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
 
     //-------------------
 
@@ -122,12 +113,15 @@ public class PotController {
         }
 
         Role roleEnum = null;
+//        if (recruitmentRole != null && !recruitmentRole.isEmpty()) {
+//            try {
+//                roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
+//            } catch (IllegalArgumentException e) {
+//                throw new RecruitmentHandler(ErrorStatus.INVALID_ROLE);
+//            }
+//        }
         if (recruitmentRole != null && !recruitmentRole.isEmpty()) {
-            try {
-                roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new RecruitmentHandler(ErrorStatus.INVALID_ROLE);
-            }
+            roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
         }
 
         int adjustedPage = page - 1;
