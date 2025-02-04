@@ -20,5 +20,6 @@ public class CompletedPotResponseDto {
     private String potLan; // 사용 언어
     private String members;
     private String userPotRole;
+    private Map<String, Integer> memberCounts;
 }
 
