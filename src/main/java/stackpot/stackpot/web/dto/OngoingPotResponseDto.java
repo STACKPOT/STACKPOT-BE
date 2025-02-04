@@ -16,6 +16,7 @@ public class OngoingPotResponseDto {
     private Long potId;
     private String potName;
     private String potStatus;
+    private Boolean isOwner;
     private Map<String, Integer> members;
 
 }

@@ -3,6 +3,7 @@ package stackpot.stackpot.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.BadgeDto;
 import stackpot.stackpot.web.dto.CompletedPotBadgeResponseDto;
@@ -23,7 +24,7 @@ public class MyPotConverterImpl implements MyPotConverter{
     }
 
 
-    public OngoingPotResponseDto convertToOngoingPotResponseDto(Pot pot) {
+    public OngoingPotResponseDto convertToOngoingPotResponseDto(Pot pot, Long userId) {
         // Role별 인원 수 집계
         Map<String, Integer> roleCountMap = pot.getPotMembers().stream()
                 .collect(Collectors.groupingBy(
@@ -35,8 +36,15 @@ public class MyPotConverterImpl implements MyPotConverter{
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStatus(pot.getPotStatus())  // 진행 중인 팟 상태
-                .members(roleCountMap)  // 역할 개수 Map 적용
+                .members(roleCountMap)// 역할 개수 Map 적용
+                .isOwner(isOwnerCheck(userId, pot))
                 .build();
+    }
+
+    private Boolean isOwnerCheck(Long userId, Pot pot) {
+        if(userId == pot.getUser().getId())
+            return true;
+        else return false;
     }
 
     @Override
