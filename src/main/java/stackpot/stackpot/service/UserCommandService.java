@@ -19,4 +19,6 @@ public interface UserCommandService {
     UserResponseDto.Userdto updateUserProfile(UserUpdateRequestDto requestDto);
 
     String createNickname();
+
+    void deleteUser(String accessToken);
 }

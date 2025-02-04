@@ -24,7 +24,8 @@ public class FeedResponseDto {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class FeedDto {
-        private Long id;
+        private Long feedId;
+        private Long writerId;
         private String writer;
         private Role writerRole;
 //        private Category category;
