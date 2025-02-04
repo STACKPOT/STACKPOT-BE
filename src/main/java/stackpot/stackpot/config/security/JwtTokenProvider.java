@@ -54,7 +54,7 @@ public class JwtTokenProvider {
                 .compact();
 
         RefreshToken redis = new RefreshToken(accessToken, refreshToken);
-        refreshTokenRepository.save(redis);
+//        refreshTokenRepository.save(redis);
 
         return TokenServiceResponse.of(accessToken, refreshToken);
     }
