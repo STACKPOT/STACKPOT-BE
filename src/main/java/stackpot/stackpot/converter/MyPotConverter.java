@@ -12,4 +12,5 @@ import java.util.List;
 public interface MyPotConverter {
     OngoingPotResponseDto convertToOngoingPotResponseDto(Pot pot, Long userId);
     CompletedPotBadgeResponseDto toCompletedPotBadgeResponseDto(Pot pot, String formattedMembers, Role userPotRole, List<BadgeDto> myBadges);
+    RecruitingPotResponseDto convertToRecruitingPotResponseDto(Pot pot, Long userId);
 }

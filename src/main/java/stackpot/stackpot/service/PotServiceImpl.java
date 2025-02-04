@@ -534,7 +534,7 @@ public class PotServiceImpl implements PotService {
     }
 
     @Override
-    public List<PotDetailResponseDto> getRecruitingPots() {
+    public List<RecruitingPotResponseDto> getRecruitingPots() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -544,17 +544,9 @@ public class PotServiceImpl implements PotService {
         //  사용자가 만든 팟 중 'RECRUITING' 상태인 팟만 조회
         List<Pot> myRecruitingPots = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING");
 
-        //  Pot -> PotDetailResponseDto 변환
+        // DTO 변환을 리스트에 적용
         return myRecruitingPots.stream()
-                .map(pot -> {
-                    //  모집 정보 변환 ("FRONTEND(1), BACKEND(3)")
-                    String recruitmentDetails = pot.getRecruitmentDetails().stream()
-                            .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name()) + "(" + recruitmentDetail.getRecruitmentCount() + ")")
-                            .collect(Collectors.joining(", "));
-
-                    //  Pot -> DTO 변환
-                    return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails);
-                })
+                .map(pot -> myPotConverter.convertToRecruitingPotResponseDto(pot, user.getId()))
                 .collect(Collectors.toList());
     }
 

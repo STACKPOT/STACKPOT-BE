@@ -231,8 +231,8 @@ public class PotController {
 
     @Operation(summary = "내가 만든 팟 - 모집 중인 팟 조회 API", description = "내가 만든 팟의 모집 중인 팟을 조회합니다.")
     @GetMapping("/recruiting")
-    public ResponseEntity<ApiResponse<List<PotDetailResponseDto>>> getRecruitingPots() {
-        List<PotDetailResponseDto> response = potService.getRecruitingPots();
+    public ResponseEntity<ApiResponse<List<RecruitingPotResponseDto>>> getRecruitingPots() {
+        List<RecruitingPotResponseDto> response = potService.getRecruitingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }

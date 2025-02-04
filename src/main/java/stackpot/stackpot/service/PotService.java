@@ -39,5 +39,5 @@ public interface PotService {
     // 팟 다 끓이기
     PotResponseDto patchPotWithRecruitments(Long potId, PotRequestDto requestDto);
 
-    List<PotDetailResponseDto> getRecruitingPots();
+    List<RecruitingPotResponseDto> getRecruitingPots();
 }
