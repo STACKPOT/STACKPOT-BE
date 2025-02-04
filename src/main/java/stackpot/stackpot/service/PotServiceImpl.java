@@ -318,7 +318,7 @@ public class PotServiceImpl implements PotService {
 
 
     @Override
-    public List<PotDetailResponseDto> getAppliedPots() {
+    public List<AppliedPotResponseDto> getAppliedPots() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -339,7 +339,7 @@ public class PotServiceImpl implements PotService {
                                     + "(" + recruitmentDetail.getRecruitmentCount() + ")")
                             .collect(Collectors.joining(", "));
 
-                    return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails);
+                    return potDetailConverter.toAppliedPotResponseDto(pot.getUser(), pot, recruitmentDetails);
                 })
                 .collect(Collectors.toList());
     }

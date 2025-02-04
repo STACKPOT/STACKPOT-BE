@@ -29,7 +29,7 @@ public interface PotService {
     List<LikedApplicantResponseDTO> getLikedApplicants(Long potId);
 
     // 사용자가 지원한 팟 목록 조회
-    List<PotDetailResponseDto> getAppliedPots();
+    List<AppliedPotResponseDto> getAppliedPots();
 
 
     PotSummaryResponseDTO getPotSummary(Long potId);
