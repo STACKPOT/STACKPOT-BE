@@ -202,4 +202,11 @@ public class MyPotController {
                     .body("An error occurred while deleting the taskboard and associated tasks.");
         }
     }
+
+    @Operation(summary = "Task 상태 변경 API", description = "taskId와 todoStatus(OPEN / IN_PROGRESS / CLOSED) 값을 전달해주시면 해당 업무가 요청한 상태로 변경됩니다.")
+    @PatchMapping("/{pot_id}/tasks/{task_id}/status")
+    public ResponseEntity<ApiResponse<MyPotTaskStatusResponseDto>> modifyPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId, TaskboardStatus status) {
+        MyPotTaskStatusResponseDto response = myPotService.updateTaskStatus(potId, taskId, status);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
 }

@@ -684,6 +684,25 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public MyPotTaskStatusResponseDto updateTaskStatus(Long potId, Long taskId, TaskboardStatus status) {
+        Taskboard taskboard = taskboardRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskId));
+
+         //Taskboard가 해당 Pot에 속해 있는지 확인
+        if (!taskboard.getPot().getPotId().equals(potId)) {
+            throw new IllegalArgumentException("The taskboard does not belong to the specified pot.");
+        }
+
+        // 입력받은 status 값으로 업데이트
+        taskboard.setStatus(status);
+
+        // 변경 사항 저장
+        taskboardRepository.save(taskboard);
+
+        return taskboardConverter.toTaskStatusDto(taskboard, status);
+    }
+
     private String getKoreanRoleName(String role) {
         Map<String, String> roleToKoreanMap = Map.of(
                 "BACKEND", "백엔드",

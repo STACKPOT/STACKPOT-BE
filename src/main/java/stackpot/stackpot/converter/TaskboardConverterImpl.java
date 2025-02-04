@@ -4,10 +4,12 @@ import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.enums.Role;
+import stackpot.stackpot.domain.enums.TaskboardStatus;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.web.dto.MyPotTaskPreViewResponseDto;
 import stackpot.stackpot.web.dto.MyPotTaskRequestDto;
 import stackpot.stackpot.web.dto.MyPotTaskResponseDto;
+import stackpot.stackpot.web.dto.MyPotTaskStatusResponseDto;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -76,6 +78,15 @@ public class TaskboardConverterImpl implements TaskboardConverter{
                 .status(taskboard.getStatus()) // OPEN, IN_PROGRESS, CLOSED
                 .deadLine(formatDate(taskboard.getDeadLine()))
                 .participants(toParticipantDtoList(participants)) // 참여자 리스트 변환
+                .build();
+    }
+
+    @Override
+    public MyPotTaskStatusResponseDto toTaskStatusDto(Taskboard taskboard, TaskboardStatus taskboardStatus) {
+        return MyPotTaskStatusResponseDto.builder()
+                .taskboardId(taskboard.getTaskboardId())
+                .title(taskboard.getTitle())
+                .status(taskboard.getStatus()) // OPEN, IN_PROGRESS, CLOSED
                 .build();
     }
 
