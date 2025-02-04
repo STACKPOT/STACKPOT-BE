@@ -11,7 +11,6 @@ public class UserConverter {
     public static User toUser(UserRequestDto.JoinDto request) {
 
         return User.builder()
-                .nickname(request.getNickname())
                 .kakaoId(request.getKakaoId())
                 .interest(request.getInterest())
                 .role(Role.valueOf(String.valueOf(request.getRole())))
