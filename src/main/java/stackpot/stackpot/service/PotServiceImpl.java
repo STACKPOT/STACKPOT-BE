@@ -18,12 +18,10 @@ import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.MyPotConverter;
 import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.converter.PotDetailConverter;
-import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
-import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
@@ -32,7 +30,6 @@ import stackpot.stackpot.repository.PotRepository.PotRecruitmentDetailsRepositor
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
-import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.Map;
@@ -108,12 +105,12 @@ public class PotServiceImpl implements PotService {
         // 업데이트 로직
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
-//                "potStartDate", requestDto.getPotStartDate(),
-                "potEndDate", requestDto.getPotEndDate(),
+                "potStartDate", requestDto.getPotStartDate(),
+//                "potEndDate", requestDto.getPotEndDate(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),
                 "potContent", requestDto.getPotContent(),
-                "potStatus", requestDto.getPotStatus(),
+//                "potStatus", requestDto.getPotStatus(),
                 "potModeOfOperation", requestDto.getPotModeOfOperation(),
                 "potSummary", requestDto.getPotSummary(),
                 "recruitmentDeadline", requestDto.getRecruitmentDeadline()
@@ -502,11 +499,11 @@ public class PotServiceImpl implements PotService {
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
                 //"potStartDate", requestDto.getPotStartDate(),
-                "potEndDate", requestDto.getPotEndDate(),
+//                "potEndDate", requestDto.getPotEndDate(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),
                 "potContent", requestDto.getPotContent(),
-                "potStatus", (requestDto.getPotStatus() != null ? requestDto.getPotStatus() : "COMPLETED"),
+//                "potStatus", (requestDto.getPotStatus() != null ? requestDto.getPotStatus() : "COMPLETED"),
                 "potModeOfOperation", requestDto.getPotModeOfOperation(),
                 "potSummary", requestDto.getPotSummary(),
                 "recruitmentDeadline", requestDto.getRecruitmentDeadline()

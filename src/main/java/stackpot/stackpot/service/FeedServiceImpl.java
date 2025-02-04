@@ -69,12 +69,7 @@ public class FeedServiceImpl implements FeedService {
         }
         Pageable pageable = PageRequest.ofSize(limit);
 
-        //  7초 동안 응답을 지연
-        try {
-            Thread.sleep(7000);  // 7초 대기
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+
 
         List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastFeedId, lastFeedLike, pageable);
 
