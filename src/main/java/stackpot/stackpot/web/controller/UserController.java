@@ -61,11 +61,12 @@ public class UserController {
 
     @Operation(summary = "회원가입 API")
     @PatchMapping("/profile")
-    public ResponseEntity<?> signup(@Valid @RequestBody UserRequestDto.JoinDto request,
-                                    BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> signup(@Valid @RequestBody UserRequestDto.JoinDto request) {
         User user = userCommandService.joinUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
+        UserResponseDto.Userdto response = UserConverter.toDto(user);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
 
     @Operation(summary = "닉네임 생성 API")
     @GetMapping("/nickname")

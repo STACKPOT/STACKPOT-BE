@@ -104,8 +104,6 @@ public class UserCommandServiceImpl implements UserCommandService{
     private void updateUserData(User user, UserRequestDto.JoinDto request) {
         // 카카오 id
         user.setKakaoId(request.getKakaoId());
-        // 닉네임
-        user.setNickname(request.getNickname());
         // 역할군
         user.setRole(request.getRole());
         // 관심사
@@ -204,12 +202,39 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Override
+    @Transactional
     public String createNickname() {
-        String prompt = "닉네임을 만들려고 해, 닉네임은 양파, 버섯, 브로콜리, 당근 앞에 수식어를 붙여서 만들꺼야" + "양파, 버섯, 브로콜리, 당근 앞에 올 수식어를 15글자 미만으로 알려줘" +
-"아래는 수식어를 활용해 만든 닉네임 예시야" + "에너제틱 양파 불타는 버섯, 상쾌한 브로콜리, 질주하는 당근, 활활 타오르는 양파, 열정적인 버섯, 싱글벙글 브로콜리, 끝까지 달리는 당근, 넘치는 힘의 양파, 신나는 버섯, 즐거운 브로콜리, 힘차게 뛰는 당근, 활력 가득 양파, 기운 펄펄 버섯, 에너지가 넘치는 브로콜리, 웃음이 가득한 당근" +
-                "하나의 수식어만 알려주고 앞에 숫자와 뒤에 양파, 버섯 등등은 붙이지 말아줘";
-        String nickname = potSummarizationService.summarizeText(prompt, 15);
-        return nickname;
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        String nickname;
+
+        while (true) {
+            // 닉네임 생성
+            String prompt = "닉네임을 만들려고 해, 닉네임은 양파, 버섯, 브로콜리, 당근 앞에 수식어를 붙여서 만들꺼야" +
+                    "양파, 버섯, 브로콜리, 당근 앞에 올 수식어를 15글자 미만으로 알려줘" +
+                    "아래는 수식어를 활용해 만든 닉네임 예시야" +
+                    "에너제틱 양파, 불타는 버섯, 상쾌한 브로콜리, 질주하는 당근, 활활 타오르는 양파, 열정적인 버섯, " +
+                    "싱글벙글 브로콜리, 끝까지 달리는 당근, 넘치는 힘의 양파, 신나는 버섯, 즐거운 브로콜리, 힘차게 뛰는 당근, " +
+                    "활력 가득 양파, 기운 펄펄 버섯, 에너지가 넘치는 브로콜리, 웃음이 가득한 당근" +
+                    "하나의 수식어만 알려주고 앞에 숫자와 뒤에 양파, 버섯 등등은 붙이지 말아줘";
+            nickname = potSummarizationService.summarizeText(prompt, 15);
+
+            // 중복 검사
+            boolean isDuplicate = userRepository.existsByNickname(nickname);
+
+            // 중복이 없으면 탈출
+            if (!isDuplicate) {
+                user.setNickname(nickname); // 유저 객체에 닉네임 저장
+                userRepository.save(user); // DB에 저장
+                break;
+            }
+        }
+        return nickname+getVegetableNameByRole(user.getRole().toString());
     }
 
     @Transactional
