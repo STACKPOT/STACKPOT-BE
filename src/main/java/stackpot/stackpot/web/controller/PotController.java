@@ -182,7 +182,7 @@ public class PotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(summary));
     }
 
-    @GetMapping("/completed/{userId}")
+    /*@GetMapping("/completed/{userId}")
     @Operation(summary = "사용자별 끓인 팟 조회 API",
             description = "'마이페이지 - 끓인 팟'에 필요한 사용자의 끓인 팟을 리턴합니다.\n사용자 ID로 potStatus가 COMPLETED인 팟 목록을 커서 기반 페이지네이션으로 가져옵니다.",
             parameters = {
@@ -196,7 +196,7 @@ public class PotController {
             @RequestParam(value = "size", defaultValue = "3") int size) {
         CursorPageResponse<CompletedPotResponseDto> response = potService.getUserCompletedPots(userId, cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
+    }*/
 
     @Operation(summary = "팟 다 끓이기 API ",
             description =
@@ -222,12 +222,12 @@ public class PotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "내가 만든 팟 - 진행 중인 팟 조회 API", description = "내가 만든 팟의 진행 중인 팟을 조회합니다. members의 {FRONTEND : 1}는 팟 멤버들의 역할별 멤버수를 나타내므로 프로필 아이콘(버섯, 양파 등)을 나타내실 때 사용하시면 됩니다.")
+    /*@Operation(summary = "내가 만든 팟 - 진행 중인 팟 조회 API", description = "내가 만든 팟의 진행 중인 팟을 조회합니다. members의 {FRONTEND : 1}는 팟 멤버들의 역할별 멤버수를 나타내므로 프로필 아이콘(버섯, 양파 등)을 나타내실 때 사용하시면 됩니다.")
     @GetMapping("/ongoing")
     public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyOngoingPots() {
         List<OngoingPotResponseDto> response = myPotService.getMyOngoingPots();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
+    }*/
 
     @Operation(summary = "내가 만든 팟 - 모집 중인 팟 조회 API", description = "내가 만든 팟의 모집 중인 팟을 조회합니다.")
     @GetMapping("/recruiting")

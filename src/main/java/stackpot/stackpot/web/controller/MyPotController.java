@@ -59,14 +59,14 @@ public class MyPotController {
     }
 
     @GetMapping("/badges")
-    @Operation(summary = "나의 끓인 팟 조회 API (뱃지)", description = "사용자가 참여한 potStatus가 COMPLETED 상태의 팟을 뱃지와 함께 반환합니다.")
+    @Operation(summary = "나의 끓인 팟 조회 API (뱃지) - 마이페이지", description = "사용자가 참여한 potStatus가 COMPLETED 상태의 팟을 뱃지와 함께 반환합니다.")
     public ResponseEntity<ApiResponse<List<CompletedPotBadgeResponseDto>>> getCompletedPotsWithBadges() {
         List<CompletedPotBadgeResponseDto> response = myPotService.getCompletedPotsWithBadges();
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
     @GetMapping("/{user_id}/badges")
-    @Operation(summary = "사용자별 끓인 팟 조회 API (뱃지)", description = "userId를 통해 사용자별 참여한 potStatus가 COMPLETED 상태의 팟을 뱃지와 함께 반환합니다.")
+    @Operation(summary = "사용자별 끓인 팟 조회 API (뱃지) - 마이페이지", description = "userId를 통해 사용자별 참여한 potStatus가 COMPLETED 상태의 팟을 뱃지와 함께 반환합니다.")
     public ResponseEntity<ApiResponse<List<CompletedPotBadgeResponseDto>>> getUserCompletedPotsWithBadges(
             @PathVariable("user_id") Long userId
     ) {
