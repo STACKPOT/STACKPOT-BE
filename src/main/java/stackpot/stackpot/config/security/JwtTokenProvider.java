@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.security.core.Authentication;
 import stackpot.stackpot.domain.RefreshToken;
 import stackpot.stackpot.domain.User;
-//import stackpot.stackpot.repository.RefreshTokenRepository;
+import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.web.dto.TokenServiceResponse;
 
 import java.security.Key;
@@ -25,7 +25,7 @@ import static org.hibernate.query.sqm.tree.SqmNode.log;
 @Slf4j
 public class JwtTokenProvider {
 
-//    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     
     @Value("${jwt.secret}")
     private String secretKey;
@@ -54,7 +54,7 @@ public class JwtTokenProvider {
                 .compact();
 
         RefreshToken redis = new RefreshToken(accessToken, refreshToken);
-//        refreshTokenRepository.save(redis);
+        refreshTokenRepository.save(redis);
 
         return TokenServiceResponse.of(accessToken, refreshToken);
     }
