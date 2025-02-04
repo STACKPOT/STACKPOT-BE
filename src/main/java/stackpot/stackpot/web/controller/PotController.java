@@ -139,7 +139,10 @@ public class PotController {
     }
 
     // 특정 팟의 상세정보 조회
-    @Operation(summary = "팟 상세 조회 API", description = "'타인의 팟 상세보기-지원하기 버튼' 페이지에서 사용되는 정보를 리턴합니다.\n모든 팟에서 특정 팟을 선택하면 리턴하는 정보입니다.\npotId를 통해 특정 팟에 대한 상세정보를 조회할 수 있습니다.\n 모든 팟에서 특정 팟을 선택했을 때 보이는 상세 정보를 리턴합니다.")
+    @Operation(summary = "팟 상세 조회 API",
+            description = "**'팟 작성 완료 후, <내가 만든 팟>에서 상세보기'** 페이지에서 팟 상세 정보를 조회하는 API입니다.\n\n" +
+                    "- **모든 팟에서 특정 팟을 선택하면 해당 팟의 정보를 반환**합니다.\n" +
+                    "- **`potId`를 통해 특정 팟의 상세 정보를 조회할 수 있습니다.**")
     @GetMapping("/{pot_id}")
     public ResponseEntity<ApiResponse<PotDetailResponseDto>> getPotDetails(@PathVariable("pot_id") Long potId) {
         PotDetailResponseDto potDetails = potService1.getPotDetails(potId);
@@ -147,7 +150,9 @@ public class PotController {
     }
 
     // 특정 팟 지원자의 좋아요 상태 변경
-    @Operation(summary = "특정 팟 지원자의 '마음에 들어요' 상태 변경 API", description = "'<내가 만든 팟>에서 상세보기 - 지원자 있음'에서 지원자의 좋아요 상태를 리턴합니다.\n지원자의 아이디와 liked 값을 true, false (Boolean)로 request 해 주시면 지원자의 liked 상태값이 해당 값에 맞춰 변경됩니다.")
+    @Operation(summary = "특정 팟 지원자의 '마음에 들어요' 상태 변경 API",
+            description = "**'<내가 만든 팟>에서 상세보기- 지원자 있음'** 페이지에서 지원자의 **'마음에 들어요' 상태를 변경하는 API**입니다.\n\n" +
+                    "- **지원자의 ID와 `liked` 값을 `true` 또는 `false`(Boolean)로 요청**하면 해당 상태로 변경됩니다.")
     @PatchMapping("/{pot_id}/applications/like")
     public ResponseEntity<ApiResponse<Void>> patchLikes(
             @PathVariable("pot_id") Long potId,
@@ -157,7 +162,9 @@ public class PotController {
     }
 
     // 특정 팟의 좋아요한 지원자 목록 조회
-    @Operation(summary = "특정 팟의 '마음에 들어요' 지원자 조회 API", description = "'<내가 만든 팟>에서 상세보기 - 지원자 있음'에 필요한 지원자 정보를 리턴합니다.\n지원자의 id, pot 지원 역할, 지원 역할에 따른 팟에서의 nickname, like 상태 값을 반환합니다. ")
+    @Operation(summary = "특정 팟의 '마음에 들어요' 지원자 조회 API",
+            description = "**'<내가 만든 팟>에서 상세보기- 지원자 있음'** 페이지에서 마음에 든 지원자 정보를 반환하는 API입니다.\n\n" +
+                    "- **지원자의 ID, 팟 지원 역할, 해당 역할에 따른 닉네임, '마음에 들어요' 상태(like 값)를 포함**합니다.")
     @GetMapping("/{pot_id}/applications/like")
     public ResponseEntity<ApiResponse<List<LikedApplicantResponseDTO>>> getLikedApplicants(
             @PathVariable("pot_id") Long potId) {
@@ -175,12 +182,54 @@ public class PotController {
 
 
     // Pot 내용 AI 요약
-    @Operation(summary = "팟 구인글 AI 요약 API ", description = "'팟을 다 끓였어요 클릭 시 작성 페이지'에서 AI 요약 생성 버튼을 누를시 생성되는 potSummary 내용입니다.\n팟의 구인글 내용을 활용해 작성되며, 해당 내용은 '팟 다 끓이기'를 할 때 potContent(구인글 내용)가 아닌 potSummary(소개글 내용)에 넣어주시면 됩니다.")
+    @Operation(summary = "팟 구인글 AI 요약 API",
+            description = "**'팟을 다 끓였어요 클릭 시 작성 페이지'**에서 **AI 요약 생성 버튼**을 누르면 생성되는 `potSummary` 내용입니다.\n\n" +
+                    "- **팟의 구인글 내용을 기반으로 자동 생성**됩니다.\n" +
+                    "- **'팟 다 끓이기' 시 `potContent`(구인글)가 아닌 `potSummary`(소개글)에 저장해야 합니다.**")
     @GetMapping("/{pot_id}/summary")
     public ResponseEntity<ApiResponse<PotSummaryResponseDTO>> getPotSummary(@PathVariable("pot_id") Long potId) {
         PotSummaryResponseDTO summary = potService1.getPotSummary(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(summary));
     }
+
+    @Operation(summary = "팟 다 끓이기 API ",
+            description =
+                    "**'소개 작성 후 완료 시 모달'**에 사용되는 팟 다 끓이기 API입니다.\npot의 status가 자동으로 COMPLETED로 바뀌고, 팟 멤버들의 온도가 5도 올라갑니다.\n" +
+                    "- potStatus: COMPLETED\n" +
+                    "- potModeOfOperation: ONLINE / OFFLINE / HYBRID\n" +
+                    "- Role: FRONTEND / BACKEND / DESIGN / PLANNING")
+    @PatchMapping("/{pot_id}/complete")
+    public ResponseEntity<ApiResponse<PotResponseDto>> patchPot(
+            @PathVariable("pot_id") Long potId,
+            @RequestBody @Valid PotRequestDto requestDto) {
+        // 팟 다 끓이기 로직 호출
+        PotResponseDto responseDto = potService.patchPotWithRecruitments(potId, requestDto);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
+    }
+
+    @Operation(summary = "특정 Pot의 상세 정보 및 지원자 목록 조회 API", description = "모든 사용자가 Pot의 상세 정보를 조회할 수 있으며, 사용자가 `팟의 소유자`이고 상태가 `'RECRUITING'`이면 **지원자 목록**도 함께 반환됩니다.")
+    @GetMapping("/{pot_id}/details")
+    public ResponseEntity<ApiResponse<PotDetailWithApplicantsResponseDto>> getPotDetailsAndApplicants(
+            @PathVariable("pot_id") Long potId) {
+
+        PotDetailWithApplicantsResponseDto response = potApplicationService.getPotDetailsAndApplicants(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "내가 만든 팟 - 모집 중인 팟 조회 API", description = "내가 만든 팟의 모집 중인 팟을 조회합니다.")
+    @GetMapping("/recruiting")
+    public ResponseEntity<ApiResponse<List<RecruitingPotResponseDto>>> getRecruitingPots() {
+        List<RecruitingPotResponseDto> response = potService.getRecruitingPots();
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    /*@Operation(summary = "내가 만든 팟 - 진행 중인 팟 조회 API", description = "내가 만든 팟의 진행 중인 팟을 조회합니다. members의 {FRONTEND : 1}는 팟 멤버들의 역할별 멤버수를 나타내므로 프로필 아이콘(버섯, 양파 등)을 나타내실 때 사용하시면 됩니다.")
+    @GetMapping("/ongoing")
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyOngoingPots() {
+        List<OngoingPotResponseDto> response = myPotService.getMyOngoingPots();
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }*/
 
     /*@GetMapping("/completed/{userId}")
     @Operation(summary = "사용자별 끓인 팟 조회 API",
@@ -197,42 +246,4 @@ public class PotController {
         CursorPageResponse<CompletedPotResponseDto> response = potService.getUserCompletedPots(userId, cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }*/
-
-    @Operation(summary = "팟 다 끓이기 API ",
-            description =
-                    "'소개 작성 후 완료 시 모달'에 사용되는 팟 다 끓이기 API입니다.\npot의 status가 자동으로 COMPLETED로 바뀌고, 팟 멤버들의 온도가 5도 올라갑니다.\n" +
-                    "- potStatus: COMPLETED\n" +
-                    "- potModeOfOperation: ONLINE / OFFLINE / HYBRID\n" +
-                    "- Role: FRONTEND / BACKEND / DESIGN / PLANNING")
-    @PatchMapping("/{pot_id}/complete")
-    public ResponseEntity<ApiResponse<PotResponseDto>> patchPot(
-            @PathVariable("pot_id") Long potId,
-            @RequestBody @Valid PotRequestDto requestDto) {
-        // 팟 다 끓이기 로직 호출
-        PotResponseDto responseDto = potService.patchPotWithRecruitments(potId, requestDto);
-
-        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
-    }
-    @Operation(summary = "특정 Pot의 상세 정보 및 지원자 목록 조회 API", description = "모든 사용자가 Pot의 상세 정보를 조회할 수 있으며, 사용자가 팟의 소유자이고 상태가 'RECRUITING'이면 지원자 목록도 함께 반환됩니다.")
-    @GetMapping("/{pot_id}/details")
-    public ResponseEntity<ApiResponse<PotDetailWithApplicantsResponseDto>> getPotDetailsAndApplicants(
-            @PathVariable("pot_id") Long potId) {
-
-        PotDetailWithApplicantsResponseDto response = potApplicationService.getPotDetailsAndApplicants(potId);
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
-
-    /*@Operation(summary = "내가 만든 팟 - 진행 중인 팟 조회 API", description = "내가 만든 팟의 진행 중인 팟을 조회합니다. members의 {FRONTEND : 1}는 팟 멤버들의 역할별 멤버수를 나타내므로 프로필 아이콘(버섯, 양파 등)을 나타내실 때 사용하시면 됩니다.")
-    @GetMapping("/ongoing")
-    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyOngoingPots() {
-        List<OngoingPotResponseDto> response = myPotService.getMyOngoingPots();
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }*/
-
-    @Operation(summary = "내가 만든 팟 - 모집 중인 팟 조회 API", description = "내가 만든 팟의 모집 중인 팟을 조회합니다.")
-    @GetMapping("/recruiting")
-    public ResponseEntity<ApiResponse<List<RecruitingPotResponseDto>>> getRecruitingPots() {
-        List<RecruitingPotResponseDto> response = potService.getRecruitingPots();
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
 }

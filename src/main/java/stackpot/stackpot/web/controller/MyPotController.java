@@ -34,7 +34,11 @@ public class MyPotController {
     private final PotRepository potRepository;
 
     // 사용자가 만든 진행 중인 팟 조회
-    @Operation(summary = "나의 팟 조회 API", description = "'나의 팟 첫 페이지'의 정보를 리턴합니다. 사용자가 생성했거나, 참여하고 있는 진행 중인 팟들을 조회합니다. isOwner를 통해 생성자인지 아닌지를 판단할 수 있습니다. 팟 생성일 기준 최신순으로 정렬합니다.")
+    @Operation(summary = "나의 팟 조회 API",
+            description = "'나의 팟 첫 페이지' 정보를 반환하는 API입니다.\n\n" +
+                    "- **사용자가 생성했거나 참여 중인 진행 중(`ONGOING`)인 팟을 조회**합니다.\n" +
+                    "- **`isOwner` 값을 통해 사용자가 팟의 생성자인지 확인할 수 있습니다.**\n" +
+                    "- **팟 생성일 기준 최신순으로 정렬**하여 반환됩니다.")
     @GetMapping("")
     public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyPots() {
         List<OngoingPotResponseDto> response = myPotService.getMyPots();
@@ -92,7 +96,12 @@ public class MyPotController {
     }
 
     // 팟에서의 투두 조회
-    @Operation(summary = "Todo 조회 API", description = "팟의 모든 멤버들의 todo 목록을 반환합니다. completed인 todo도 함께 반환하며, 새벽 3시에 자동 초기화됩니다. size 1 = user 1명이라고 생각하시면 됩니다. 현재 접속 중인 사용자가 맨 처음 요소로 반환됩니다.")
+    @Operation(summary = "Todo 조회 API",
+            description = "특정 팟에 속한 모든 멤버의 투두 목록을 반환하는 API입니다.\n\n" +
+                    "- **완료된(`COMPLETED`) 투두도 함께 반환**됩니다.\n" +
+                    "- **투두 목록은 매일 새벽 3시에 자동 초기화**됩니다.\n" +
+                    "- **size=1은 한 명의 사용자를 의미**합니다.\n" +
+                    "- **현재 접속 중인 사용자의 투두가 리스트의 첫 번째 요소로 반환**됩니다.")
     @GetMapping("/{pot_id}/todos")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getMyTodo(
             @PathVariable("pot_id") Long potId,
@@ -120,7 +129,14 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Todo 수정 API ", description = "사용자의 모든 투두의 내용을 한 번에 수정할 수 있습니다. 리스트를 통한 생성과 유사한 방식이지만 기존에 만들었던 todo의 경우 status를 유지해야 하기 때문에 todoId를 함께 보내주셔야 합니다. 새로 만드는 todo의 경우 [\"todoId\" : null]로 보내주시면 되며, status도 [\"status\" : null]로 보내주시면 NOT_STARTED로 자동 생성됩니다.")
+    @Operation(summary = "Todo 수정 API",
+            description = "사용자의 모든 투두 내용을 한 번에 수정할 수 있는 API입니다.\n\n" +
+                    "이 API는 리스트를 통한 생성 방식과 유사하지만, 기존에 생성된 투두의 경우 " +
+                    "status 값을 유지해야 하므로 todoId를 함께 보내야 합니다.\n\n" +
+                    "- **기존 투두 수정**: `todoId`를 포함하여 요청해야 합니다.\n" +
+                    "- **새로운 투두 생성**: `todoId`를 `null`로 보내면 새롭게 생성됩니다.\n" +
+                    "- **status 필드**: `null`로 보내면 기본값인 `NOT_STARTED`로 설정됩니다.\n" +
+                    "- **Example**: \"todoId\" : null")
     @PatchMapping("/{pot_id}/todos")
     public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> updateMyTodos(
             @PathVariable("pot_id") Long potId,
