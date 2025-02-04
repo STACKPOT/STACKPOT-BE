@@ -15,7 +15,7 @@ import java.util.List;
 
 @Tag(name = "Pot Application Management", description = "팟 지원 관리 API")
 @RestController
-@RequestMapping(value = "/pots/{pot_id}/applications",produces = "application/json; charset=UTF-8")
+@RequestMapping("/pots/{pot_id}/applications")
 @RequiredArgsConstructor
 public class PotApplicationController {
 

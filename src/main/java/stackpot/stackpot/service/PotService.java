@@ -13,7 +13,7 @@ public interface PotService {
     void deletePot(Long potId);
     void removeMemberFromPot(Long potId);
     String removePotOrMember(Long potId);
-    CompletedPotDetailResponseDto getCompletedPotDetail(Long potId, Long userId);
+
     //---------------
 
     // 모집 역할에 따라 모든 팟 조회

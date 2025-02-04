@@ -44,7 +44,7 @@ public class Pot extends BaseEntity {
     @Column(nullable = false)
     private LocalDate potStartDate;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private LocalDate potEndDate;
 
     @Column(nullable = false, length = 255)
