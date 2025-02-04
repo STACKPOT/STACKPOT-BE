@@ -200,7 +200,7 @@ public class PotController {
 
     @Operation(summary = "팟 다 끓이기 API ",
             description =
-                    "'소개 작성 후 완료 시 모달'에 사용되는 팟 다 끓이기 API입니다.\npot의 status가 COMPLETED로 바뀌고, 팟 멤버들의 온도가 5도 올라갑니다.\n" +
+                    "'소개 작성 후 완료 시 모달'에 사용되는 팟 다 끓이기 API입니다.\npot의 status가 자동으로 COMPLETED로 바뀌고, 팟 멤버들의 온도가 5도 올라갑니다.\n" +
                     "- potStatus: COMPLETED\n" +
                     "- potModeOfOperation: ONLINE / OFFLINE / HYBRID\n" +
                     "- Role: FRONTEND / BACKEND / DESIGN / PLANNING")

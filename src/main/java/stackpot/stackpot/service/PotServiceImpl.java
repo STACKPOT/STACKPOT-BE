@@ -23,6 +23,7 @@ import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
+import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
@@ -500,12 +501,12 @@ public class PotServiceImpl implements PotService {
         // 업데이트 로직
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
-//                "potStartDate", requestDto.getPotStartDate(),
+                //"potStartDate", requestDto.getPotStartDate(),
                 "potEndDate", requestDto.getPotEndDate(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),
                 "potContent", requestDto.getPotContent(),
-                "potStatus", requestDto.getPotStatus(),
+                "potStatus", (requestDto.getPotStatus() != null ? requestDto.getPotStatus() : "COMPLETED"),
                 "potModeOfOperation", requestDto.getPotModeOfOperation(),
                 "potSummary", requestDto.getPotSummary(),
                 "recruitmentDeadline", requestDto.getRecruitmentDeadline()
