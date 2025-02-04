@@ -9,14 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
-//import stackpot.stackpot.repository.BlacklistRepository;
-//import stackpot.stackpot.repository.RefreshTokenRepository;
+import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.*;
@@ -33,8 +32,8 @@ public class UserController {
     private final UserCommandService userCommandService;
     private final KakaoService kakaoService;
     private final JwtTokenProvider jwtTokenProvider;
-//    private final RefreshTokenRepository refreshTokenRepository;
-//    private final BlacklistRepository blacklistRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistRepository blacklistRepository;
 
     @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
@@ -79,24 +78,24 @@ public class UserController {
     @PostMapping("/logout")
     @Operation(summary = "회원 로그아웃 API", description = "AccessToken 토큰과 함께 요청 시 로그아웃 ")
     public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String token) {
-//        String accessToken = token.replace("Bearer ", "");
-//
-//        refreshTokenRepository.deleteById(accessToken);
-//
-//        long expiration = jwtTokenProvider.getExpiration(accessToken);
-//
-//        blacklistRepository.addToBlacklist(accessToken, expiration);
-//
-//        return ResponseEntity.ok(ApiResponse.onSuccess("로그아웃 성공"));
-        return null;
+        String accessToken = token.replace("Bearer ", "");
+
+        refreshTokenRepository.deleteById(accessToken);
+
+        long expiration = jwtTokenProvider.getExpiration(accessToken);
+
+        blacklistRepository.addToBlacklist(accessToken, expiration);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess("로그아웃 성공"));
+//        return null;
     }
 
     @DeleteMapping("/delete")
     @Operation(summary = "[ 구현 중 ] 회원 탈퇴 API", description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 ")
     public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken) {
-//        userCommandService.deleteUser(accessToken);
-//        return ResponseEntity.ok(ApiResponse.onSuccess("회원 탈퇴 성공"));
-        return null;
+        userCommandService.deleteUser(accessToken);
+        return ResponseEntity.ok(ApiResponse.onSuccess("회원 탈퇴 성공"));
+//        return null;
     }
 
 
