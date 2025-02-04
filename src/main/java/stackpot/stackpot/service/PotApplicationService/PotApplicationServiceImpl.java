@@ -66,14 +66,16 @@ public class PotApplicationServiceImpl implements PotApplicationService {
         potApplication.setAppliedAt(LocalDateTime.now());
 
         PotApplication savedApplication = potApplicationRepository.save(potApplication);
-
+        // 지원자의 역할 조회 및 한글 변환
+        String applicantRole = user.getRole() != null ? getVegetableNameByRole(user.getRole().name()) : "멤버";
+        // 이메일 전송
         // 이메일 전송
         // 이메일 전송
         emailService.sendSupportNotification(
                 pot.getUser().getEmail(),
                 pot.getPotName(),
-                user.getNickname(),
-                user.getUserIntroduction() // 한 줄 소개 추가
+                String.format("%s %s", user.getNickname(), applicantRole), // 닉네임 + 역할
+                user.getUserIntroduction() != null ? user.getUserIntroduction() : "없음"
         );
 
         // 저장된 지원 정보를 응답 DTO로 변환
@@ -159,6 +161,16 @@ public class PotApplicationServiceImpl implements PotApplicationService {
                 "PLANNING", " 기획"
         );
         return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
+    }
+    private String getVegetableNameByRole(String role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근",
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯"
+        );
+
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 
 }

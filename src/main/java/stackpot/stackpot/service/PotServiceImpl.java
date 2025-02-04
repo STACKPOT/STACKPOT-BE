@@ -547,6 +547,42 @@ public class PotServiceImpl implements PotService {
                 .map(pot -> myPotConverter.convertToRecruitingPotResponseDto(pot, user.getId()))
                 .collect(Collectors.toList());
     }
+    @Transactional
+    @Override
+    public CompletedPotDetailResponseDto getCompletedPotDetail(Long potId, Long userId) {
+        // 팟 조회
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+
+        // 팟 상태 확인
+        if (!"COMPLETED".equals(pot.getPotStatus())) {
+            throw new IllegalArgumentException("해당 팟은 COMPLETED 상태가 아닙니다.");
+        }
+
+        // 특정 사용자 조회
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 특정 사용자의 팟 멤버 정보 조회
+        PotMember potMember = potMemberRepository.findByPotAndUser(pot, targetUser)
+                .orElse(null);
+
+        // 어필 내용 가져오기
+        String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
+
+        // 사용자의 역할(Role) 조회
+        String userPotRole;
+        if (potMember != null) {
+            // ✅ PotMember에 있으면 해당 역할 사용
+            userPotRole = getKoreanRoleName(potMember.getRoleName().name());
+        } else {
+            // ✅ PotMember에 없으면, 팟 생성자의 역할을 가져옴
+            userPotRole = getKoreanRoleName(pot.getUser().getRole().name());
+        }
+
+        // DTO 반환
+        return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
+    }
 
 
     private String getKoreanRoleName(String role) {
