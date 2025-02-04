@@ -113,12 +113,15 @@ public class PotController {
         }
 
         Role roleEnum = null;
+//        if (recruitmentRole != null && !recruitmentRole.isEmpty()) {
+//            try {
+//                roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
+//            } catch (IllegalArgumentException e) {
+//                throw new RecruitmentHandler(ErrorStatus.INVALID_ROLE);
+//            }
+//        }
         if (recruitmentRole != null && !recruitmentRole.isEmpty()) {
-            try {
-                roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new RecruitmentHandler(ErrorStatus.INVALID_ROLE);
-            }
+            roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
         }
 
         int adjustedPage = page - 1;
