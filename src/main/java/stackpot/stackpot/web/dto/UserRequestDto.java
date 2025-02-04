@@ -17,10 +17,9 @@ public class UserRequestDto {
     public static class JoinDto {
 
         Role role;
-        @NotBlank(message = "Interest는 공백일 수 없습니다.")
+//        @NotBlank(message = "Interest는 공백일 수 없습니다.")
         String interest;
-
-        @NotBlank(message = "KakaoId는 공백일 수 없습니다.")
+//        @NotBlank(message = "KakaoId는 공백일 수 없습니다.")
         String kakaoId;
     }
 }
