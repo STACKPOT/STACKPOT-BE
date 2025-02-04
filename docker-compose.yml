@@ -25,17 +25,17 @@ services:
     depends_on:
       - redis
 
-  redis:
-    container_name: redis-container
-    image: redis:latest
-    restart: always
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    environment:
-      - REDIS_PORT=6379
-    command: ["redis-server", "--appendonly", "yes"]
+#  redis:
+#    container_name: redis-container
+#    image: redis:latest
+#    restart: always
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - redis_data:/data
+#    environment:
+#      - REDIS_PORT=6379
+#    command: ["redis-server", "--appendonly", "yes"]
 
   nginx:
     container_name: nginx
