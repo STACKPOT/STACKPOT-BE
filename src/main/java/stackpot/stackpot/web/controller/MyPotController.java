@@ -79,7 +79,7 @@ public class MyPotController {
             summary = "Todo 생성 API",
             description = """
         - Status: NOT_STARTED / COMPLETED
-        * 생성의 경우 NOT_STARTED로 전달해 주시면 됩니다.
+        * 기본적으로 NOT_STARTED로 생성됩니다.
     """
     )
     @PostMapping("/{pot_id}/todos")
@@ -120,7 +120,7 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Todo 수정 API ", description = "사용자의 모든 투두의 내용을 한 번에 수정할 수 있습니다. 리스트를 통한 생성과 유사한 방식이지만 기존에 만들었던 todo의 경우 status를 유지해야 하기 때문에 todoId를 함께 보내주셔야 합니다. 새로 만드는 todo의 경우 todoId가 존재하지 않지만 자동으로 생성되기 때문에 아무 정수나 넣어주시면 됩니다. 사용자의 todo 중 존재하는 todoId를 보내실 경우 해당 todoId가 수정되므로 되도록 연관이 없는 1000 이상의 숫자를 넣어주시는 게 좋습니다.")
+    @Operation(summary = "Todo 수정 API ", description = "사용자의 모든 투두의 내용을 한 번에 수정할 수 있습니다. 리스트를 통한 생성과 유사한 방식이지만 기존에 만들었던 todo의 경우 status를 유지해야 하기 때문에 todoId를 함께 보내주셔야 합니다. 새로 만드는 todo의 경우 [\"todoId\" : null]로 보내주시면 되며, status도 [\"status\" : null]로 보내주시면 NOT_STARTED로 자동 생성됩니다.")
     @PatchMapping("/{pot_id}/todos")
     public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> updateMyTodos(
             @PathVariable("pot_id") Long potId,

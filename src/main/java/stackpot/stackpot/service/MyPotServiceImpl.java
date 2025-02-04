@@ -119,7 +119,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .pot(pot)
                 .user(user)
                 .content(requestDTO.getContent())
-                .status(requestDTO.getStatus())
+                .status(requestDTO.getStatus() != null ? requestDTO.getStatus() : TodoStatus.NOT_STARTED)
                 .build();
 
         myPotRepository.save(userTodo);
@@ -313,7 +313,7 @@ public class MyPotServiceImpl implements MyPotService {
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
                                             .content(todo.getContent())
-                                            .status(todo.getStatus())
+                                            .status(todo.getStatus() != null ? todo.getStatus() : TodoStatus.NOT_STARTED)
                                             .build())
                                     .collect(Collectors.toList()))
                             .build();
