@@ -10,7 +10,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.Authentication;
+import stackpot.stackpot.domain.RefreshToken;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.web.dto.TokenServiceResponse;
 
 import java.security.Key;
@@ -22,6 +24,8 @@ import static org.hibernate.query.sqm.tree.SqmNode.log;
 @Component
 @Slf4j
 public class JwtTokenProvider {
+
+    private final RefreshTokenRepository refreshTokenRepository;
     
     @Value("${jwt.secret}")
     private String secretKey;
@@ -48,6 +52,10 @@ public class JwtTokenProvider {
                 .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
+
+        RefreshToken redis = new RefreshToken(accessToken, refreshToken);
+        refreshTokenRepository.save(redis);
+
         return TokenServiceResponse.of(accessToken, refreshToken);
     }
 
@@ -69,14 +77,18 @@ public class JwtTokenProvider {
         return false;
     }
 
-//    public boolean validateToken(String token) {
-//        try {
-//            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
-//            return true;
-//        } catch (JwtException | IllegalArgumentException e) {
-//            return false;
-//        }
-//    }
+    public boolean isTokenExpired(String token) {
+        try {
+            Date expiration = Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
+            return expiration.before(new Date()); // 현재 시간보다 이전이면 만료됨
+        } catch (ExpiredJwtException e) {
+            return true; // 이미 만료된 토큰
+        }
+    }
 
     public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
@@ -91,5 +103,20 @@ public class JwtTokenProvider {
         String email = getEmailFromToken(token);
         UserDetails userDetails = userDetailsService.loadUserByUsername(email); // 이메일로 사용자 로드
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
+    public long getExpiration(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getExpiration().getTime() - System.currentTimeMillis();
+        } catch (ExpiredJwtException e) {
+            return 0; // 이미 만료된 경우 0 반환
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid JWT Token");
+        }
     }
 }

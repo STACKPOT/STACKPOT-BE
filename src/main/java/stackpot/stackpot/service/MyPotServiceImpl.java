@@ -410,7 +410,7 @@ public class MyPotServiceImpl implements MyPotService {
         createAndSaveTasks(taskboard, participants);
 
         List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
-        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
+        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard, participants);
         response.setParticipants(participantDtos);
 
         return response;
@@ -448,13 +448,21 @@ public class MyPotServiceImpl implements MyPotService {
         Taskboard taskboard = taskboardRepository.findById(taskboardId)
                 .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskboardId));
 
-        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
+        List<Task> tasks = taskRepository.findByTaskboard(taskboard);
+
+        List<PotMember> participants = tasks.stream()
+                .map(Task::getPotMember) // Task에서 PotMember 추출
+                .distinct()
+                .collect(Collectors.toList());
+
+        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard,participants);
 
         return response;
     }
 
 
     @Override
+    @Transactional
     public MyPotTaskResponseDto modfiyTask(Long taskId, MyPotTaskRequestDto.create request) {
 
         Taskboard taskboard = taskboardRepository.findById(taskId)
@@ -468,11 +476,14 @@ public class MyPotServiceImpl implements MyPotService {
             if (participants.isEmpty()) {
                 throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
             }
+            else{
+                taskRepository.deleteByTaskboard(taskboard);
+            }
         }
         createAndSaveTasks(taskboard, participants);
         List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
 
-        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard);
+        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard,participants);
         response.setParticipants(participantDtos);
 
         return response;

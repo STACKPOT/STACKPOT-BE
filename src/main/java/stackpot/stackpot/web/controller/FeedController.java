@@ -81,6 +81,7 @@ public class FeedController {
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
     @PostMapping("/{feedId}/like")
     @Operation(summary = "Feed 좋아요 API", description = "feed 좋아요를 추가합니다.")
     public ResponseEntity<ApiResponse<Map>> toggleLike(@PathVariable Long feedId) {

@@ -12,8 +12,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.*;
@@ -29,6 +32,10 @@ public class UserController {
 
     private final UserCommandService userCommandService;
     private final KakaoService kakaoService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistRepository blacklistRepository;
+
     @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
     public ResponseEntity<String> testEndpoint(Authentication authentication) {
@@ -54,13 +61,12 @@ public class UserController {
 
     @Operation(summary = "회원가입 API")
     @PatchMapping("/profile")
-    public ResponseEntity<?> signup(@Valid @RequestBody UserRequestDto.JoinDto request,
-                                    BindingResult bindingResult) {
-        // 유효성 검사 실패 처리
-        // 정상 처리
+    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> signup(@Valid @RequestBody UserRequestDto.JoinDto request) {
         User user = userCommandService.joinUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
+        UserResponseDto.Userdto response = UserConverter.toDto(user);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
 
     @Operation(summary = "닉네임 생성 API")
     @GetMapping("/nickname")
@@ -70,12 +76,27 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
-    @Operation(summary = "나의 정보 조회 API", description = "토큰을 통해 '설정 페이지'와 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 자신의 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
-    @GetMapping("")
-    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersMyPages(){
-        UserResponseDto.Userdto userDetails = userCommandService.getMyUsers();
-        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    @PostMapping("/logout")
+    @Operation(summary = "회원 로그아웃 API", description = "AccessToken 토큰과 함께 요청 시 로그아웃 ")
+    public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String token) {
+        String accessToken = token.replace("Bearer ", "");
+
+        refreshTokenRepository.deleteById(accessToken);
+
+        long expiration = jwtTokenProvider.getExpiration(accessToken);
+
+        blacklistRepository.addToBlacklist(accessToken, expiration);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess("로그아웃 성공"));
     }
+
+    @DeleteMapping("/delete")
+    @Operation(summary = "[ 구현 중 ] 회원 탈퇴 API", description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 ")
+    public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken) {
+        userCommandService.deleteUser(accessToken);
+        return ResponseEntity.ok(ApiResponse.onSuccess("회원 탈퇴 성공"));
+    }
+
 
     @Operation(summary = "사용자별 정보 조회 API", description = "userId를 통해 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
     @GetMapping("/{userId}")
@@ -83,6 +104,13 @@ public class UserController {
             @PathVariable Long userId
     ){
         UserResponseDto.Userdto userDetails = userCommandService.getUsers(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+    @Operation(summary = "나의 정보 조회 API", description = "토큰을 통해 '설정 페이지'와 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 자신의 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
+    @GetMapping("")
+    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersMyPages(){
+        UserResponseDto.Userdto userDetails = userCommandService.getMyUsers();
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 

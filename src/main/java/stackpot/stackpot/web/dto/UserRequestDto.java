@@ -19,8 +19,7 @@ public class UserRequestDto {
         Role role;
         @NotBlank(message = "Interest는 공백일 수 없습니다.")
         String interest;
-        @NotBlank(message = "Nickname은 공백일 수 없습니다.")
-        String nickname;
+
         @NotBlank(message = "KakaoId는 공백일 수 없습니다.")
         String kakaoId;
     }
