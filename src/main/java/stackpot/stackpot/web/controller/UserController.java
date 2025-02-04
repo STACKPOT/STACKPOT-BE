@@ -63,8 +63,6 @@ public class UserController {
     @PatchMapping("/profile")
     public ResponseEntity<?> signup(@Valid @RequestBody UserRequestDto.JoinDto request,
                                     BindingResult bindingResult) {
-        // 유효성 검사 실패 처리
-        // 정상 처리
         User user = userCommandService.joinUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(UserConverter.toDto(user));
     }
@@ -78,31 +76,26 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+    @Operation(summary = "회원 로그아웃 API", description = "AccessToken 토큰과 함께 요청 시 로그아웃 ")
+    public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String token) {
         String accessToken = token.replace("Bearer ", "");
 
-        // Access Token에서 User ID 추출
-        String userEmail = jwtTokenProvider.getEmailFromToken(accessToken);
-
-        // 1. Refresh Token 삭제 (Redis에서 삭제)
         refreshTokenRepository.deleteById(accessToken);
 
-        // 2. Access Token 만료 시간 가져오기
         long expiration = jwtTokenProvider.getExpiration(accessToken);
 
-        // 3. Access Token을 블랙리스트에 추가
         blacklistRepository.addToBlacklist(accessToken, expiration);
 
-        return ResponseEntity.ok("로그아웃 성공");
+        return ResponseEntity.ok(ApiResponse.onSuccess("로그아웃 성공"));
     }
 
-
-    @Operation(summary = "나의 정보 조회 API", description = "토큰을 통해 '설정 페이지'와 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 자신의 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
-    @GetMapping("")
-    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersMyPages(){
-        UserResponseDto.Userdto userDetails = userCommandService.getMyUsers();
-        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    @DeleteMapping("/delete")
+    @Operation(summary = "[ 구현 중 ] 회원 탈퇴 API", description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 ")
+    public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken) {
+        userCommandService.deleteUser(accessToken);
+        return ResponseEntity.ok(ApiResponse.onSuccess("회원 탈퇴 성공"));
     }
+
 
     @Operation(summary = "사용자별 정보 조회 API", description = "userId를 통해 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
     @GetMapping("/{userId}")
@@ -110,6 +103,13 @@ public class UserController {
             @PathVariable Long userId
     ){
         UserResponseDto.Userdto userDetails = userCommandService.getUsers(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+    @Operation(summary = "나의 정보 조회 API", description = "토큰을 통해 '설정 페이지'와 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 자신의 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
+    @GetMapping("")
+    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersMyPages(){
+        UserResponseDto.Userdto userDetails = userCommandService.getMyUsers();
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 

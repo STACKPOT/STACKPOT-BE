@@ -3,6 +3,7 @@ package stackpot.stackpot.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,10 @@ import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.repository.BlacklistRepository;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
+import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
@@ -34,6 +37,8 @@ public class UserCommandServiceImpl implements UserCommandService{
     private final UserMypageConverter userMypageConverter;
     private final PotSummarizationService potSummarizationService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistRepository blacklistRepository;
 
     @Override
     @Transactional
@@ -205,6 +210,25 @@ public class UserCommandServiceImpl implements UserCommandService{
                 "하나의 수식어만 알려주고 앞에 숫자와 뒤에 양파, 버섯 등등은 붙이지 말아줘";
         String nickname = potSummarizationService.summarizeText(prompt, 15);
         return nickname;
+    }
+
+    @Transactional
+    public void deleteUser(String accessToken) {
+        String token = accessToken.replace("Bearer ", "");
+        String email = jwtTokenProvider.getEmailFromToken(token);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow( ()-> new IllegalArgumentException(("사용자를 찾을 수 없습니다.")));
+
+        userRepository.delete(user);
+
+        // Refresh Token 삭제 (로그아웃)
+        refreshTokenRepository.deleteById(token);
+
+        // Access Token 블랙리스트에 추가
+        long expiration = jwtTokenProvider.getExpiration(token);
+        blacklistRepository.addToBlacklist(token, expiration);
+
     }
 
     // 역할에 따른 채소명을 반환하는 메서드
