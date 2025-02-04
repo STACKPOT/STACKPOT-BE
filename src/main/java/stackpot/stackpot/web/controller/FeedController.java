@@ -18,7 +18,7 @@ import java.util.Map;
 
 
 @RestController
-@RequestMapping("/feeds")
+@RequestMapping(value = "/feeds",produces = "application/json; charset=UTF-8")
 @RequiredArgsConstructor
 @Tag(name = "Feed Management", description = "피드 관리 API")
 public class FeedController {
