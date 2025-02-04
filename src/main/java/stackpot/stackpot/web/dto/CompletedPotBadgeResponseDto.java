@@ -5,6 +5,7 @@ import stackpot.stackpot.domain.enums.Role;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -20,5 +21,7 @@ public class CompletedPotBadgeResponseDto {
     private String members;
     private String userPotRole;
     private List<BadgeDto> myBadges;
+    private Map<String, Integer> memberCounts;
+
 }
 
