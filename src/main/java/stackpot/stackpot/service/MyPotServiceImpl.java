@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.domain.mapping.Task;
 import stackpot.stackpot.domain.mapping.UserTodo;
-import stackpot.stackpot.repository.BadgeRepository.BadgeRepository;
 import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
 import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.repository.PotRepository.MyPotRepository;
@@ -40,7 +38,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 @Slf4j
@@ -130,7 +127,7 @@ public class MyPotServiceImpl implements MyPotService {
         // 특정 팟의 모든 To-Do 조회 (업데이트된 리스트)
         List<UserTodo> potTodos = myPotRepository.findByPot_PotId(potId);
 
-        // 📌 투두를 User 기준으로 그룹핑
+        //  투두를 User 기준으로 그룹핑
         Map<User, List<UserTodo>> groupedByUser = potTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
@@ -573,15 +570,12 @@ public class MyPotServiceImpl implements MyPotService {
         String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
 
         String userPotRole;
-        if (pot.getUser().getId().equals(user.getId())) {
-            //  Pot 생성자의 Role 반환 (한글 변환 적용)
-            userPotRole = getKoreanRoleName(pot.getUser().getRole().name());
-        } else {
-            // Pot 멤버의 Role 조회 후 변환
-            userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
-                    .map(role -> getKoreanRoleName(role.name())) //  Optional<Role>을 String으로 변환 후 한글 적용
-                    .orElse(getKoreanRoleName(pot.getUser().getRole().name())); // 기본값: Pot 생성자의 Role
-        }
+
+        // Pot 멤버의 Role 조회 후 변환
+        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                .map(role -> getKoreanRoleName(role.name())) //  Optional<Role>을 String으로 변환 후 한글 적용
+                .orElse(getKoreanRoleName(pot.getUser().getRole().name())); // 기본값: Pot 생성자의 Role
+
 
         // DTO 반환
         return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
@@ -618,10 +612,8 @@ public class MyPotServiceImpl implements MyPotService {
                             .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
                             .collect(Collectors.joining(", "));
 
-                    //  현재 사용자의 역할(Role) 결정
-                    Role userPotRole = pot.getUser().getId().equals(user.getId()) ?
-                            pot.getUser().getRole() :
-                            potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId()).orElse(pot.getUser().getRole());
+                    Role userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                            .orElse(Role.FRONTEND);
 
                     //  사용자의 뱃지 조회 (뱃지가 없으면 빈 리스트 반환)
                     List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
@@ -661,10 +653,7 @@ public class MyPotServiceImpl implements MyPotService {
                             .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
                             .collect(Collectors.joining(", "));
 
-                    //  현재 사용자의 역할(Role) 결정
-                    Role userPotRole = pot.getUser().getId().equals(userId) ?
-                            pot.getUser().getRole() :
-                            potMemberRepository.findRoleByUserId(pot.getPotId(), userId).orElse(pot.getUser().getRole());
+                    Optional<Role> userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), userId);
 
                     //  사용자의 뱃지 조회 (뱃지가 없으면 빈 리스트 반환)
                     List<BadgeDto> myBadges = potMemberBadgeRepository.findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), userId)
@@ -676,7 +665,7 @@ public class MyPotServiceImpl implements MyPotService {
                             .collect(Collectors.toList());
 
                     //  Pot -> CompletedPotBadgeResponseDto 변환
-                    return myPotConverter.toCompletedPotBadgeResponseDto(pot, formattedMembers, userPotRole, myBadges);
+                    return myPotConverter.toCompletedPotBadgeResponseDto(pot, formattedMembers, userPotRole.orElse(null), myBadges);
                 })
                 .collect(Collectors.toList());
     }
