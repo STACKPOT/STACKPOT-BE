@@ -1,11 +1,12 @@
 package stackpot.stackpot.service;
 
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.*;
 
 public interface UserCommandService {
-    User joinUser(UserRequestDto.JoinDto request);
-    User saveNewUser(String email);
+    UserSignUpResponseDto joinUser(UserRequestDto.JoinDto request);
+    User saveNewUser(String email, UserRequestDto.JoinDto request);
 
     UserResponseDto.loginDto isnewUser(String email);
 
@@ -18,7 +19,9 @@ public interface UserCommandService {
 
     UserResponseDto.Userdto updateUserProfile(UserUpdateRequestDto requestDto);
 
-    String createNickname();
+    String createNickname(Role role);
+
+    public String saveNickname(String nickname);
 
     void deleteUser(String accessToken);
 }

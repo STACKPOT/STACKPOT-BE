@@ -1,6 +1,8 @@
 package stackpot.stackpot.web.dto;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.Null;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
