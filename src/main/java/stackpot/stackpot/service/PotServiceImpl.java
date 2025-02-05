@@ -252,6 +252,9 @@ public class PotServiceImpl implements PotService {
         boolean isOwner = false;
 
         if(user.getId() == pot.getUser().getId()) isOwner = true;
+        boolean isApplied = pot.getPotApplication().stream()
+                .anyMatch(application -> application.getUser().getId().equals(user.getId()));
+
 
         // recruitmentDetails 리스트를 "FRONTEND(1), BACKEND(3)" 형태의 String으로 변환
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
@@ -259,7 +262,7 @@ public class PotServiceImpl implements PotService {
                 .collect(Collectors.joining(", "));
 
         // 변환기(PotDetailConverter) 사용
-        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner);
+        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied);
     }
 
     // 특정 팟 지원자의 좋아요 상태 변경
