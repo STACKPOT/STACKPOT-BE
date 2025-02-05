@@ -126,13 +126,17 @@ public class PotApplicationServiceImpl implements PotApplicationService {
         Pot pot = potRepository.findPotWithRecruitmentDetailsByPotId(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
+        boolean isOwner = false;
+
+        if(user.getId() == pot.getUser().getId()) isOwner = true;
+
         // 모집 세부 사항 변환 ("FRONTEND(1), BACKEND(3)" 형태)
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
                 .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name()) + "(" + recruitmentDetail.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
         // Pot 상세 DTO 변환
-        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails);
+        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner);
 
         // 지원자 목록 조회 조건: 사용자가 소유자 && Pot의 status가 RECRUITING일 때만 조회
         List<PotApplicationResponseDto> applicants = Collections.emptyList(); // 기본값: 빈 리스트

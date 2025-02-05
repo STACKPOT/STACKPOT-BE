@@ -34,7 +34,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
     }
 
     @Override
-    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails){
+    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner){
         LocalDate today = LocalDate.now();
         LocalDate deadline = pot.getRecruitmentDeadline();
 
@@ -53,6 +53,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .userId(user.getId())
                 .userRole(String.valueOf(user.getRole()))
                 .userNickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
+                .isOwner(isOwner)
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStartDate(formatDate(pot.getPotStartDate()))
