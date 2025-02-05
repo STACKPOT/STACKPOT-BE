@@ -239,9 +239,19 @@ public class PotServiceImpl implements PotService {
 
     @Override
     public PotDetailResponseDto getPotDetails(Long potId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
         // Pot 조회
         Pot pot = potRepository.findPotWithRecruitmentDetailsByPotId(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        boolean isOwner = false;
+
+        if(user.getId() == pot.getUser().getId()) isOwner = true;
 
         // recruitmentDetails 리스트를 "FRONTEND(1), BACKEND(3)" 형태의 String으로 변환
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
@@ -249,7 +259,7 @@ public class PotServiceImpl implements PotService {
                 .collect(Collectors.joining(", "));
 
         // 변환기(PotDetailConverter) 사용
-        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails);
+        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner);
     }
 
     // 특정 팟 지원자의 좋아요 상태 변경
