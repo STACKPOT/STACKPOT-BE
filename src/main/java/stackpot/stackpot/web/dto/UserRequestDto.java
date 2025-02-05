@@ -1,5 +1,6 @@
 package stackpot.stackpot.web.dto;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +16,6 @@ public class UserRequestDto {
     @Setter
     @NoArgsConstructor
     public static class JoinDto {
-
         Role role;
 //        @NotBlank(message = "Interest는 공백일 수 없습니다.")
         String interest;

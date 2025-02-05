@@ -14,6 +14,7 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.BlacklistRepository;
 import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.service.KakaoService;
@@ -60,19 +61,23 @@ public class UserController {
 
     @Operation(summary = "회원가입 API")
     @PatchMapping("/profile")
-    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> signup(@Valid @RequestBody UserRequestDto.JoinDto request) {
-        User user = userCommandService.joinUser(request);
-        UserResponseDto.Userdto response = UserConverter.toDto(user);
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    public ResponseEntity<ApiResponse<UserSignUpResponseDto>> signup(@Valid @RequestBody UserRequestDto.JoinDto request) {
+        UserSignUpResponseDto user = userCommandService.joinUser(request);
+        return ResponseEntity.ok(ApiResponse.onSuccess(user));
     }
-
 
     @Operation(summary = "닉네임 생성 API")
     @GetMapping("/nickname")
-    public ResponseEntity<ApiResponse<String>> nickname(){
-        String nickName = userCommandService.createNickname();
-
+    public ResponseEntity<ApiResponse<String>> nickname(@PathVariable Role role){
+        String nickName = userCommandService.createNickname(role);
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
+    }
+
+    @Operation(summary = "닉네임 저장 API", description = "사용자의 닉네임을 저장합니다.")
+    @PostMapping("/nickname/{nickname}")
+    public ResponseEntity<ApiResponse<String>> saveNickname(@PathVariable String nickname) {
+        String savedNickname = userCommandService.saveNickname(nickname);
+        return ResponseEntity.ok(ApiResponse.onSuccess(savedNickname));
     }
 
     @PostMapping("/logout")

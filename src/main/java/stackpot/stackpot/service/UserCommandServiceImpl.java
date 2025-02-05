@@ -15,6 +15,7 @@ import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.BlacklistRepository;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
@@ -42,26 +43,31 @@ public class UserCommandServiceImpl implements UserCommandService{
 
     @Override
     @Transactional
-    public User joinUser(UserRequestDto.JoinDto request) {
+    public UserSignUpResponseDto joinUser(UserRequestDto.JoinDto request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+        // 1. 기존 사용자 조회 또는 새로운 사용자 생성
+        User user = userRepository.findByEmail(email).orElseGet(() -> saveNewUser(email, request));
 
-        updateUserData(user, request);
+        // 2. 기존 사용자일 경우 업데이트
+        if (user.getId() != null) {
+            updateUserData(user, request);
+            userRepository.save(user); // 기존 사용자 업데이트 후 저장
+        }
 
-
-        return userRepository.save(user);
+        return UserConverter.toUserSignUpResponseDto(user);
     }
 
     @Override
-    public User saveNewUser(String email) {
-
+    public User saveNewUser(String email, UserRequestDto.JoinDto request) {
         return userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     User newUser = User.builder()
                             .email(email)
+                            .kakaoId(request.getKakaoId())
+                            .role(request.getRole())
+                            .interest(request.getInterest())
                             .userTemperature(33)
                             .build();
 
@@ -102,17 +108,18 @@ public class UserCommandServiceImpl implements UserCommandService{
 
 
     private void updateUserData(User user, UserRequestDto.JoinDto request) {
-        // 카카오 id
-        user.setKakaoId(request.getKakaoId());
-        // 역할군
-        user.setRole(request.getRole());
-        // 관심사
-        user.setInterest(request.getInterest());
-        //한줄 소개
-        user.setUserIntroduction(
-                user.getRole().name().trim() + "에 관심있는 " +
-                        user.getNickname().trim() + getVegetableNameByRole(String.valueOf(user.getRole())).trim() + "입니다."
-        );
+        // 값이 존재하는 경우에만 업데이트
+        if (request.getKakaoId() != null) user.setKakaoId(request.getKakaoId());
+        if (request.getRole() != null) user.setRole(request.getRole());
+        if (request.getInterest() != null) user.setInterest(request.getInterest());
+
+        // 한 줄 소개 생성 (주석 해제 가능)
+        /*if (request.getRole() != null && user.getNickname() != null) {
+            user.setUserIntroduction(
+                    request.getRole().name().trim() + "에 관심있는 " +
+                            user.getNickname().trim() + getVegetableNameByRole(request.getRole().toString()).trim() + "입니다."
+            );
+        }*/
     }
 
     @Override
@@ -203,13 +210,7 @@ public class UserCommandServiceImpl implements UserCommandService{
 
     @Override
     @Transactional
-    public String createNickname() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    public String createNickname(Role role) {
 
         String nickname;
 
@@ -225,16 +226,50 @@ public class UserCommandServiceImpl implements UserCommandService{
             nickname = potSummarizationService.summarizeText(prompt, 15);
 
             // 중복 검사
-            boolean isDuplicate = userRepository.existsByNickname(nickname);
-
-            // 중복이 없으면 탈출
-            if (!isDuplicate) {
-                user.setNickname(nickname); // 유저 객체에 닉네임 저장
-                userRepository.save(user); // DB에 저장
+            if (!userRepository.existsByNickname(nickname)) {
                 break;
             }
         }
-        return nickname+getVegetableNameByRole(user.getRole().toString());
+
+        return nickname+getVegetableNameByRole(getVegetableNameByRole(role.toString()));
+    }
+
+    @Override
+    @Transactional
+    public String saveNickname(String nickname) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        nickname = trimNickname(nickname);
+
+        user.setNickname(nickname); // 유저 객체에 닉네임 저장
+        user.setUserIntroduction(user.getRole() + "에 관심있는 " + nickname + getVegetableNameByRole(String.valueOf(user.getRole())) + "입니다.");
+        userRepository.save(user); // DB에 저장
+
+        return nickname + getVegetableNameByRole(user.getRole().toString());
+    }
+
+    private String trimNickname(String nickname) {
+        // 앞뒤 공백 유지
+        nickname = nickname.trim();
+
+        // 채소 이름 리스트
+        String[] vegetables = {"버섯", "양파", "브로콜리", "당근"};
+
+        for (String vegetable : vegetables) {
+            if (nickname.contains(" " + vegetable)) {
+                // 공백과 함께 채소 이름을 제거
+                return nickname.replace(" " + vegetable, "").trim();
+            } else if (nickname.endsWith(vegetable)) {
+                // 채소 이름이 맨 끝에 있는 경우 제거
+                return nickname.replace(vegetable, "").trim();
+            }
+        }
+
+        return nickname; // 기본적으로 원래 닉네임 반환
     }
 
     @Transactional
