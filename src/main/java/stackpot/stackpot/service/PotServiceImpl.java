@@ -255,7 +255,6 @@ public class PotServiceImpl implements PotService {
         boolean isApplied = pot.getPotApplication().stream()
                 .anyMatch(application -> application.getUser().getId().equals(user.getId()));
 
-
         // recruitmentDetails 리스트를 "FRONTEND(1), BACKEND(3)" 형태의 String으로 변환
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
                 .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name()) + "(" + recruitmentDetail.getRecruitmentCount() + ")")

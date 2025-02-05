@@ -14,5 +14,6 @@ public interface PotDetailConverter {
     AppliedPotResponseDto toAppliedPotResponseDto(User user, Pot pot, String recruitmentDetails);
 
     PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied);
+
 }
 
