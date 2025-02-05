@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/search")
+@RequestMapping(value = "/search",produces = "application/json; charset=UTF-8")
 @RequiredArgsConstructor
 @Tag(name = "Search Management", description = "검색 API")
 public class SearchController {
