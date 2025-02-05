@@ -15,7 +15,7 @@ import java.util.List;
 
 @Tag(name = "Pot Application Management", description = "팟 지원 관리 API")
 @RestController
-@RequestMapping("/pots/{pot_id}/applications")
+@RequestMapping(value = "/pots/{pot_id}/applications",produces = "application/json; charset=UTF-8")
 @RequiredArgsConstructor
 public class PotApplicationController {
 
@@ -31,6 +31,13 @@ public class PotApplicationController {
 
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 성공 시 ApiResponse로 감싸서 응답 반환
     }
+    @Operation(summary = "팟 지원 취소 API")
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> cancelApplication(@PathVariable("pot_id") Long potId) {
+        potApplicationService.cancelApplication(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(null));
+    }
+
 
     @Operation(summary = "팟 지원자 조회 API")
     @GetMapping("")

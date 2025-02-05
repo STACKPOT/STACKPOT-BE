@@ -14,7 +14,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import stackpot.stackpot.repository.BlacklistRepository;
 
 @EnableWebSecurity
 @Configuration
@@ -34,7 +33,7 @@ public class SecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors().and()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
