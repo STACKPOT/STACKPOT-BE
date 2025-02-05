@@ -12,21 +12,6 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-@JsonPropertyOrder({
-        "userId",
-        "userRole",
-        "userNickname",
-        "isOwner",
-        "potId",
-        "potName",
-        "potStartDate",
-        "potDuration",
-        "potLan",
-        "potModeOfOperation",
-        "potContent",
-        "dDay",
-        "recruitmentDetails"
-})
 public class PotDetailResponseDto {
     private Long userId;
     protected String userRole;
@@ -37,6 +22,8 @@ public class PotDetailResponseDto {
     private String potStartDate;
     private String potDuration;
     private String potLan;
+    private String potStatus;
+    private boolean applied;
     private String potModeOfOperation;
     private String potContent;
     private String dDay;
