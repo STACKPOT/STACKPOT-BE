@@ -37,15 +37,32 @@ public class PotMemberServiceImpl implements PotMemberService {
 
     @Transactional
     @Override
+
     public List<PotMemberInfoResponseDto> getPotMembers(Long potId) {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
 
         List<PotMember> potMembers = potMemberRepository.findByPotId(potId);
-        return potMembers.stream()
-                .map(potMemberConverter::toKaKaoMemberDto)
+
+        List<PotMemberInfoResponseDto> memberDtos = potMembers.stream()
+                .map(potMember -> {
+                    if (potMember.isOwner()) {
+                        // 팟 생성자의 역할은 User 테이블에서 가져옴
+                        return potMemberConverter.toKaKaoCreatorDto(potMember);
+                    } else {
+                        // 나머지 멤버들의 역할은 지원 테이블(PotApplication)에서 가져옴
+                        return potMemberConverter.toKaKaoMemberDto(potMember);
+                    }
+                })
                 .collect(Collectors.toList());
+
+        // owner가 true인 팟 생성자가 항상 맨 위로 오도록 정렬
+        memberDtos.sort((a, b) -> Boolean.compare(b.isOwner(), a.isOwner()));
+
+
+        return memberDtos;
     }
+
     @Transactional
     @Override
     public List<PotMemberAppealResponseDto> addMembersToPot (Long potId, PotMemberRequestDto requestDto) {

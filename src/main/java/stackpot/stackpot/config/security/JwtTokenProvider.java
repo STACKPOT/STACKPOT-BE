@@ -1,24 +1,20 @@
 package stackpot.stackpot.config.security;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
-import org.springframework.security.core.Authentication;
 import stackpot.stackpot.domain.RefreshToken;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.web.dto.TokenServiceResponse;
 
-import java.security.Key;
 import java.util.Date;
-
-import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 @RequiredArgsConstructor
 @Component
@@ -29,7 +25,8 @@ public class JwtTokenProvider {
     
     @Value("${jwt.secret}")
     private String secretKey;
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60; 	//1시간
+//    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60; 	//1시간
+private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24; // 1일
     private final UserDetailsService  userDetailsService;
 

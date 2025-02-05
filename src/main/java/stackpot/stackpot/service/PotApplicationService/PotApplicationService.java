@@ -9,7 +9,7 @@ import java.util.List;
 public interface PotApplicationService {
     PotApplicationResponseDto applyToPot(PotApplicationRequestDto dto,Long potId);
     PotDetailWithApplicantsResponseDto getPotDetailsAndApplicants(Long potId);
-
+    void cancelApplication(Long potId);
     List<PotApplicationResponseDto> getApplicantsByPotId(Long potId);
 }
 
