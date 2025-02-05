@@ -34,6 +34,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
     }
 
     @Override
+
     public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied){
         LocalDate today = LocalDate.now();
         LocalDate deadline = pot.getRecruitmentDeadline();

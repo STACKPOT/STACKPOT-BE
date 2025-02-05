@@ -252,6 +252,7 @@ public class PotServiceImpl implements PotService {
         boolean isOwner = false;
 
         if(user.getId() == pot.getUser().getId()) isOwner = true;
+
         boolean isApplied = pot.getPotApplication().stream()
                 .anyMatch(application -> application.getUser().getId().equals(user.getId()));
 
@@ -261,6 +262,7 @@ public class PotServiceImpl implements PotService {
                 .collect(Collectors.joining(", "));
 
         // 변환기(PotDetailConverter) 사용
+
         return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied);
     }
 
