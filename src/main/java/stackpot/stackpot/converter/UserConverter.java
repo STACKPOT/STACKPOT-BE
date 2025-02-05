@@ -21,10 +21,7 @@ public class UserConverter {
     public static UserSignUpResponseDto toUserSignUpResponseDto(User user) {
         return UserSignUpResponseDto.builder()
                 .id(user.getId())
-                .email(user.getEmail())
                 .role(user.getRole())
-                .interest(user.getInterest())
-                .kakaoId(user.getKakaoId())
                 .build();
     }
 

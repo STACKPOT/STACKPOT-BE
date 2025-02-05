@@ -68,14 +68,14 @@ public class UserController {
 
     @Operation(summary = "닉네임 생성 API")
     @GetMapping("/nickname")
-    public ResponseEntity<ApiResponse<String>> nickname(@PathVariable Role role){
+    public ResponseEntity<ApiResponse<String>> nickname(@RequestParam Role role){
         String nickName = userCommandService.createNickname(role);
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
-    @Operation(summary = "닉네임 저장 API", description = "사용자의 닉네임을 저장합니다.")
-    @PostMapping("/nickname/{nickname}")
-    public ResponseEntity<ApiResponse<String>> saveNickname(@PathVariable String nickname) {
+    @Operation(summary = "닉네임 저장 API", description = "사용자의 닉네임을 저장하고 회원가입을 완료합니다.")
+    @PostMapping("/nickname/save")
+    public ResponseEntity<ApiResponse<String>> saveNickname(@RequestParam String nickname) {
         String savedNickname = userCommandService.saveNickname(nickname);
         return ResponseEntity.ok(ApiResponse.onSuccess(savedNickname));
     }

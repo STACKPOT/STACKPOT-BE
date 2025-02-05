@@ -16,6 +16,7 @@ import java.util.List;
         "userId",
         "userRole",
         "userNickname",
+        "isOwner",
         "potId",
         "potName",
         "potStartDate",
@@ -30,6 +31,7 @@ public class PotDetailResponseDto {
     private Long userId;
     protected String userRole;
     private String userNickname;
+    private boolean isOwner;
     private Long potId;
     private String potName;
     private String potStartDate;
