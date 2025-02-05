@@ -42,7 +42,7 @@ public class UserCommandServiceImpl implements UserCommandService{
 
     @Override
     @Transactional
-    public User joinUser(UserRequestDto.JoinDto request) {
+    public UserSignUpResponseDto joinUser(UserRequestDto.JoinDto request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -52,7 +52,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         updateUserData(user, request);
 
 
-        return userRepository.save(user);
+        return UserConverter.toUserSignUpResponseDto(user);
     }
 
     @Override
@@ -102,17 +102,24 @@ public class UserCommandServiceImpl implements UserCommandService{
 
 
     private void updateUserData(User user, UserRequestDto.JoinDto request) {
-        // 카카오 id
+        // 카카오 ID 초기화 후 설정
+        user.setKakaoId(null);
         user.setKakaoId(request.getKakaoId());
-        // 역할군
+
+        // 역할 초기화 후 설정
+        user.setRole(null);
         user.setRole(request.getRole());
-        // 관심사
+
+        // 관심사 초기화 후 설정
+        user.setInterest(null);
         user.setInterest(request.getInterest());
-        //한줄 소개
+
+        // 한 줄 소개 초기화 후 설정 (주석 해제 가능)
+        /*user.setUserIntroduction(null);
         user.setUserIntroduction(
-                user.getRole().name().trim() + "에 관심있는 " +
-                        user.getNickname().trim() + getVegetableNameByRole(String.valueOf(user.getRole())).trim() + "입니다."
-        );
+                request.getRole().name().trim() + "에 관심있는 " +
+                        user.getNickname().trim() + getVegetableNameByRole(request.getRole().toString()).trim() + "입니다."
+        );*/
     }
 
     @Override

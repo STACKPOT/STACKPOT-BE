@@ -60,11 +60,18 @@ public class UserController {
 
     @Operation(summary = "회원가입 API")
     @PatchMapping("/profile")
+    public ResponseEntity<ApiResponse<UserSignUpResponseDto>> signup(@Valid @RequestBody UserRequestDto.JoinDto request) {
+        UserSignUpResponseDto user = userCommandService.joinUser(request);
+        return ResponseEntity.ok(ApiResponse.onSuccess(user));
+    }
+
+    /*@Operation(summary = "닉네임 저장 API")
+    @PatchMapping("/nickname/save")
     public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> signup(@Valid @RequestBody UserRequestDto.JoinDto request) {
         User user = userCommandService.joinUser(request);
         UserResponseDto.Userdto response = UserConverter.toDto(user);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
+    }*/
 
 
     @Operation(summary = "닉네임 생성 API")
