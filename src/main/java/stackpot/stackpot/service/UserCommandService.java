@@ -5,7 +5,7 @@ import stackpot.stackpot.web.dto.*;
 
 public interface UserCommandService {
     UserSignUpResponseDto joinUser(UserRequestDto.JoinDto request);
-    User saveNewUser(String email);
+    User saveNewUser(String email, UserRequestDto.JoinDto request);
 
     UserResponseDto.loginDto isnewUser(String email);
 

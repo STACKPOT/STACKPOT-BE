@@ -46,22 +46,27 @@ public class UserCommandServiceImpl implements UserCommandService{
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+        // 1. 기존 사용자 조회 또는 새로운 사용자 생성
+        User user = userRepository.findByEmail(email).orElseGet(() -> saveNewUser(email, request));
 
-        updateUserData(user, request);
-
+        // 2. 기존 사용자일 경우 업데이트
+        if (user.getId() != null) {
+            updateUserData(user, request);
+            userRepository.save(user); // 기존 사용자 업데이트 후 저장
+        }
 
         return UserConverter.toUserSignUpResponseDto(user);
     }
 
     @Override
-    public User saveNewUser(String email) {
-
+    public User saveNewUser(String email, UserRequestDto.JoinDto request) {
         return userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     User newUser = User.builder()
                             .email(email)
+                            .kakaoId(request.getKakaoId())
+                            .role(request.getRole())
+                            .interest(request.getInterest())
                             .userTemperature(33)
                             .build();
 
@@ -102,24 +107,18 @@ public class UserCommandServiceImpl implements UserCommandService{
 
 
     private void updateUserData(User user, UserRequestDto.JoinDto request) {
-        // 카카오 ID 초기화 후 설정
-        user.setKakaoId(null);
-        user.setKakaoId(request.getKakaoId());
+        // 값이 존재하는 경우에만 업데이트
+        if (request.getKakaoId() != null) user.setKakaoId(request.getKakaoId());
+        if (request.getRole() != null) user.setRole(request.getRole());
+        if (request.getInterest() != null) user.setInterest(request.getInterest());
 
-        // 역할 초기화 후 설정
-        user.setRole(null);
-        user.setRole(request.getRole());
-
-        // 관심사 초기화 후 설정
-        user.setInterest(null);
-        user.setInterest(request.getInterest());
-
-        // 한 줄 소개 초기화 후 설정 (주석 해제 가능)
-        /*user.setUserIntroduction(null);
-        user.setUserIntroduction(
-                request.getRole().name().trim() + "에 관심있는 " +
-                        user.getNickname().trim() + getVegetableNameByRole(request.getRole().toString()).trim() + "입니다."
-        );*/
+        // 한 줄 소개 생성 (주석 해제 가능)
+        /*if (request.getRole() != null && user.getNickname() != null) {
+            user.setUserIntroduction(
+                    request.getRole().name().trim() + "에 관심있는 " +
+                            user.getNickname().trim() + getVegetableNameByRole(request.getRole().toString()).trim() + "입니다."
+            );
+        }*/
     }
 
     @Override
