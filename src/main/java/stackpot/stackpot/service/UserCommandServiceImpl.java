@@ -15,6 +15,7 @@ import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.BlacklistRepository;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
@@ -209,13 +210,7 @@ public class UserCommandServiceImpl implements UserCommandService{
 
     @Override
     @Transactional
-    public String createNickname() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    public String createNickname(Role role) {
 
         String nickname;
 
@@ -231,16 +226,50 @@ public class UserCommandServiceImpl implements UserCommandService{
             nickname = potSummarizationService.summarizeText(prompt, 15);
 
             // 중복 검사
-            boolean isDuplicate = userRepository.existsByNickname(nickname);
-
-            // 중복이 없으면 탈출
-            if (!isDuplicate) {
-                user.setNickname(nickname); // 유저 객체에 닉네임 저장
-                userRepository.save(user); // DB에 저장
+            if (!userRepository.existsByNickname(nickname)) {
                 break;
             }
         }
-        return nickname+getVegetableNameByRole(user.getRole().toString());
+
+        return nickname+getVegetableNameByRole(getVegetableNameByRole(role.toString()));
+    }
+
+    @Override
+    @Transactional
+    public String saveNickname(String nickname) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        nickname = trimNickname(nickname);
+
+        user.setNickname(nickname); // 유저 객체에 닉네임 저장
+        user.setUserIntroduction(user.getRole() + "에 관심있는 " + nickname + getVegetableNameByRole(String.valueOf(user.getRole())) + "입니다.");
+        userRepository.save(user); // DB에 저장
+
+        return nickname + getVegetableNameByRole(user.getRole().toString());
+    }
+
+    private String trimNickname(String nickname) {
+        // 앞뒤 공백 유지
+        nickname = nickname.trim();
+
+        // 채소 이름 리스트
+        String[] vegetables = {"버섯", "양파", "브로콜리", "당근"};
+
+        for (String vegetable : vegetables) {
+            if (nickname.contains(" " + vegetable)) {
+                // 공백과 함께 채소 이름을 제거
+                return nickname.replace(" " + vegetable, "").trim();
+            } else if (nickname.endsWith(vegetable)) {
+                // 채소 이름이 맨 끝에 있는 경우 제거
+                return nickname.replace(vegetable, "").trim();
+            }
+        }
+
+        return nickname; // 기본적으로 원래 닉네임 반환
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 package stackpot.stackpot.service;
 
 import stackpot.stackpot.domain.User;
+import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.*;
 
 public interface UserCommandService {
@@ -18,7 +19,9 @@ public interface UserCommandService {
 
     UserResponseDto.Userdto updateUserProfile(UserUpdateRequestDto requestDto);
 
-    String createNickname();
+    String createNickname(Role role);
+
+    public String saveNickname(String nickname);
 
     void deleteUser(String accessToken);
 }
