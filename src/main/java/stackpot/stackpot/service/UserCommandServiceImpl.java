@@ -231,7 +231,7 @@ public class UserCommandServiceImpl implements UserCommandService{
             }
         }
 
-        return nickname+getVegetableNameByRole(getVegetableNameByRole(role.toString()));
+        return nickname+getVegetableNameByRole(role.toString());
     }
 
     @Override
