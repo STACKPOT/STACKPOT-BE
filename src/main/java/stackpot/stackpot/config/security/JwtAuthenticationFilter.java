@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.Authentication;
-//import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.repository.BlacklistRepository;
 
 import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -21,7 +21,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //    private final BlacklistRepository blacklistRepository;
 
 //    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, BlacklistRepository blacklistRepository) {
-//        public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, BlacklistRepository blacklistRepository) {
 //        this.jwtTokenProvider = jwtTokenProvider;
 //        this.blacklistRepository = blacklistRepository;
 //

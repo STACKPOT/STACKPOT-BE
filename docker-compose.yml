@@ -26,7 +26,7 @@ services:
       - redis
 
 #  redis:
-#    container_name: redis-container
+#    container_name: redis-c:::qontainer
 #    image: redis:latest
 #    restart: always
 #    ports:

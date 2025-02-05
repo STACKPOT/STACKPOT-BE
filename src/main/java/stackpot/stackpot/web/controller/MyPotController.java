@@ -176,9 +176,9 @@ public class MyPotController {
 
     @Operation(summary = "Task 조회 API")
     @GetMapping("/{pot_id}/tasks")
-    public ResponseEntity<?> getPotTask(@PathVariable("pot_id") Long potId) {
+    public ResponseEntity<ApiResponse<Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>>>> getPotTask(@PathVariable("pot_id") Long potId) {
         Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> response = myPotService.preViewTask(potId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
     @Operation(summary = "Task 수정 API")
