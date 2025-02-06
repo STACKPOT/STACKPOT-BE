@@ -18,12 +18,10 @@ import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.MyPotConverter;
 import stackpot.stackpot.converter.PotConverter;
 import stackpot.stackpot.converter.PotDetailConverter;
-import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
-import stackpot.stackpot.domain.enums.TodoStatus;
 import stackpot.stackpot.domain.mapping.PotApplication;
 import stackpot.stackpot.domain.mapping.PotMember;
 import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
@@ -32,7 +30,6 @@ import stackpot.stackpot.repository.PotRepository.PotRecruitmentDetailsRepositor
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
-import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.Map;
@@ -109,11 +106,11 @@ public class PotServiceImpl implements PotService {
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
 //                "potStartDate", requestDto.getPotStartDate(),
-                "potEndDate", requestDto.getPotEndDate(),
+//                "potEndDate", requestDto.getPotEndDate(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),
                 "potContent", requestDto.getPotContent(),
-                "potStatus", requestDto.getPotStatus(),
+//                "potStatus", requestDto.getPotStatus(),
                 "potModeOfOperation", requestDto.getPotModeOfOperation(),
                 "potSummary", requestDto.getPotSummary(),
                 "recruitmentDeadline", requestDto.getRecruitmentDeadline()
@@ -252,6 +249,7 @@ public class PotServiceImpl implements PotService {
         boolean isOwner = false;
 
         if(user.getId() == pot.getUser().getId()) isOwner = true;
+
         boolean isApplied = pot.getPotApplication().stream()
                 .anyMatch(application -> application.getUser().getId().equals(user.getId()));
 
@@ -261,6 +259,7 @@ public class PotServiceImpl implements PotService {
                 .collect(Collectors.joining(", "));
 
         // 변환기(PotDetailConverter) 사용
+
         return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied);
     }
 
@@ -514,11 +513,11 @@ public class PotServiceImpl implements PotService {
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
                 //"potStartDate", requestDto.getPotStartDate(),
-                "potEndDate", requestDto.getPotEndDate(),
+//                "potEndDate", requestDto.getPotEndDate(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),
                 "potContent", requestDto.getPotContent(),
-                "potStatus", (requestDto.getPotStatus() != null ? requestDto.getPotStatus() : "COMPLETED"),
+//                "potStatus", (requestDto.getPotStatus() != null ? requestDto.getPotStatus() : "COMPLETED"),
                 "potModeOfOperation", requestDto.getPotModeOfOperation(),
                 "potSummary", requestDto.getPotSummary(),
                 "recruitmentDeadline", requestDto.getRecruitmentDeadline()
@@ -562,7 +561,42 @@ public class PotServiceImpl implements PotService {
                 .map(pot -> myPotConverter.convertToRecruitingPotResponseDto(pot, user.getId()))
                 .collect(Collectors.toList());
     }
+    @Transactional
+    @Override
+    public CompletedPotDetailResponseDto getCompletedPotDetail(Long potId, Long userId) {
+        // 팟 조회
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
 
+        // 팟 상태 확인
+        if (!"COMPLETED".equals(pot.getPotStatus())) {
+            throw new IllegalArgumentException("해당 팟은 COMPLETED 상태가 아닙니다.");
+        }
+
+        // 특정 사용자 조회
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 특정 사용자의 팟 멤버 정보 조회
+        PotMember potMember = potMemberRepository.findByPotAndUser(pot, targetUser)
+                .orElse(null);
+
+        // 어필 내용 가져오기
+        String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
+
+        // 사용자의 역할(Role) 조회
+        String userPotRole;
+        if (potMember != null) {
+            // ✅ PotMember에 있으면 해당 역할 사용
+            userPotRole = getKoreanRoleName(potMember.getRoleName().name());
+        } else {
+            // ✅ PotMember에 없으면, 팟 생성자의 역할을 가져옴
+            userPotRole = getKoreanRoleName(pot.getUser().getRole().name());
+        }
+
+        // DTO 반환
+        return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
+    }
 
     private String getKoreanRoleName(String role) {
         Map<String, String> roleToKoreaneMap = Map.of(
@@ -573,5 +607,6 @@ public class PotServiceImpl implements PotService {
         );
         return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
     }
+
 
 }

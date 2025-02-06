@@ -9,10 +9,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.EnumHandler;
-import stackpot.stackpot.apiPayload.exception.handler.RecruitmentHandler;
-import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
@@ -92,7 +91,15 @@ public class PotController {
         CursorPageResponse<CompletedPotResponseDto> response = potService.getMyCompletedPots(cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+    @Operation(summary = "특정 사용자의 끓인 팟 상세 조회")
+    @GetMapping("/{pot_id}/users/{user_id}")
+    public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
+            @PathVariable("pot_id") Long potId,
+            @PathVariable("user_id") Long userId) {
 
+        CompletedPotDetailResponseDto response = potService.getCompletedPotDetail(potId, userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
     //-------------------
 
     @Operation(
