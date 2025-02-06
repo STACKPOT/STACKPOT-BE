@@ -10,8 +10,9 @@ import stackpot.stackpot.web.dto.PotDetailResponseDto;
 
 public interface PotDetailConverter {
     CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, String userPotRole, String appealContent);
-    PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails);
+
     AppliedPotResponseDto toAppliedPotResponseDto(User user, Pot pot, String recruitmentDetails);
 
+    PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied);
 }
 

@@ -23,6 +23,8 @@ public class PotApplication extends BaseEntity {
     @Column(name = "application_id", nullable = false)
     private Long applicationId; // Primary Key
 
+    @Getter
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ApplicationStatus status;

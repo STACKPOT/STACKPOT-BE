@@ -66,20 +66,69 @@ public class PotApplicationServiceImpl implements PotApplicationService {
         potApplication.setAppliedAt(LocalDateTime.now());
 
         PotApplication savedApplication = potApplicationRepository.save(potApplication);
-
+// 지원자의 역할 조회 및 한글 변환
+        String applicantRole = user.getRole() != null ? getVegetableNameByRole(user.getRole().name()) : "멤버";
         // 이메일 전송
         // 이메일 전송
         emailService.sendSupportNotification(
                 pot.getUser().getEmail(),
                 pot.getPotName(),
-                user.getNickname(),
-                user.getUserIntroduction() // 한 줄 소개 추가
+                String.format("%s %s", user.getNickname(), applicantRole), // 닉네임 + 역할
+                user.getUserIntroduction() != null ? user.getUserIntroduction() : "없음"
         );
-
         // 저장된 지원 정보를 응답 DTO로 변환
         return potApplicationConverter.toDto(savedApplication);
     }
+//
+//    @Transactional
+//    @Override
+//    public void cancelApplication(Long potId) {
+//        // 인증된 사용자 이메일 가져오기
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String email = authentication.getName();
+//
+//        // 사용자 조회
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+//
+//        // 팟 조회
+//        Pot pot = potRepository.findById(potId)
+//                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+//
+//        // 지원 내역 조회
+//        PotApplication application = potApplicationRepository.findByUserIdAndPot_PotId(user.getId(), potId)
+//                .orElseThrow(() -> new IllegalArgumentException("해당 팟에 지원한 이력이 없습니다."));
+//
+////        // 이미 취소된 지원인지 확인
+////        if (application.getApplicationStatus() == ApplicationStatus.CANCELED) {
+////            throw new IllegalStateException("이미 취소된 지원입니다.");
+////        }
+//
+//        // 상태 변경
+//        application.setApplicationStatus(ApplicationStatus.CANCELED);
+//        application.setAppliedAt(LocalDateTime.now()); // 취소 시간 업데이트
+//        potApplicationRepository.save(application);
+//
+//
+//    }
 
+    @Transactional
+    public void cancelApplication(Long potId) {
+        // 현재 인증된 사용자 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 지원 내역 조회
+        PotApplication application = potApplicationRepository.findByUserIdAndPot_PotId(user.getId(), potId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟에 지원한 이력이 없습니다."));
+
+        // 지원 내역 삭제
+        potApplicationRepository.delete(application);
+    }
 
 
     @Override
@@ -126,13 +175,20 @@ public class PotApplicationServiceImpl implements PotApplicationService {
         Pot pot = potRepository.findPotWithRecruitmentDetailsByPotId(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
+        boolean isOwner = false;
+
+        if(user.getId() == pot.getUser().getId()) isOwner = true;
+        boolean isApplied = pot.getPotApplication().stream()
+                .anyMatch(application -> application.getUser().getId().equals(user.getId()));
+
         // 모집 세부 사항 변환 ("FRONTEND(1), BACKEND(3)" 형태)
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
                 .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name()) + "(" + recruitmentDetail.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
         // Pot 상세 DTO 변환
-        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails);
+
+        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied);
 
         // 지원자 목록 조회 조건: 사용자가 소유자 && Pot의 status가 RECRUITING일 때만 조회
         List<PotApplicationResponseDto> applicants = Collections.emptyList(); // 기본값: 빈 리스트
@@ -159,6 +215,16 @@ public class PotApplicationServiceImpl implements PotApplicationService {
                 "PLANNING", " 기획"
         );
         return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
+    }
+    private String getVegetableNameByRole(String role) {
+        Map<String, String> roleToVegetableMap = Map.of(
+                "DESIGN", " 브로콜리",
+                "PLANNING", " 당근",
+                "BACKEND", " 양파",
+                "FRONTEND", " 버섯"
+        );
+
+        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 
 }

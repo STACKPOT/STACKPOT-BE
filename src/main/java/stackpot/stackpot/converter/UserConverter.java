@@ -4,6 +4,7 @@ import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.UserRequestDto;
 import stackpot.stackpot.web.dto.UserResponseDto;
+import stackpot.stackpot.web.dto.UserSignUpResponseDto;
 
 import java.util.Map;
 
@@ -14,6 +15,13 @@ public class UserConverter {
                 .kakaoId(request.getKakaoId())
                 .interest(request.getInterest())
                 .role(Role.valueOf(String.valueOf(request.getRole())))
+                .build();
+    }
+
+    public static UserSignUpResponseDto toUserSignUpResponseDto(User user) {
+        return UserSignUpResponseDto.builder()
+                .id(user.getId())
+                .role(user.getRole())
                 .build();
     }
 

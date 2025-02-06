@@ -34,7 +34,8 @@ public class PotDetailConverterImpl implements PotDetailConverter {
     }
 
     @Override
-    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails){
+
+    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied){
         LocalDate today = LocalDate.now();
         LocalDate deadline = pot.getRecruitmentDeadline();
 
@@ -53,11 +54,14 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .userId(user.getId())
                 .userRole(String.valueOf(user.getRole()))
                 .userNickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
+                .isOwner(isOwner)
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStartDate(formatDate(pot.getPotStartDate()))
                 .potDuration(pot.getPotDuration())
                 .potLan(pot.getPotLan())
+                .potStatus(pot.getPotStatus())
+                .applied(isApplied)
                 .potModeOfOperation(getKoreanModeOfOperation(String.valueOf(pot.getPotModeOfOperation())))
                 .potContent(pot.getPotContent())
                 .dDay(dDay)

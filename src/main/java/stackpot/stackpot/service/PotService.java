@@ -30,7 +30,7 @@ public interface PotService {
 
     // 사용자가 지원한 팟 목록 조회
     List<AppliedPotResponseDto> getAppliedPots();
-
+    CompletedPotDetailResponseDto getCompletedPotDetail(Long potId, Long userId);
 
     PotSummaryResponseDTO getPotSummary(Long potId);
 

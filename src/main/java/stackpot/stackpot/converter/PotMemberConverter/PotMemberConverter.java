@@ -11,4 +11,5 @@ public interface PotMemberConverter {
     PotMember toEntity(User user, Pot pot, PotApplication application, Boolean isOwner);
     PotMemberAppealResponseDto toDto(PotMember entity);
     PotMemberInfoResponseDto toKaKaoMemberDto(PotMember entity);
+    PotMemberInfoResponseDto toKaKaoCreatorDto(PotMember entity);
 }
