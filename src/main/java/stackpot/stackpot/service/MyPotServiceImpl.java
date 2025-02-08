@@ -446,10 +446,12 @@ public class MyPotServiceImpl implements MyPotService {
 
 
     @Override
-    public MyPotTaskResponseDto viewDetailTask(Long taskboardId) {
+    public MyPotTaskResponseDto viewDetailTask(Long potId, Long taskboardId) {
 
-        Taskboard taskboard = taskboardRepository.findById(taskboardId)
-                .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskboardId));
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(()-> new IllegalArgumentException("pot을 찾을 수 없습니다."));
+
+        Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskboardId);
 
         List<Task> tasks = taskRepository.findByTaskboard(taskboard);
 

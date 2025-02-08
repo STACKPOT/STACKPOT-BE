@@ -169,7 +169,7 @@ public class MyPotController {
     @GetMapping("/{pot_id}/tasks/{task_id}")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> getPotDetailTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
 
-        MyPotTaskResponseDto response = myPotService.viewDetailTask(taskId);
+        MyPotTaskResponseDto response = myPotService.viewDetailTask(potId, taskId);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
