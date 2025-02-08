@@ -68,7 +68,7 @@ public class FeedController {
     }
 
     @PatchMapping("/{feedId}")
-    @Operation(summary = "Feed 수정 API", description = "요청된 feedId의 feed 내용을 수정합니다.",
+    @Operation(summary = "Feed 수정 API", description = "요청된 feedId의 feed 내용을 수정합니다. 수정 사항이 없다면 null 값을 넣어주세요",
         parameters = {
             @Parameter(name = "feedId", description = "수정 feedId")
         })

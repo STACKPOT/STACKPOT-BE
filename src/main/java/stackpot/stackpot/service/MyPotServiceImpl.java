@@ -452,6 +452,9 @@ public class MyPotServiceImpl implements MyPotService {
                 .orElseThrow(()-> new IllegalArgumentException("pot을 찾을 수 없습니다."));
 
         Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskboardId);
+        if (taskboard == null) {
+            throw new IllegalArgumentException("taskboard를 찾을 수 없습니다.");
+        }
 
         List<Task> tasks = taskRepository.findByTaskboard(taskboard);
 
@@ -468,10 +471,14 @@ public class MyPotServiceImpl implements MyPotService {
 
     @Override
     @Transactional
-    public MyPotTaskResponseDto modfiyTask(Long taskId, MyPotTaskRequestDto.create request) {
+    public MyPotTaskResponseDto modfiyTask(Long potId, Long taskboardId, MyPotTaskRequestDto.create request){
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("pot을 찾을 수 없습니다."));
 
-        Taskboard taskboard = taskboardRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskId));
+        Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskboardId);
+        if (taskboard == null) {
+            throw new IllegalArgumentException("taskboard를 찾을 수 없습니다.");
+        }
 
         updateUserData(taskboard, request);
 
@@ -497,13 +504,13 @@ public class MyPotServiceImpl implements MyPotService {
     @Transactional
     @Override
     public void deleteTaskboard(Long potId, Long taskboardId) {
-        Taskboard taskboard = taskboardRepository.findById(taskboardId)
-                .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskboardId));
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("pot을 찾을 수 없습니다."));
 
-//        // Taskboard가 해당 Pot에 속해 있는지 확인
-//        if (!taskboard.getPot().getId().equals(potId)) {
-//            throw new IllegalArgumentException("The taskboard does not belong to the specified pot.");
-//        }
+        Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskboardId);
+        if (taskboard == null) {
+            throw new IllegalArgumentException("taskboard를 찾을 수 없습니다.");
+        }
 
         // Taskboard에 연결된 Task 삭제
         List<Task> tasks = taskRepository.findByTaskboard(taskboard);
