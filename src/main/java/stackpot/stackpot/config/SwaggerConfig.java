@@ -36,7 +36,8 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .info(info) // API 정보 설정
-                .addServersItem(new Server().url("http://localhost:8080").description("Dev server")) // 서버 URL 설정
+                .addServersItem(new Server().url("http://localhost:8080").description("Local server"))// 서버 URL 설정
+                .addServersItem(new Server().url("https://dev.stackpot.co.kr").description("Dev server"))
                 .addServersItem(new Server().url("https://api.stackpot.co.kr").description("Production server")) // 서버 URL 설정
                 .addSecurityItem(securityRequirement) // SecurityRequirement 추가
                 .components(components); // SecuritySchemes 등록
