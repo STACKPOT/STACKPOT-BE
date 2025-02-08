@@ -6,6 +6,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.converter.PotApplicationConverter.PotApplicationConverter;
@@ -41,23 +42,27 @@ public class PotApplicationServiceImpl implements PotApplicationService {
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
 
+
     @Transactional
     public PotApplicationResponseDto applyToPot(PotApplicationRequestDto dto, Long potId) {
         // 인증된 사용자 이메일 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
+        }
         String email = authentication.getName();
 
         // 사용자 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         // 중복 지원 방지
         if (potApplicationRepository.existsByUserIdAndPot_PotId(user.getId(), potId)) {
-            throw new IllegalStateException("이미 해당 팟에 지원하셨습니다.");
+            throw new PotHandler(ErrorStatus.DUPLICATE_APPLICATION);
         }
 
         // 지원 엔티티 생성 및 저장
@@ -66,9 +71,10 @@ public class PotApplicationServiceImpl implements PotApplicationService {
         potApplication.setAppliedAt(LocalDateTime.now());
 
         PotApplication savedApplication = potApplicationRepository.save(potApplication);
-// 지원자의 역할 조회 및 한글 변환
+
+        // 지원자의 역할 조회 및 한글 변환
         String applicantRole = user.getRole() != null ? getVegetableNameByRole(user.getRole().name()) : "멤버";
-        // 이메일 전송
+
         // 이메일 전송
         emailService.sendSupportNotification(
                 pot.getUser().getEmail(),
@@ -76,6 +82,7 @@ public class PotApplicationServiceImpl implements PotApplicationService {
                 String.format("%s %s", user.getNickname(), applicantRole), // 닉네임 + 역할
                 user.getUserIntroduction() != null ? user.getUserIntroduction() : "없음"
         );
+
         // 저장된 지원 정보를 응답 DTO로 변환
         return potApplicationConverter.toDto(savedApplication);
     }
@@ -114,93 +121,80 @@ public class PotApplicationServiceImpl implements PotApplicationService {
 
     @Transactional
     public void cancelApplication(Long potId) {
-        // 현재 인증된 사용자 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
+        }
         String email = authentication.getName();
 
-        // 사용자 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // 지원 내역 조회
         PotApplication application = potApplicationRepository.findByUserIdAndPot_PotId(user.getId(), potId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 팟에 지원한 이력이 없습니다."));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.APPLICATION_NOT_FOUND));
 
-        // 지원 내역 삭제
         potApplicationRepository.delete(application);
     }
-
 
     @Override
     @Transactional(readOnly = true)
     public List<PotApplicationResponseDto> getApplicantsByPotId(Long potId) {
-        // 현재 인증된 사용자 이메일 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
+        }
         String email = authentication.getName();
 
-        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
-        // 팟 조회
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-
-
-        // 소유자 확인
         if (!pot.getUser().equals(user)) {
-            throw new IllegalArgumentException("해당 팟 지원자 목록을 볼 수 있는 권한이 없습니다.");
+            throw new PotHandler(ErrorStatus.UNAUTHORIZED_ACCESS);
         }
 
-        // 지원자 목록 조회
         List<PotApplication> applications = potApplicationRepository.findByPot_PotId(potId);
 
-        // DTO 변환 후 반환
         return applications.stream()
                 .map(potApplicationConverter::toDto)
                 .collect(Collectors.toList());
     }
+
     @Override
     @Transactional(readOnly = true)
     public PotDetailWithApplicantsResponseDto getPotDetailsAndApplicants(Long potId) {
-        // 현재 인증된 사용자 이메일 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
+        }
         String email = authentication.getName();
 
-        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // Pot 조회 (지원자 목록을 가져오기 위해 연관된 엔티티까지 페치 조인)
         Pot pot = potRepository.findPotWithRecruitmentDetailsByPotId(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        boolean isOwner = false;
-
-        if(user.getId() == pot.getUser().getId()) isOwner = true;
+        boolean isOwner = user.getId().equals(pot.getUser().getId());
         boolean isApplied = pot.getPotApplication().stream()
                 .anyMatch(application -> application.getUser().getId().equals(user.getId()));
 
-        // 모집 세부 사항 변환 ("FRONTEND(1), BACKEND(3)" 형태)
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
                 .map(recruitmentDetail -> getKoreanRoleName(recruitmentDetail.getRecruitmentRole().name()) + "(" + recruitmentDetail.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
-        // Pot 상세 DTO 변환
-
         PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied);
 
-        // 지원자 목록 조회 조건: 사용자가 소유자 && Pot의 status가 RECRUITING일 때만 조회
-        List<PotApplicationResponseDto> applicants = Collections.emptyList(); // 기본값: 빈 리스트
-        if (pot.getUser().equals(user) && "RECRUITING".equals(pot.getPotStatus())) {
-
+        List<PotApplicationResponseDto> applicants = Collections.emptyList();
+        if (isOwner && "RECRUITING".equals(pot.getPotStatus())) {
             List<PotApplication> applications = potApplicationRepository.findByPot_PotId(potId);
             applicants = applications.stream()
                     .map(potApplicationConverter::toDto)
                     .collect(Collectors.toList());
         }
 
-        // 최종 DTO 반환
         return PotDetailWithApplicantsResponseDto.builder()
                 .potDetail(potDetailDto)
                 .applicants(applicants)

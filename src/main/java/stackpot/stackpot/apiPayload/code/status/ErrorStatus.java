@@ -16,16 +16,26 @@ public enum ErrorStatus implements BaseErrorCode {
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4004", "등록된 사용자가 없습니다."),
+    //유저 관련 에러
+    AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4010", "인증에 실패했습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH4030", "해당 리소스에 대한 접근 권한이 없습니다."),
+    INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4011", "유효하지 않은 인증 토큰입니다."),
+    EXPIRED_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4012", "인증 토큰이 만료되었습니다."),
 
     // Pot 관련 에러
     POT_NOT_FOUND(HttpStatus.NOT_FOUND, "POT4004", "팟이 존재하지 않습니다."),
     POT_FORBIDDEN(HttpStatus.FORBIDDEN, "POT4003", "팟 생성자가 아닙니다."),
+
+    // Pot 멤버 관련 에러
+    POT_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "POT_MEMBER4004", "해당 팟의 멤버가 아닙니다."),
 
     // 모집 관련 에러
     RECRUITMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "RECRUITMENT4004", "모집 내역이 없습니다."),
 
     // 지원 관련 에러
     APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "APPLICATION4004", "지원 내역이 없습니다."),
+    DUPLICATE_APPLICATION(HttpStatus.BAD_REQUEST, "APPLICATION4001", "이미 해당 팟에 지원하셨습니다."),
+    UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "AUTH4030", "해당 팟 지원자 목록을 볼 수 있는 권한이 없습니다."),
 
     // 페이지 관련 에러
     INVALID_PAGE(HttpStatus.BAD_REQUEST, "PAGE4000", "Page는 1이상입니다."),
