@@ -66,10 +66,10 @@ public class PotServiceImpl implements PotService {
         if (requestDto == null || requestDto.getRecruitmentDetails() == null) {
             throw new PotHandler(ErrorStatus._BAD_REQUEST);
         }
-        // Pot ModeOfOperation 검증 추가
-        if (!List.of("ONLINE", "OFFLINE", "HYBRID").contains(requestDto.getPotModeOfOperation())) {
-            throw new PotHandler(ErrorStatus.INVALID_POT_MODE_OF_OPERATION);
-        }
+//        // Pot ModeOfOperation 검증 추가
+//        if (!List.of("ONLINE", "OFFLINE", "HYBRID").contains(requestDto.getPotModeOfOperation())) {
+//            throw new PotHandler(ErrorStatus.INVALID_POT_MODE_OF_OPERATION);
+//        }
         Pot pot = potConverter.toEntity(requestDto, user);
         pot.setPotStatus("RECRUITING");
         Pot savedPot = potRepository.save(pot);
