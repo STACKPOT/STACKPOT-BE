@@ -483,7 +483,10 @@ public class MyPotServiceImpl implements MyPotService {
         updateUserData(taskboard, request);
 
         List<PotMember> participants = new ArrayList<>();
-        if (request.getParticipants() != null && !request.getParticipants().isEmpty()) {
+
+        log.info("참가자 {}", request.getParticipants());
+
+        if (request.getParticipants() != null) {
             participants = potMemberRepository.findAllById(request.getParticipants());
             if (participants.isEmpty()) {
                 throw new IllegalArgumentException("유효한 참가자를 찾을 수 없습니다. 요청된 ID를 확인해주세요.");
@@ -492,6 +495,13 @@ public class MyPotServiceImpl implements MyPotService {
                 taskRepository.deleteByTaskboard(taskboard);
             }
         }
+        else{
+            List<Task> existingTasks = taskRepository.findByTaskboard(taskboard);
+            for (Task task : existingTasks) {
+                participants.add(task.getPotMember());
+            }
+        }
+
         createAndSaveTasks(taskboard, participants);
         List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
 
