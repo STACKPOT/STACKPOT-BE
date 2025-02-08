@@ -46,10 +46,10 @@ public class UserController {
     }
 
     @GetMapping("/oauth/kakao")
-    @Operation(summary = "로그인 및 토큰발급 API")
+    @Operation(summary = "로그인 및 토큰발급 API", description = "\"code\" 와 함께 요청시 기존/신규 유저 구분 및 Accesstoken을 발급합니다. isNewUser : false( DB 조회 확인 기존 유저 ), ture ( DB에 없음 신규 유저 )" )
     public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
 
-        log.info("Authorization code: {}", code);
+        log.info("Authorization code : {}", code);
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
 

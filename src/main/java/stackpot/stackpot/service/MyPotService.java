@@ -25,8 +25,8 @@ public interface MyPotService {
     MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request);
 
     public Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> preViewTask(Long potId);
-    MyPotTaskResponseDto viewDetailTask(Long taskId);
-    MyPotTaskResponseDto modfiyTask(Long taskId, MyPotTaskRequestDto.create request);
+    MyPotTaskResponseDto viewDetailTask(Long potId, Long taskboardId);
+    MyPotTaskResponseDto modfiyTask(Long potId, Long taskboardId, MyPotTaskRequestDto.create request);
     void deleteTaskboard(Long potId, Long taskboardId);
     CompletedPotDetailResponseDto getCompletedPotDetail(Long potId);
     List<CompletedPotBadgeResponseDto> getCompletedPotsWithBadges();
