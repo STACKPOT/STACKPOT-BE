@@ -62,6 +62,7 @@ public class PotMemberConverterImpl implements PotMemberConverter {
         String nicknameWithRole = entity.getUser().getNickname() + " " + creatorRole;
 
         return PotMemberInfoResponseDto.builder()
+                .potMemberId(entity.getPotMemberId())
                 .nickname(nicknameWithRole)
                 .potRole(null)
                 .kakaoId(null)
@@ -75,6 +76,7 @@ public class PotMemberConverterImpl implements PotMemberConverter {
         String nicknameWithRole = entity.getUser().getNickname() + " " + mapRoleName(roleName);
 
         return PotMemberInfoResponseDto.builder()
+                .potMemberId(entity.getPotMemberId())
                 .nickname(nicknameWithRole)
                 .kakaoId(entity.getUser().getKakaoId())
                 .owner(false) // 일반 멤버는 owner = false

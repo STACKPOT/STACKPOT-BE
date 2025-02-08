@@ -32,7 +32,6 @@ public class FeedController {
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> createFeeds(@Valid @RequestBody FeedRequestDto.createDto requset) {
         // 정상 처리
         Feed feed = feedService.createFeed(requset);
-
         FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
@@ -54,15 +53,13 @@ public class FeedController {
         FeedResponseDto.FeedPreviewList response = feedService.getPreViewFeeds(String.valueOf(category), sort, cursor, limit);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-    @PostMapping("/{feedId}")
+    @GetMapping("/{feedId}")
     @Operation(summary = "Feed 상세 조회 API", description = "요청된 FeedId의 Feed를 보여줍니다.",
         parameters = {
             @Parameter(name = "feedId", description = "상세 조회 feedId")
         })
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> getDetailFeed(@PathVariable Long feedId) {
-
         Feed feed = feedService.getFeed(feedId);
-
         FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
@@ -75,10 +72,7 @@ public class FeedController {
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> modifyFeed(@PathVariable Long feedId, @Valid @RequestBody FeedRequestDto.createDto requset) {
         // 정상 처리
         Feed feed = feedService.modifyFeed(feedId, requset);
-        Long likeCount = feedService.getLikeCount(feedId);
-
-        FeedResponseDto.FeedDto response =feedConverter.feedDto(feed);
-
+        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

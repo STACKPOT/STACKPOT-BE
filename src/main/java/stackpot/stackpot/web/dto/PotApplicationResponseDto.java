@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class PotApplicationResponseDto {
-//    private Long applicationId;
+    private Long applicationId;
     private String potRole;
 //    private Boolean liked;
     private String status;
