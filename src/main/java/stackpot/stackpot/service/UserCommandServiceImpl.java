@@ -80,9 +80,10 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 이메일로 기존 유저 조회
         Optional<User> existingUser = userRepository.findByEmail(email);
 
-        if (existingUser.isPresent()) {
+        if (existingUser.isPresent() && !existingUser.get().getNickname().isEmpty()) {
             // 기존 유저가 있으면 isNewUser = false
             User user = existingUser.get();
+            log.info("사용자의 닉네임 : {}", existingUser.get().getNickname());
             TokenServiceResponse token = jwtTokenProvider.createToken(user);
 
             return UserResponseDto.loginDto.builder()
