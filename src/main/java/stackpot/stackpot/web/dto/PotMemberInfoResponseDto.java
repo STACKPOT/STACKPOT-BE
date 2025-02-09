@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class PotMemberInfoResponseDto {
-
+    private Long potMemberId;
     private String nickname; // 닉네임 + 역할
     private String kakaoId;
     private String potRole;
