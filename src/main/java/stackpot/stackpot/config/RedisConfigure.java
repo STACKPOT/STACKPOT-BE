@@ -1,3 +1,4 @@
+
 package stackpot.stackpot.config;
 
 
@@ -32,3 +33,4 @@ public class RedisConfigure {
         return redisTemplate;
     }
 }
+
