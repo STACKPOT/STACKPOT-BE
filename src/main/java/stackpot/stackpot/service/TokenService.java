@@ -23,25 +23,25 @@ public class TokenService {
 
     public TokenServiceResponse generateAccessToken(final RefreshToken refreshToken) {
 
-//        if (!jwtTokenProvider.validateToken(refreshToken.getRefreshToken())) {
-//            refreshTokenRepository.deleteById(refreshToken.getAccessToken()); // 유효하지 않은 토큰 삭제
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired refresh token. Please log in again.");
-//        }
-//
-//        RefreshToken refreshToken1 = refreshTokenRepository.findById(refreshToken.getAccessToken())
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token not found."));
-//
-//
-//        if(!refreshToken1.getRefreshToken().equals(refreshToken.getRefreshToken())){
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "올바르지 않은 토큰입니다.");
-//        }
-//
-//        User user = userRepository.findByEmail(jwtTokenProvider.getEmailFromToken(refreshToken1.getRefreshToken()))
-//                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-//
-//        refreshTokenRepository.deleteById(refreshToken.getAccessToken());
-//        return jwtTokenProvider.createToken(user);
-        return null;
+        if (!jwtTokenProvider.validateToken(refreshToken.getRefreshToken())) {
+            refreshTokenRepository.deleteById(refreshToken.getAccessToken()); // 유효하지 않은 토큰 삭제
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired refresh token. Please log in again.");
+        }
+
+        RefreshToken refreshToken1 = refreshTokenRepository.findById(refreshToken.getAccessToken())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token not found."));
+
+
+        if(!refreshToken1.getRefreshToken().equals(refreshToken.getRefreshToken())){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "올바르지 않은 토큰입니다.");
+        }
+
+        User user = userRepository.findByEmail(jwtTokenProvider.getEmailFromToken(refreshToken1.getRefreshToken()))
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        refreshTokenRepository.deleteById(refreshToken.getAccessToken());
+        return jwtTokenProvider.createToken(user);
+//        return null;
     }
 
 }
