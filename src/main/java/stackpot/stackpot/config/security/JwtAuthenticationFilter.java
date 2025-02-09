@@ -14,17 +14,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
-           this.jwtTokenProvider = jwtTokenProvider;
-   }
+//    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+//           this.jwtTokenProvider = jwtTokenProvider;
+//   }
 
-    /*private final BlacklistRepository blacklistRepository;
+private final BlacklistRepository blacklistRepository;
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, BlacklistRepository blacklistRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.blacklistRepository = blacklistRepository;
 
-    }*/
+    }
 
 
     @Override
@@ -35,11 +35,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (token != null) {
                 System.out.println("Token found: " + token);
-                /*if (blacklistRepository.isBlacklisted(token)) {
+                if (blacklistRepository.isBlacklisted(token)) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("로그아웃된 토큰입니다.");
                     return;
-                }*/
+                }
                 if (jwtTokenProvider.validateToken(token)) {
                     Authentication authentication = jwtTokenProvider.getAuthentication(token);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
