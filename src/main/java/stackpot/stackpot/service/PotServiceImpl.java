@@ -380,9 +380,17 @@ public class PotServiceImpl implements PotService {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        String prompt = "구인글에 내용을 우리 프로젝트를 소개하는 400자로 정리해줘. " +
-                "기획 배경, 주요기능, 어떤 언어와 프레임워크 사용했는지 등등 구체적인게 들어있으면 더 좋아.\n" +
-                "내용: " + pot.getPotContent();
+        String prompt = "우리 프로젝트를 포트폴리오에 적합한 방식으로 400자로 요약해줘.\n" +
+                "1. 프로젝트 개요: 해결하려는 문제, 목표\n" +
+                "2. 주요 기능: 핵심적인 기능 설명\n" +
+                "3. 기술 스택: 사용한 언어 및 프레임워크\n" +
+                "4. 운영 방식: 온라인/오프라인 여부 및 협업 방식\n" +
+                "5. 포트폴리오 적합성: 실무 경험, 팀워크, 기술 스택 습득 등의 강점 부각\n\n" +
+                "프로젝트 정보:\n" +
+                "- 프로젝트명: " + pot.getPotName() + "\n" +
+                "- 내용: " + pot.getPotContent() + "\n" +
+                "- 사용 기술: " + pot.getPotLan() + "\n" +
+                "- 운영 방식: " + pot.getPotModeOfOperation();
 
         String summary = potSummarizationService.summarizeText(prompt, 400);
 
