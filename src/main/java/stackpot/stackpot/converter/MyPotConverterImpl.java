@@ -3,6 +3,7 @@ package stackpot.stackpot.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.BadgeDto;
@@ -28,18 +29,19 @@ public class MyPotConverterImpl implements MyPotConverter{
 
 
     public OngoingPotResponseDto convertToOngoingPotResponseDto(Pot pot, Long userId) {
-        // Role별 인원 수 집계
-        Map<String, Integer> roleCountMap = pot.getPotMembers().stream()
-                .collect(Collectors.groupingBy(
-                        member -> member.getRoleName().name(), // Role Enum을 문자열로 변환
-                        Collectors.reducing(0, e -> 1, Integer::sum) // 각 역할의 개수를 세기
+        // 모집된 인원(Role별 모집 인원 수 집계)
+        Map<String, Integer> recruitmentCountMap = pot.getRecruitmentDetails().stream()
+                .collect(Collectors.toMap(
+                        detail -> detail.getRecruitmentRole().name(),
+                        PotRecruitmentDetails::getRecruitmentCount,
+                        Integer::sum // 같은 역할이 여러 개면 합산
                 ));
 
         return OngoingPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStatus(pot.getPotStatus())  // 진행 중인 팟 상태
-                .members(roleCountMap)// 역할 개수 Map 적용
+                .members(recruitmentCountMap)// 역할 개수 Map 적용
                 .isOwner(isOwnerCheck(userId, pot))
                 .build();
     }

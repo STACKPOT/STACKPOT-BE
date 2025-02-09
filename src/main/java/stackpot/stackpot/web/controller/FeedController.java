@@ -53,7 +53,7 @@ public class FeedController {
         FeedResponseDto.FeedPreviewList response = feedService.getPreViewFeeds(String.valueOf(category), sort, cursor, limit);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-    @GetMapping("/{feedId}")
+    @GetMapping("/{feedId}/detail")
     @Operation(summary = "Feed 상세 조회 API", description = "요청된 FeedId의 Feed를 보여줍니다.",
         parameters = {
             @Parameter(name = "feedId", description = "상세 조회 feedId")
