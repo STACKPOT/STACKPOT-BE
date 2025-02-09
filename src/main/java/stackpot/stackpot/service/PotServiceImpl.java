@@ -31,7 +31,7 @@ import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -541,7 +541,7 @@ public class PotServiceImpl implements PotService {
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
                 //"potStartDate", requestDto.getPotStartDate(),
-                    "potEndDate", LocalDateTime.now(),
+                "potEndDate", LocalDate.now(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),
                 "potContent", requestDto.getPotContent(),
