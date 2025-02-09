@@ -2,12 +2,14 @@ package stackpot.stackpot.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import stackpot.stackpot.domain.common.BaseEntity;
 import stackpot.stackpot.domain.enums.Role;
 
 import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Getter
@@ -43,6 +45,10 @@ public class User extends BaseEntity implements UserDetails{
 
     @Column(nullable = true, unique = true)
     private String kakaoId;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private List<Pot> pots;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

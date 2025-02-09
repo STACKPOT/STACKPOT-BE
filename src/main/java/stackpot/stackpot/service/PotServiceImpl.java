@@ -31,7 +31,7 @@ import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,86 +53,46 @@ public class PotServiceImpl implements PotService {
     private final MyPotConverter myPotConverter;
 
 
-//    @Transactional
-////    public PotResponseDto createPotWithRecruitments(PotRequestDto requestDto) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication == null || authentication.getName() == null) {
-//            throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
-//        }
-//        String email = authentication.getName();
-//
-//        User user = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-//
-//        if (requestDto == null || requestDto.getRecruitmentDetails() == null) {
-//            throw new PotHandler(ErrorStatus._BAD_REQUEST);
-//        }
-////        // Pot ModeOfOperation 검증 추가
-////        if (!List.of("ONLINE", "OFFLINE", "HYBRID").contains(requestDto.getPotModeOfOperation())) {
-////            throw new PotHandler(ErrorStatus.INVALID_POT_MODE_OF_OPERATION);
-////        }
-//        Pot pot = potConverter.toEntity(requestDto, user);
-//        pot.setPotStatus("RECRUITING");
-//        Pot savedPot = potRepository.save(pot);
-//
-//        List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
-//                .map(recruitmentDto -> {
-//                    try {
-//                        return PotRecruitmentDetails.builder()
-//                                .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole()))
-//                                .recruitmentCount(recruitmentDto.getRecruitmentCount())
-//                                .pot(savedPot)
-//                                .build();
-//                    } catch (IllegalArgumentException e) {
-//                        throw new PotHandler(ErrorStatus.INVALID_ROLE);
-//                    }
-//                })
-//                .collect(Collectors.toList());
-//        recruitmentDetailsRepository.saveAll(recruitmentDetails);
-//
-//        return potConverter.toDto(savedPot, recruitmentDetails);
-//    }
     @Transactional
-    public PotResponseDto createPotWithRecruitments(PotRequestDto requestDto) {
-        // 인증 정보에서 사용자 이메일 가져오기
+  public PotResponseDto createPotWithRecruitments(PotRequestDto requestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null) {
             throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
         }
         String email = authentication.getName();
 
-        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-//        // 팟 생성
-//        if (requestDto == null || requestDto.getRecruitmentDetails() == null) {
-//            throw new PotHandler(ErrorStatus._BAD_REQUEST);
-//        }
+        if (requestDto == null || requestDto.getRecruitmentDetails() == null) {
+            throw new PotHandler(ErrorStatus._BAD_REQUEST);
+        }
         // Pot ModeOfOperation 검증 추가
-//        if (!List.of("ONLINE", "OFFLINE", "HYBRID").contains(requestDto.getPotModeOfOperation())) {
-//            throw new PotHandler(ErrorStatus.INVALID_POT_MODE_OF_OPERATION);
-//        }
+        if (!List.of("ONLINE", "OFFLINE", "HYBRID").contains(requestDto.getPotModeOfOperation())) {
+            throw new PotHandler(ErrorStatus.INVALID_POT_MODE_OF_OPERATION);
+        }
         Pot pot = potConverter.toEntity(requestDto, user);
-        // 2. 팟 상태를 "ing"로 설정
         pot.setPotStatus("RECRUITING");
         Pot savedPot = potRepository.save(pot);
 
-        // 모집 정보 저장
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
-                .map(recruitmentDto -> PotRecruitmentDetails.builder()
-                        .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole()))
-                        .recruitmentCount(recruitmentDto.getRecruitmentCount())
-                        .pot(savedPot)
-                        .build())
-
-
+                .map(recruitmentDto -> {
+                    try {
+                        return PotRecruitmentDetails.builder()
+                                .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole()))
+                                .recruitmentCount(recruitmentDto.getRecruitmentCount())
+                                .pot(savedPot)
+                                .build();
+                    } catch (IllegalArgumentException e) {
+                        throw new PotHandler(ErrorStatus.INVALID_ROLE);
+                    }
+                })
                 .collect(Collectors.toList());
         recruitmentDetailsRepository.saveAll(recruitmentDetails);
 
-        // DTO로 변환 후 반환
         return potConverter.toDto(savedPot, recruitmentDetails);
     }
+
     @Transactional
     public PotResponseDto updatePotWithRecruitments(Long potId, PotRequestDto requestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -226,9 +186,7 @@ public class PotServiceImpl implements PotService {
 
         // 사용자가 참여하거나 생성한 COMPLETED 상태의 팟 가져오기
         List<Pot> pots = potRepository.findCompletedPotsCreatedByUser(user.getId(), cursor);
-        if (pots == null || pots.isEmpty()) {
-            throw new PotHandler(ErrorStatus.POT_NOT_FOUND);
-        }
+
 
         // 커서 및 데이터 반환
         List<Pot> result = pots.size() > size ? pots.subList(0, size) : pots;
@@ -583,7 +541,7 @@ public class PotServiceImpl implements PotService {
         pot.updateFields(Map.of(
                 "potName", requestDto.getPotName(),
                 //"potStartDate", requestDto.getPotStartDate(),
-                    "potEndDate", LocalDateTime.now(),
+                "potEndDate", LocalDate.now(),
                 "potDuration", requestDto.getPotDuration(),
                 "potLan", requestDto.getPotLan(),
                 "potContent", requestDto.getPotContent(),
