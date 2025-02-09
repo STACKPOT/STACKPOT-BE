@@ -46,7 +46,7 @@ public class PotApplicationConverterImpl implements PotApplicationConverter {
         }
 
         return PotApplicationResponseDto.builder()
-//                .applicationId(entity.getApplicationId())
+                .applicationId(entity.getApplicationId())
                 .potRole(entity.getPotRole().name())
 //                .liked(entity.getLiked())
                 .status(entity.getStatus() != null ? entity.getStatus().name() : "UNKNOWN") // 상태가 null이면 기본값 설정

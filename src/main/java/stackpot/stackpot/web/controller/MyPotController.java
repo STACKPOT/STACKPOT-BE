@@ -168,9 +168,7 @@ public class MyPotController {
     @GetMapping("/{pot_id}/tasks/{task_id}")
     @Operation(summary = "Task 상세 조회 API", description = "Task 상세 조회 API입니다. potId와 taskId를 통해 pot의 특정 task를 조회합니다.")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> getPotDetailTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
-
         MyPotTaskResponseDto response = myPotService.viewDetailTask(potId, taskId);
-
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -185,7 +183,6 @@ public class MyPotController {
     @Operation(summary = "Task 수정 API", description = "Task 수정 API입니다. 수정사항을 입력해 주세요. 만약 기존 내용을 유지하고자 한다면 Null 처리 해주세요 ")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> modifyPotTask(@PathVariable("pot_id") Long potId,@PathVariable("task_id") Long taskId, @RequestBody MyPotTaskRequestDto.create request) {
         MyPotTaskResponseDto response = myPotService.modfiyTask(potId, taskId, request);
-
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
