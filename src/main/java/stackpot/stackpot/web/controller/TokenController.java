@@ -16,9 +16,9 @@ import stackpot.stackpot.web.dto.TokenServiceResponse;
 public class TokenController {
 
 private final TokenService tokenService;
-    @PostMapping("/reissue")
+   /* @PostMapping("/reissue")
     @Operation(summary = "토큰 재발급 API", description = "AccessToken 만료 시 토큰을 재발급 합니다.AccessToken, RefreshToken과 함께 요청 시 토큰을 재발급합니다. 기존의 토큰은 사용할 수 없습니다. ")
     public ResponseEntity<ApiResponse<TokenServiceResponse>> getToken(@RequestBody RefreshToken refreshToken) {
         return ResponseEntity.ok(ApiResponse.onSuccess(tokenService.generateAccessToken(refreshToken)));
-    }
+    }*/
 }

@@ -21,8 +21,8 @@ public class TokenService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public TokenServiceResponse generateAccessToken(final RefreshToken refreshToken) {
 
+    public TokenServiceResponse generateAccessToken(final RefreshToken refreshToken) {/*
         if (!jwtTokenProvider.validateToken(refreshToken.getRefreshToken())) {
             refreshTokenRepository.deleteById(refreshToken.getAccessToken()); // 유효하지 않은 토큰 삭제
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired refresh token. Please log in again.");
@@ -41,7 +41,8 @@ public class TokenService {
 
         refreshTokenRepository.deleteById(refreshToken.getAccessToken());
         return jwtTokenProvider.createToken(user);
-//        return null;
+//        return null;*/
+        return null;
     }
 
 }
