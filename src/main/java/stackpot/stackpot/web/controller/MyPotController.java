@@ -129,6 +129,15 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
+    @PostMapping("/{pot_id}/tasks")
+    @Operation(summary = "Task 생성 API", description = "Task를 생성합니다.")
+    public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> createPotTask(@PathVariable("pot_id") Long potId,
+                                                                           @RequestBody @Valid MyPotTaskRequestDto.create request) {
+        MyPotTaskResponseDto response = myPotService.creatTask(potId, request);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
     @Operation(summary = "Todo 생성 및 수정 API",
             description = "사용자의 모든 투두 내용을 한 번에 수정할 수 있는 API입니다. 이 API는 리스트를 통한 생성 방식과 유사하지만, 기존에 생성된 투두의 경우 " +
                     "status 값을 유지해야 하므로 todoId를 함께 보내야 합니다.\n\n" +
@@ -156,41 +165,29 @@ public class MyPotController {
         List<MyPotTodoResponseDTO> response = myPotService.completeTodo(potId, todoId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-
-    @Operation(summary = "Task 생성 API")
-    @PostMapping("/{pot_id}/tasks")
-    public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> createPotTask(@PathVariable("pot_id") Long potId,
-                                                                           @RequestBody @Valid MyPotTaskRequestDto.create request) {
-        MyPotTaskResponseDto response = myPotService.creatTask(potId, request);
-
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
-    @Operation(summary = "Task 상세 조회 API")
     @GetMapping("/{pot_id}/tasks/{task_id}")
+    @Operation(summary = "Task 상세 조회 API", description = "Task 상세 조회 API입니다. potId와 taskId를 통해 pot의 특정 task를 조회합니다.")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> getPotDetailTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
-
-        MyPotTaskResponseDto response = myPotService.viewDetailTask(taskId);
-
+        MyPotTaskResponseDto response = myPotService.viewDetailTask(potId, taskId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Task 조회 API")
     @GetMapping("/{pot_id}/tasks")
+    @Operation(summary = "Task 조회 API", description = "Task 전체 조회 API입니다. potId를 통해 pot의 전체 task를 조회합니다.")
     public ResponseEntity<ApiResponse<Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>>>> getPotTask(@PathVariable("pot_id") Long potId) {
         Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> response = myPotService.preViewTask(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Task 수정 API")
     @PatchMapping("/{pot_id}/tasks/{task_id}")
-    public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> modifyPotTask(@PathVariable("task_id") Long taskId, @RequestBody @Valid MyPotTaskRequestDto.create request) {
-        MyPotTaskResponseDto response = myPotService.modfiyTask(taskId, request);
-
+    @Operation(summary = "Task 수정 API", description = "Task 수정 API입니다. 수정사항을 입력해 주세요. 만약 기존 내용을 유지하고자 한다면 Null 처리 해주세요 ")
+    public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> modifyPotTask(@PathVariable("pot_id") Long potId,@PathVariable("task_id") Long taskId, @RequestBody MyPotTaskRequestDto.create request) {
+        MyPotTaskResponseDto response = myPotService.modfiyTask(potId, taskId, request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Task 삭제 API")
     @DeleteMapping("/{pot_id}/tasks/{task_id}")
+    @Operation(summary = "Task 삭제 API", description = "Task 삭제 API입니다. potId와 taskId를 pot의 특정 task를 삭제합니다.")
     public ResponseEntity<?> deletetPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
         try {
             myPotService.deleteTaskboard(potId, taskId);
@@ -203,8 +200,8 @@ public class MyPotController {
         }
     }
 
-    @Operation(summary = "Task 상태 변경 API", description = "taskId와 todoStatus(OPEN / IN_PROGRESS / CLOSED) 값을 전달해주시면 해당 업무가 요청한 상태로 변경됩니다.")
     @PatchMapping("/{pot_id}/tasks/{task_id}/status")
+    @Operation(summary = "Task 상태 변경 API", description = "taskId와 todoStatus(OPEN / IN_PROGRESS / CLOSED) 값을 전달해주시면 해당 업무가 요청한 상태로 변경됩니다.")
     public ResponseEntity<ApiResponse<MyPotTaskStatusResponseDto>> modifyPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId, TaskboardStatus status) {
         MyPotTaskStatusResponseDto response = myPotService.updateTaskStatus(potId, taskId, status);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
