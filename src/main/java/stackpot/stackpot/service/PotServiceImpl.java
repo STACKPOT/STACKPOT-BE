@@ -186,9 +186,7 @@ public class PotServiceImpl implements PotService {
 
         // 사용자가 참여하거나 생성한 COMPLETED 상태의 팟 가져오기
         List<Pot> pots = potRepository.findCompletedPotsCreatedByUser(user.getId(), cursor);
-        if (pots == null || pots.isEmpty()) {
-            throw new PotHandler(ErrorStatus.POT_NOT_FOUND);
-        }
+
 
         // 커서 및 데이터 반환
         List<Pot> result = pots.size() > size ? pots.subList(0, size) : pots;
