@@ -6,6 +6,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.converter.PotMemberConverter.PotMemberConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
@@ -40,7 +42,7 @@ public class PotMemberServiceImpl implements PotMemberService {
 
     public List<PotMemberInfoResponseDto> getPotMembers(Long potId) {
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         List<PotMember> potMembers = potMemberRepository.findByPotId(potId);
 
