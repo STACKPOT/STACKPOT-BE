@@ -15,6 +15,7 @@ import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.web.dto.FeedSearchResponseDto;
 import stackpot.stackpot.web.dto.PotPreviewResponseDto;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,32 +36,39 @@ public class SearchServiceImpl implements SearchService {
 //    }
 @Override
 @Transactional(readOnly = true)
-public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable) {
+public List<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable) {
     Page<Pot> pots = potRepository.searchByKeyword(keyword, pageable);
 
     if (pots.isEmpty()) {
-        return Page.empty(pageable);
+        return Collections.emptyList();
     }
-    return pots.map(pot -> {
+
+    return pots.stream().map(pot -> {
         User user = pot.getUser();
         List<String> recruitmentRoles = pot.getRecruitmentDetails().stream()
                 .map(rd -> rd.getRecruitmentRole().name())
                 .collect(Collectors.toList());
 
         return potConverter.toPrviewDto(user, pot, recruitmentRoles);
-    });
+    }).collect(Collectors.toList());
 }
+
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FeedSearchResponseDto> searchFeeds(String keyword, Pageable pageable) {
+    public List<FeedSearchResponseDto> searchFeeds(String keyword, Pageable pageable) {
         Page<Feed> feeds = feedRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(keyword, keyword, pageable);
+
         if (feeds.isEmpty()) {
-            return Page.empty(pageable);
+            return Collections.emptyList();
         }
-        // FeedConverter를 사용해 DTO 변환 및 좋아요 개수 포함
-        return feeds.map(feedConverter::toSearchDto);
+
+        // Page → Stream 변환 후 List로 변환
+        return feeds.getContent().stream()
+                .map(feedConverter::toSearchDto)
+                .collect(Collectors.toList());
     }
+
 
 }
 
