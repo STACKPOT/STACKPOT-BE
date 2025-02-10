@@ -33,3 +33,4 @@ public class RedisConfigure {
         return redisTemplate;
     }
 }
+

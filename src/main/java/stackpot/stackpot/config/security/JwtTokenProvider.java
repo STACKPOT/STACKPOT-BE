@@ -51,6 +51,7 @@ private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
 
+
         long expiration = getExpiration(refreshToken);
         refreshTokenRepository.saveToken(user.getId(), refreshToken, expiration);
 
