@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.service.SearchService;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/search",produces = "application/json; charset=UTF-8")
@@ -80,23 +82,29 @@ public class SearchController {
                     @Parameter(name = "page", description = "페이지 번호 (1부터 시작)", example = "1"),
                     @Parameter(name = "size", description = "페이지 크기", example = "10")
             })
-    public ResponseEntity<ApiResponse<List<?>>> search(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> search(
             @RequestParam String type,
             @RequestParam String keyword,
-            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "1") Integer page, // 기본값 1
             @RequestParam(defaultValue = "10") Integer size) {
-
 
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        List<?> response;
+        Page<?> resultPage;
         if ("pot".equalsIgnoreCase(type)) {
-            response = searchService.searchPots(keyword, pageable);
+            resultPage = searchService.searchPots(keyword, pageable);
         } else if ("feed".equalsIgnoreCase(type)) {
-            response = searchService.searchFeeds(keyword, pageable);
+            resultPage = searchService.searchFeeds(keyword, pageable);
         } else {
             throw new IllegalArgumentException("Invalid search type. Use 'pot' or 'feed'.");
         }
+
+        // 응답 데이터 구성
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", resultPage.getContent()); // 데이터 리스트
+        response.put("totalPages", resultPage.getTotalPages()); // 전체 페이지 수
+        response.put("totalElements", resultPage.getTotalElements()); // 전체 데이터 개수
+        response.put("currentPage", page); // 현재 페이지 (1부터 시작)
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
