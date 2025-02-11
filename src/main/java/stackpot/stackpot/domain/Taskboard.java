@@ -2,6 +2,8 @@ package stackpot.stackpot.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import stackpot.stackpot.domain.common.BaseEntity;
 import stackpot.stackpot.domain.enums.TaskboardStatus;
 
@@ -36,10 +38,12 @@ public class Taskboard extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Pot pot;
 
     @Setter
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 }

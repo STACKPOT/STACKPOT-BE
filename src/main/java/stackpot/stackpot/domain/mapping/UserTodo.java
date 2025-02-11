@@ -2,6 +2,8 @@ package stackpot.stackpot.domain.mapping;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.common.BaseEntity;
@@ -29,9 +31,11 @@ public class UserTodo extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Pot pot;
 }

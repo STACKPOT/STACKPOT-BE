@@ -2,6 +2,8 @@ package stackpot.stackpot.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import stackpot.stackpot.domain.common.BaseEntity;
 import stackpot.stackpot.domain.enums.PotModeOfOperation;
 import stackpot.stackpot.domain.mapping.PotApplication;
@@ -25,16 +27,17 @@ public class Pot extends BaseEntity {
 
     @Setter
     @ManyToOne(fetch = FetchType.EAGER)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @OneToMany(mappedBy = "pot")
     private List<PotRecruitmentDetails> recruitmentDetails;
 
-    @OneToMany(mappedBy = "pot", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pot", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PotApplication> potApplication;
 
-    @OneToMany(mappedBy = "pot", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pot", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PotMember> potMembers;
 
     @Column(nullable = false, length = 255)
