@@ -82,17 +82,9 @@ public class UserController {
 
     @PostMapping("/logout")
     @Operation(summary = "회원 로그아웃 API", description = "AccessToken 토큰과 함께 요청 시 로그아웃 ")
-    public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String token) {
-        String accessToken = token.replace("Bearer ", "");
-
-        refreshTokenRepository.deleteById(accessToken);
-
-        long expiration = jwtTokenProvider.getExpiration(accessToken);
-
-        blacklistRepository.addToBlacklist(accessToken, expiration);
-
-        return ResponseEntity.ok(ApiResponse.onSuccess("로그아웃 성공"));
-//        return null;
+    public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String accessToken, @RequestBody String refreshToken) {
+        String response = userCommandService.logout(accessToken,refreshToken);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
     @DeleteMapping("/delete")
@@ -100,7 +92,6 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken) {
         userCommandService.deleteUser(accessToken);
         return ResponseEntity.ok(ApiResponse.onSuccess("회원 탈퇴 성공"));
-//        return null;
     }
 
 
