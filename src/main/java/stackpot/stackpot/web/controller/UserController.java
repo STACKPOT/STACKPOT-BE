@@ -12,12 +12,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.config.security.JwtTokenProvider;
-import stackpot.stackpot.converter.UserConverter;
-import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.BlacklistRepository;
 import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.service.KakaoService;
+import stackpot.stackpot.service.MyPotService;
 import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.*;
 
@@ -35,6 +34,7 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
+    private final MyPotService myPotService;
 
     @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
@@ -146,6 +146,14 @@ public class UserController {
         UserResponseDto.Userdto updatedUser = userCommandService.updateUserProfile(requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(updatedUser));
     }
+    @GetMapping("/{pot_id}/details")
+    @Operation(summary = "마이페이지 끓인 팟 상세 보기 모달", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다.")
+    public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
+            @PathVariable("pot_id") Long potId) {
+        CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
 
 
 }

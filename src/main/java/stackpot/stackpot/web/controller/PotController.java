@@ -33,7 +33,7 @@ public class PotController {
 
 
     private final PotService potService1;
-    private final MyPotService myPotService;
+
     private final PotApplicationService potApplicationService;
 
     private final PotServiceImpl potService;
