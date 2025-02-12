@@ -32,7 +32,6 @@ import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -357,6 +356,9 @@ public class PotServiceImpl implements PotService {
 
         // 사용자가 지원한 팟 조회
         List<Pot> appliedPots = potRepository.findByPotApplication_User_Id(user.getId());
+        if (appliedPots.isEmpty()) {
+            throw new ApplicationHandler(ErrorStatus.APPLICATION_NOT_FOUND);
+        }
 
         return appliedPots.stream()
                 .map(pot -> {

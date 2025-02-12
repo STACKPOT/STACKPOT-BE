@@ -8,7 +8,6 @@ import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.mapping.FeedLike;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -20,8 +19,4 @@ public interface FeedLikeRepository extends JpaRepository<FeedLike, Long> {
     // 특정 게시물의 좋아요 개수 조회
     @Query("SELECT COUNT(fl) FROM FeedLike fl WHERE fl.feed = :feed")
     Long countByFeed(@Param("feed") Feed feed);
-
-    @Query("SELECT fl.feed.id FROM FeedLike fl WHERE fl.user.id = :userId")
-    List<Long> findFeedIdsByUserId(@Param("userId") Long userId);
-
 }
