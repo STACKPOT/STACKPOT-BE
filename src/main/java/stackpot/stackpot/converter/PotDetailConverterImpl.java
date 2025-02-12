@@ -58,6 +58,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStartDate(formatDate(pot.getPotStartDate()))
+                .potEndDate(formatDate(pot.getPotEndDate()))
                 .potDuration(pot.getPotDuration())
                 .potLan(pot.getPotLan())
                 .potStatus(pot.getPotStatus())
