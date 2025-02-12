@@ -299,6 +299,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         boolean isCreator = potRepository.existsByUserId(user.getId());
 
+
         if(isCreator){
             user.deleteUser();
             userRepository.save(user);
