@@ -33,7 +33,6 @@ public enum ErrorStatus implements BaseErrorCode {
     RECRUITMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "RECRUITMENT4004", "모집 내역이 없습니다."),
 
     // 지원 관련 에러
-    APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "APPLICATION4004", "지원 내역이 없습니다."),
     DUPLICATE_APPLICATION(HttpStatus.BAD_REQUEST, "APPLICATION4001", "이미 해당 팟에 지원하셨습니다."),
     UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "AUTH4030", "해당 팟 지원자 목록을 볼 수 있는 권한이 없습니다."),
 

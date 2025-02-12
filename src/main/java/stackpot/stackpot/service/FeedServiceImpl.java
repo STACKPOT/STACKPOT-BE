@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,29 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, Long cursor, int limit) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        System.out.println("🚀 getPreViewFeeds() 실행됨");
+//        System.out.println("🔍 현재 SecurityContext의 인증 객체: " + authentication);
+//        System.out.println("🔍 인증 객체 타입: " + (authentication != null ? authentication.getClass().getSimpleName() : "null"));
+//        System.out.println("🔍 인증 객체 권한: " + (authentication != null ? authentication.getAuthorities() : "null"));
+
+        boolean isAuthenticated = authentication != null
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.isAuthenticated();
+
+        System.out.println("✅ 최종 isAuthenticated 값: " + isAuthenticated);
+
+        final User user = isAuthenticated
+                ? userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."))
+                : null;
+
+        final Long userId = (user != null) ? user.getId() : null;
+        final List<Long> likedFeedIds = (userId != null)
+                ? feedLikeRepository.findFeedIdsByUserId(userId)
+                : List.of(); // 비로그인 사용자는 빈 리스트
+
+
         Long lastFeedId = Long.MAX_VALUE;  // 기본적으로 가장 큰 ID부터 조회
         Long lastFeedLike = 0L;
 
@@ -79,16 +103,30 @@ public class FeedServiceImpl implements FeedService {
         List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastFeedId, lastFeedLike, pageable);
 
         List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
-                .map(feed -> feedConverter.feedDto(feed))
+                .map(feed -> {
+                    Boolean isLiked = (isAuthenticated && userId != null)
+                            ? likedFeedIds.contains(feed.getFeedId())
+                            : null; // 비로그인 사용자는 null 처리
+
+                    FeedResponseDto.FeedDto feedDto = feedConverter.feedDto(feed);
+                    feedDto.setIsLiked(isLiked); // 좋아요 상태 추가
+                    return feedDto;
+                })
                 .collect(Collectors.toList());
 
         Long nextCursor = null;
-        if (!feedResults.isEmpty() && feedResults.size() >= limit) {
+        System.out.println("feedsize" + feedResults.size());
+        System.out.println("limit" + limit);
+
+        if (!feedResults.isEmpty() && feedResults.size() == limit) {
             Feed lastFeed = feedResults.get(feedResults.size() - 1);
-            nextCursor = lastFeed.getFeedId();  // 🔹 int 값으로 변환하여 반환
+            nextCursor = lastFeed.getFeedId();
+            List<Feed> nextfeedResults = feedRepository.findFeeds(category, sort, nextCursor, lastFeedLike, pageable);
+
+            if(nextfeedResults.size() == 0){
+                nextCursor = null;
+            }
         }
-
-
         return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
     }
 
@@ -136,8 +174,6 @@ public class FeedServiceImpl implements FeedService {
 
         // 다음 커서 설정 (마지막 피드의 createdAt)
         Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null ;
-
-
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
