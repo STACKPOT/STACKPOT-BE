@@ -38,9 +38,6 @@ public class SearchServiceImpl implements SearchService {
 public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable) {
     Page<Pot> pots = potRepository.searchByKeyword(keyword, pageable);
 
-    if (pots.isEmpty()) {
-        return Page.empty(pageable);
-    }
     return pots.map(pot -> {
         User user = pot.getUser();
         List<String> recruitmentRoles = pot.getRecruitmentDetails().stream()
@@ -55,12 +52,11 @@ public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable)
     @Transactional(readOnly = true)
     public Page<FeedSearchResponseDto> searchFeeds(String keyword, Pageable pageable) {
         Page<Feed> feeds = feedRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(keyword, keyword, pageable);
-        if (feeds.isEmpty()) {
-            return Page.empty(pageable);
-        }
-        // FeedConverter를 사용해 DTO 변환 및 좋아요 개수 포함
+
         return feeds.map(feedConverter::toSearchDto);
     }
+
+
 
 }
 
