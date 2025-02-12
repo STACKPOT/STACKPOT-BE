@@ -46,7 +46,7 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = true, unique = true)
     private String kakaoId;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @BatchSize(size = 10)
     private List<Pot> pots;
 
