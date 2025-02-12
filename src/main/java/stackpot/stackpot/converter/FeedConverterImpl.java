@@ -61,7 +61,6 @@ public class FeedConverterImpl implements FeedConverter{
                 .creatorNickname(nicknameWithRole) // 닉네임과 역할 포함
 
                 .creatorRole(roleName)
-
                 .createdAt(formatLocalDateTime(feed.getCreatedAt())) // 시간 포맷 적용
                 .likeCount(feed.getLikeCount()) // 좋아요 개수 포함
                 .build();
