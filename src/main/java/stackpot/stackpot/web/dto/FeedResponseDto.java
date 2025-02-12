@@ -28,10 +28,10 @@ public class FeedResponseDto {
         private Long writerId;
         private String writer;
         private Role writerRole;
+//        private Category category;
         private String title;
         private String content;
         private Long likeCount;
-        private Boolean isLiked;
         private String createdAt;
     }
 }

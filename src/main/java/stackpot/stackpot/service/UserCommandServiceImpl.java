@@ -29,7 +29,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserCommandServiceImpl implements UserCommandService {
+public class UserCommandServiceImpl implements UserCommandService{
 
     private final UserRepository userRepository;
     private final PotRepository potRepository;
@@ -79,24 +79,17 @@ public class UserCommandServiceImpl implements UserCommandService {
         // 이메일로 기존 유저 조회
         Optional<User> existingUser = userRepository.findByEmail(email);
 
-        if (existingUser.isPresent()) {
-            String checkNickname = existingUser.get().getNickname();
-            if (checkNickname != null) {
-                // 기존 유저가 있으면 isNewUser = false
-                User user = existingUser.get();
-                log.info("사용자의 닉네임 : {}", existingUser.get().getNickname());
-                TokenServiceResponse token = jwtTokenProvider.createToken(user);
+        if (existingUser.isPresent() && !existingUser.get().getNickname().isEmpty()) {
+            // 기존 유저가 있으면 isNewUser = false
+            User user = existingUser.get();
+            log.info("사용자의 닉네임 : {}", existingUser.get().getNickname());
+            TokenServiceResponse token = jwtTokenProvider.createToken(user);
 
-                return UserResponseDto.loginDto.builder()
-                        .tokenServiceResponse(token)
-                        .isNewUser(false)
-                        .build();
-            } else {
-                User user = existingUser.get();
-                userRepository.delete(user);
-            }
-
-        }
+            return UserResponseDto.loginDto.builder()
+                    .tokenServiceResponse(token)
+                    .isNewUser(false)
+                    .build();
+        } else {
             // 신규 유저 생성
             User newUser = User.builder()
                     .email(email)
@@ -110,6 +103,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                     .tokenServiceResponse(token)
                     .isNewUser(true)  // 신규 유저임을 표시
                     .build();
+        }
     }
 
 
