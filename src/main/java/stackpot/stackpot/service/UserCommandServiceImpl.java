@@ -3,7 +3,6 @@ package stackpot.stackpot.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserCommandServiceImpl implements UserCommandService{
+public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
     private final PotRepository potRepository;
@@ -80,17 +79,24 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 이메일로 기존 유저 조회
         Optional<User> existingUser = userRepository.findByEmail(email);
 
-        if (existingUser.isPresent() && !existingUser.get().getNickname().isEmpty()) {
-            // 기존 유저가 있으면 isNewUser = false
-            User user = existingUser.get();
-            log.info("사용자의 닉네임 : {}", existingUser.get().getNickname());
-            TokenServiceResponse token = jwtTokenProvider.createToken(user);
+        if (existingUser.isPresent()) {
+            String checkNickname = existingUser.get().getNickname();
+            if (checkNickname != null) {
+                // 기존 유저가 있으면 isNewUser = false
+                User user = existingUser.get();
+                log.info("사용자의 닉네임 : {}", existingUser.get().getNickname());
+                TokenServiceResponse token = jwtTokenProvider.createToken(user);
 
-            return UserResponseDto.loginDto.builder()
-                    .tokenServiceResponse(token)
-                    .isNewUser(false)
-                    .build();
-        } else {
+                return UserResponseDto.loginDto.builder()
+                        .tokenServiceResponse(token)
+                        .isNewUser(false)
+                        .build();
+            } else {
+                User user = existingUser.get();
+                userRepository.delete(user);
+            }
+
+        }
             // 신규 유저 생성
             User newUser = User.builder()
                     .email(email)
@@ -104,7 +110,6 @@ public class UserCommandServiceImpl implements UserCommandService{
                     .tokenServiceResponse(token)
                     .isNewUser(true)  // 신규 유저임을 표시
                     .build();
-        }
     }
 
 
@@ -282,12 +287,47 @@ public class UserCommandServiceImpl implements UserCommandService{
         userRepository.delete(user);
 
         // Refresh Token 삭제 (로그아웃)
-        refreshTokenRepository.deleteById(token);
+//        refreshTokenRepository.deleteRefreshToken(user.getId());
 
         // Access Token 블랙리스트에 추가
         long expiration = jwtTokenProvider.getExpiration(token);
-        blacklistRepository.addToBlacklist(token, expiration);
+//        blacklistRepository.addToBlacklist(token, expiration);
 
+    }
+
+    @Override
+    public String logout(String aToken, String refreshToken) {
+
+
+        String accessToken = aToken.replace("Bearer ", "");
+
+        String email;
+        try {
+            email = jwtTokenProvider.getEmailFromToken(accessToken);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("로그아웃 실패: 유효하지 않은 토큰입니다.", e);
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("로그아웃 실패: 사용자를 찾을 수 없습니다."));
+
+        try {
+            // refreshToken 삭제 (존재하지 않아도 예외를 던지지 않도록 함)
+            refreshTokenRepository.deleteToken(refreshToken);
+        } catch (Exception e) {
+            throw new RuntimeException("로그아웃 실패: Refresh Token 삭제 중 오류 발생", e);
+        }
+
+        long expiration = jwtTokenProvider.getExpiration(accessToken);
+
+        try {
+            // 블랙리스트에 추가
+            blacklistRepository.addToBlacklist(accessToken, expiration);
+        } catch (Exception e) {
+            throw new RuntimeException("로그아웃 실패: 토큰 블랙리스트 등록 중 오류 발생", e);
+        }
+
+        return "로그아웃이 성공적으로 완료되었습니다.";
     }
 
     // 역할에 따른 채소명을 반환하는 메서드

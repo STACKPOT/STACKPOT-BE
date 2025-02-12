@@ -4,19 +4,20 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.Authentication;
 import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.repository.UserRepository.UserRepository;
 
 import java.io.IOException;
+import java.util.Collections;
+
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-
-//    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
-//           this.jwtTokenProvider = jwtTokenProvider;
-//   }
 
 private final BlacklistRepository blacklistRepository;
 
@@ -51,14 +52,22 @@ private final BlacklistRepository blacklistRepository;
                     return;
                 }
             } else {
-                System.out.println("No token found in the request.");
+                // 토큰이 없는 경우 AnonymousAuthenticationToken 설정 (비로그인 요청 정상 처리)
+                System.out.println("🔹 토큰이 없음, 비로그인 요청 처리");
+                Authentication anonymousAuth = new AnonymousAuthenticationToken(
+                        "anonymousUser",
+                        "anonymousUser",
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))
+                );
+                SecurityContextHolder.getContext().setAuthentication(anonymousAuth);
+//                System.out.println("✅ SecurityContext에 AnonymousAuthenticationToken 저장됨");
             }
-            filterChain.doFilter(request, response);
         } catch (Exception ex) {
             System.out.println("Exception in JwtAuthenticationFilter: " + ex.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write("Internal server error occurred.");
         }
+        filterChain.doFilter(request, response);
     }
 
     private String resolveToken(HttpServletRequest request) {
