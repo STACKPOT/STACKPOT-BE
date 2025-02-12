@@ -54,6 +54,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
         // recruitmentDetails를 Map<String, Integer> 형태로 변환
         Map<String, Integer> recruitingMembers = pot.getRecruitmentDetails().stream()
                 .collect(Collectors.toMap(
+
                         recruitmentDetail -> recruitmentDetail.getRecruitmentRole().name(),
                         recruitmentDetail -> recruitmentDetail.getRecruitmentCount()
                 ));
