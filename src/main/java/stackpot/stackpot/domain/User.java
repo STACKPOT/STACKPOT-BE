@@ -50,6 +50,8 @@ public class User extends BaseEntity implements UserDetails{
     @BatchSize(size = 10)
     private List<Pot> pots;
 
+    private boolean isDeleted = false; // 삭제 여부 필드
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
@@ -66,6 +68,17 @@ public class User extends BaseEntity implements UserDetails{
     }
     public Long getUserId() {
         return id;
+    }
+
+    public void deleteUser() {
+        this.isDeleted = true;
+        this.nickname = "알 수 없음";  // 표시용 변경
+        this.email = null;
+        this.role = null;
+        this.kakaoId = null;
+        this.interest = null;
+        this.userTemperature = null;
+        // 이메일 등 개인 정보 삭제
     }
 
 }

@@ -23,7 +23,7 @@ public interface UserCommandService {
 
     public String saveNickname(String nickname);
 
-    void deleteUser(String accessToken);
+    String deleteUser(String accessToken, String refreshToken);
 
     String logout(String aToken, String refreshToken);
 }

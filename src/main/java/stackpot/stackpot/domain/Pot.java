@@ -2,6 +2,8 @@ package stackpot.stackpot.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import stackpot.stackpot.domain.common.BaseEntity;
 import stackpot.stackpot.domain.enums.PotModeOfOperation;
 import stackpot.stackpot.domain.mapping.PotApplication;
@@ -25,6 +27,7 @@ public class Pot extends BaseEntity {
 
     @Setter
     @ManyToOne(fetch = FetchType.EAGER)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

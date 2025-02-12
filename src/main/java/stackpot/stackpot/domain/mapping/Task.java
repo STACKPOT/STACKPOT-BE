@@ -2,6 +2,8 @@ package stackpot.stackpot.domain.mapping;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.common.BaseEntity;
 
@@ -19,9 +21,11 @@ public class Task extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "taskboard_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Taskboard taskboard;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "potMember_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private PotMember potMember;
 }
