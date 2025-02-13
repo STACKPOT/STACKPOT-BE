@@ -55,7 +55,7 @@ private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;
         long expiration = getExpiration(refreshToken);
         refreshTokenRepository.saveToken(user.getId(), refreshToken, expiration);
 
-        return user.getRole()!=null ? TokenServiceResponse.of(user.getRole(), accessToken, refreshToken) : TokenServiceResponse.withoutRole(accessToken, refreshToken);
+        return TokenServiceResponse.of(accessToken, refreshToken);
     }
 
     public boolean validateToken(String token) {

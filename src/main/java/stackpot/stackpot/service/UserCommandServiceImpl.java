@@ -15,10 +15,13 @@ import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
-import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.domain.mapping.PotMember;
+import stackpot.stackpot.repository.*;
+import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
+import stackpot.stackpot.repository.BadgeRepository.UserTodoRepository;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
+import stackpot.stackpot.repository.PotApplicationRepository.PotApplicationRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
-import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
@@ -34,6 +37,14 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final UserRepository userRepository;
     private final PotRepository potRepository;
     private final FeedRepository feedRepository;
+    private final PotMemberRepository potMemberRepository;
+    private final PotApplicationRepository potApplicationRepository;
+    private final FeedLikeRepository feedLikeRepository;
+    private final UserTodoRepository userTodoRepository;
+    private final TaskRepository taskRepository;
+    private final TaskboardRepository taskboardRepository;
+    private final PotMemberBadgeRepository potMemberBadgeRepository;
+
     private final UserMypageConverter userMypageConverter;
     private final PotSummarizationService potSummarizationService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -90,6 +101,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 return UserResponseDto.loginDto.builder()
                         .tokenServiceResponse(token)
                         .isNewUser(false)
+                        .role(user.getRole())
                         .build();
             } else {
                 User user = existingUser.get();
@@ -109,6 +121,7 @@ public class UserCommandServiceImpl implements UserCommandService {
             return UserResponseDto.loginDto.builder()
                     .tokenServiceResponse(token)
                     .isNewUser(true)  // 신규 유저임을 표시
+                    .role(null)
                     .build();
     }
 
@@ -300,11 +313,35 @@ public class UserCommandServiceImpl implements UserCommandService {
         boolean isCreator = potRepository.existsByUserId(user.getId());
 
 
+        //potMember, taskborad지우기
+        List<PotMember> potMembers = potMemberRepository.findByuserId(user.getId());
+        List<Long> potMemberIds = potMembers.stream()
+                .map(PotMember::getPotMemberId)
+                .toList();
+
+        potMemberBadgeRepository.deleteByPotMemberIds(potMemberIds);
+        taskRepository.deleteByPotMemberIds(potMemberIds);
+
+        potMemberRepository.deleteByUserId(user.getId());
+        taskboardRepository.deleteByUserId(user.getId());
+
+        //feed 지우기
+
+        feedLikeRepository.deleteByUserId(user.getId());
+        feedRepository.deleteByUserId(user.getId());
+
+        userTodoRepository.deleteByUserId(user.getId());
+
+        potApplicationRepository.deleteByUserId(user.getId());
+
+
         if(isCreator){
             user.deleteUser();
             userRepository.save(user);
         }
         else{
+
+//            potRepository.deleteByUserId(user.getId());
             userRepository.delete(user);
         }
         return null;

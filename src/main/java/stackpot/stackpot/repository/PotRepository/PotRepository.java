@@ -4,6 +4,7 @@ package stackpot.stackpot.repository.PotRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import stackpot.stackpot.domain.Pot;
@@ -49,6 +50,10 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
 
     @Query("SELECT p FROM Pot p WHERE p.user.id = :userId AND p.potStatus = 'COMPLETED' AND (:cursor IS NULL OR p.potId < :cursor) ORDER BY p.potId DESC")
     List<Pot> findCompletedPotsCreatedByUser(@Param("userId") Long userId, @Param("cursor") Long cursor);
+
+    @Modifying
+    @Query("DELETE FROM Pot f WHERE f.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 
     boolean existsByUserId(Long userId);
 }

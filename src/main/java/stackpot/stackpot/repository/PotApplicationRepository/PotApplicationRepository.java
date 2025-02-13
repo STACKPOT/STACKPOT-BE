@@ -1,6 +1,9 @@
 package stackpot.stackpot.repository.PotApplicationRepository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import stackpot.stackpot.domain.mapping.PotApplication;
 
 import java.util.List;
@@ -11,5 +14,8 @@ public interface PotApplicationRepository extends JpaRepository<PotApplication, 
     boolean existsByUserIdAndPot_PotId(Long userId, Long potId);
     // 특정 사용자의 특정 팟 지원 내역 조회
     Optional<PotApplication> findByUserIdAndPot_PotId(Long userId, Long potId);
+    @Modifying
+    @Query("DELETE FROM PotApplication f WHERE f.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 
 }
