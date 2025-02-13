@@ -118,9 +118,11 @@ public class PotServiceImpl implements PotService {
         if (!List.of("ONLINE", "OFFLINE", "HYBRID").contains(requestDto.getPotModeOfOperation())) {
             throw new PotHandler(ErrorStatus.INVALID_POT_MODE_OF_OPERATION);
         }
+
         Map<String, Object> updateValues = new LinkedHashMap<>();
         updateValues.put("potName", requestDto.getPotName());
         updateValues.put("potDuration", requestDto.getPotDuration());
+        updateValues.put("potStartDate", requestDto.getPotStartDate());
         updateValues.put("potLan", requestDto.getPotLan());
         updateValues.put("potContent", requestDto.getPotContent());
         updateValues.put("potModeOfOperation", requestDto.getPotModeOfOperation());
