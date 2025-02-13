@@ -3,13 +3,15 @@ package stackpot.stackpot.converter;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
-import stackpot.stackpot.domain.enums.Role;
-import stackpot.stackpot.web.dto.*;
+import stackpot.stackpot.web.dto.AppliedPotResponseDto;
+import stackpot.stackpot.web.dto.CompletedPotDetailResponseDto;
+import stackpot.stackpot.web.dto.PotDetailResponseDto;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class PotDetailConverterImpl implements PotDetailConverter {
@@ -34,7 +36,6 @@ public class PotDetailConverterImpl implements PotDetailConverter {
     }
 
     @Override
-
     public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied){
         LocalDate today = LocalDate.now();
         LocalDate deadline = pot.getRecruitmentDeadline();
@@ -50,6 +51,14 @@ public class PotDetailConverterImpl implements PotDetailConverter {
             dDay = "D+" + Math.abs(daysDiff);
         }
 
+        // recruitmentDetails를 Map<String, Integer> 형태로 변환
+        Map<String, Integer> recruitingMembers = pot.getRecruitmentDetails().stream()
+                .collect(Collectors.toMap(
+
+                        recruitmentDetail -> recruitmentDetail.getRecruitmentRole().name(),
+                        recruitmentDetail -> recruitmentDetail.getRecruitmentCount()
+                ));
+
         return PotDetailResponseDto.builder()
                 .userId(user.getId())
                 .userRole(String.valueOf(user.getRole()))
@@ -58,6 +67,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potStartDate(formatDate(pot.getPotStartDate()))
+                .potEndDate(formatDate(pot.getPotEndDate()))
                 .potDuration(pot.getPotDuration())
                 .potLan(pot.getPotLan())
                 .potStatus(pot.getPotStatus())
@@ -65,7 +75,9 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .potModeOfOperation(getKoreanModeOfOperation(String.valueOf(pot.getPotModeOfOperation())))
                 .potContent(pot.getPotContent())
                 .dDay(dDay)
+                .recruitmentDeadline(formatDate(pot.getRecruitmentDeadline()))
                 .recruitmentDetails(recruitmentDetails)
+                .recruitingMembers(recruitingMembers)
                 .build();
     }
 
