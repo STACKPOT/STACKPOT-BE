@@ -21,11 +21,9 @@ public class PotMemberBadge extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "badge_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Badge badge;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_member_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private PotMember potMember;
 }

@@ -295,13 +295,15 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow( ()-> new IllegalArgumentException(("사용자를 찾을 수 없습니다.")));
+
+
         try {
             // refreshToken 삭제 (존재하지 않아도 예외를 던지지 않도록 함)
             refreshTokenRepository.deleteToken(refreshToken);
         } catch (Exception e) {
             throw new RuntimeException("로그아웃 실패: Refresh Token 삭제 중 오류 발생", e);
         }
-        long expiration = jwtTokenProvider.getExpiration(accessToken);
+        long expiration = jwtTokenProvider.getExpiration(token);
 
         try {
             // 블랙리스트에 추가
@@ -322,11 +324,9 @@ public class UserCommandServiceImpl implements UserCommandService {
         potMemberBadgeRepository.deleteByPotMemberIds(potMemberIds);
         taskRepository.deleteByPotMemberIds(potMemberIds);
 
-        potMemberRepository.deleteByUserId(user.getId());
         taskboardRepository.deleteByUserId(user.getId());
 
         //feed 지우기
-
         feedLikeRepository.deleteByUserId(user.getId());
         feedRepository.deleteByUserId(user.getId());
 
@@ -337,11 +337,13 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         if(isCreator){
             user.deleteUser();
+            for (PotMember potMember : potMembers) {
+                potMember.deletePotMember();
+            }
             userRepository.save(user);
         }
         else{
-
-//            potRepository.deleteByUserId(user.getId());
+            potMemberRepository.deleteByUserId(user.getId());
             userRepository.delete(user);
         }
         return null;

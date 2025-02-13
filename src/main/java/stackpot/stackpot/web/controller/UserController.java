@@ -91,15 +91,14 @@ public class UserController {
     @Operation(summary = "[ 구현 중 ] 회원 탈퇴 API", description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 ")
     public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken, @RequestBody String refreshToken) {
         String response = userCommandService.deleteUser(accessToken, refreshToken);
-        return ResponseEntity.ok(ApiResponse.onSuccess("회원 탈퇴 성공"));
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
 
     @Operation(summary = "사용자별 정보 조회 API", description = "userId를 통해 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersPages(
-            @PathVariable Long userId
-    ){
+            @PathVariable Long userId){
         UserResponseDto.Userdto userDetails = userCommandService.getUsers(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
