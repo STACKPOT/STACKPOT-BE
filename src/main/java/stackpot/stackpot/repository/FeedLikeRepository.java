@@ -1,9 +1,11 @@
 package stackpot.stackpot.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.mapping.FeedLike;
@@ -23,5 +25,9 @@ public interface FeedLikeRepository extends JpaRepository<FeedLike, Long> {
 
     @Query("SELECT fl.feed.id FROM FeedLike fl WHERE fl.user.id = :userId")
     List<Long> findFeedIdsByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("DELETE FROM FeedLike f WHERE f.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 
 }

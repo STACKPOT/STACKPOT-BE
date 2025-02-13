@@ -21,6 +21,9 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     List<Long> findUserIdsByPotId(@Param("potId") Long potId);
     @Query("SELECT pm FROM PotMember pm WHERE pm.pot.potId = :potId")
     List<PotMember> findByPotId(@Param("potId") Long potId);
+
+    @Query("SELECT pm FROM PotMember pm WHERE pm.user.id = :userId")
+    List<PotMember> findByuserId(@Param("userId") Long userId);
     @Query("SELECT pm.roleName, COUNT(pm) FROM PotMember pm WHERE pm.pot.potId = :potId GROUP BY pm.roleName")
     List<Object[]> findRoleCountsByPotId(@Param("potId") Long potId);
 
@@ -34,6 +37,10 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     // ✅ 특정 Pot에 속한 사용자(userId)의 역할(Role) 찾기
     @Query("SELECT pm.roleName FROM PotMember pm WHERE pm.pot.potId = :potId AND pm.user.id = :userId")
     Optional<Role> findRoleByUserId(@Param("potId") Long potId, @Param("userId") Long userId);
+
+    @Modifying
+    @Query("DELETE FROM PotMember f WHERE f.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 
     Optional<PotMember> findByPot_PotIdAndUser_Id(Long potId, Long userId);
 }

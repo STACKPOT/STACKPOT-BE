@@ -89,8 +89,8 @@ public class UserController {
 
     @DeleteMapping("/delete")
     @Operation(summary = "[ 구현 중 ] 회원 탈퇴 API", description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 ")
-    public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken) {
-        userCommandService.deleteUser(accessToken);
+    public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken, @RequestBody String refreshToken) {
+        String response = userCommandService.deleteUser(accessToken, refreshToken);
         return ResponseEntity.ok(ApiResponse.onSuccess("회원 탈퇴 성공"));
     }
 
