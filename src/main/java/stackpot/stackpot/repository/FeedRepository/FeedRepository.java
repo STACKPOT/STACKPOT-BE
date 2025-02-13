@@ -3,6 +3,7 @@ package stackpot.stackpot.repository.FeedRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -43,6 +44,10 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
 
     // 커서 기반 페이징 조회
     List<Feed> findByUserIdAndFeedIdBefore(Long userId, Long cursorFeedId, Pageable pageable);
+
+    @Modifying
+    @Query("DELETE FROM Feed f WHERE f.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 
     default String getNextCursor(List<Feed> feeds) {
         if (feeds.isEmpty()) {

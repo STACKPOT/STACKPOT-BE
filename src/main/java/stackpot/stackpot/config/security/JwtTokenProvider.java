@@ -47,7 +47,7 @@ private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
-                .claim("random", UUID.randomUUID().toString()) // ✅ 랜덤 값 추가
+                .claim("random", UUID.randomUUID().toString())
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
 
@@ -55,7 +55,7 @@ private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;
         long expiration = getExpiration(refreshToken);
         refreshTokenRepository.saveToken(user.getId(), refreshToken, expiration);
 
-        return user.getRole()!=null ? TokenServiceResponse.of(user.getRole(), accessToken, refreshToken) : TokenServiceResponse.withoutRole(accessToken, refreshToken);
+        return TokenServiceResponse.of(accessToken, refreshToken);
     }
 
     public boolean validateToken(String token) {

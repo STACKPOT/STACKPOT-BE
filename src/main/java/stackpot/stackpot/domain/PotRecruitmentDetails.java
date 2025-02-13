@@ -2,6 +2,8 @@ package stackpot.stackpot.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import stackpot.stackpot.domain.common.BaseEntity;
 import stackpot.stackpot.domain.enums.Role;
 
@@ -33,5 +35,6 @@ public class PotRecruitmentDetails extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Pot pot;
 }
