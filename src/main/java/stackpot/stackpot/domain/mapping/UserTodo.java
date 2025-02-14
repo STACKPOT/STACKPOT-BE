@@ -31,11 +31,9 @@ public class UserTodo extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Pot pot;
 }

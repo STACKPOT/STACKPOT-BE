@@ -21,11 +21,9 @@ public class Task extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "taskboard_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Taskboard taskboard;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "potMember_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private PotMember potMember;
 }
