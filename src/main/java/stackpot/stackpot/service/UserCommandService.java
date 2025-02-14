@@ -19,7 +19,7 @@ public interface UserCommandService {
 
     UserResponseDto.Userdto updateUserProfile(UserUpdateRequestDto requestDto);
 
-    String createNickname(Role role);
+    NicknameResponseDto createNickname(Role role);
 
     public String saveNickname(String nickname);
 
