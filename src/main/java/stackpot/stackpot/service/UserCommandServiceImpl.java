@@ -64,7 +64,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (user.getId() != null) {
             updateUserData(user, request);
             userRepository.save(user);
-            userRepository.flush();// 기존 사용자 업데이트 후 저장
+
         }
 
         return UserConverter.toUserSignUpResponseDto(user);
@@ -128,6 +128,19 @@ public class UserCommandServiceImpl implements UserCommandService {
 
 
     private void updateUserData(User user, UserRequestDto.JoinDto request) {
+        log.info("Before update - user role: {}", user.getRole());
+        log.info("Received role from request: {}", request.getRole());
+
+        log.info("Before update - user role: {}", user.getRole());
+        log.info("Received role from request: {}", request.getRole());
+
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
+            log.info("Updated user role: {}", user.getRole());  // ✅ role 변경 확인!
+        } else {
+            log.info("Role is null in request, skipping update.");
+        }
+
         // 값이 존재하는 경우에만 업데이트
         if (request.getKakaoId() != null) user.setKakaoId(request.getKakaoId());
         if (request.getRole() != null) user.setRole(request.getRole());
