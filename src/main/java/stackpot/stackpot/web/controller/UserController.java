@@ -68,8 +68,8 @@ public class UserController {
 
     @Operation(summary = "닉네임 생성 API")
     @GetMapping("/nickname")
-    public ResponseEntity<ApiResponse<String>> nickname(@RequestParam Role role){
-        String nickName = userCommandService.createNickname(role);
+    public ResponseEntity<ApiResponse<NicknameResponseDto>> nickname(@RequestParam Role role){
+        NicknameResponseDto nickName = userCommandService.createNickname(role);
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
