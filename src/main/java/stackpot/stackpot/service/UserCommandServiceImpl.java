@@ -63,7 +63,8 @@ public class UserCommandServiceImpl implements UserCommandService {
         // 2. 기존 사용자일 경우 업데이트
         if (user.getId() != null) {
             updateUserData(user, request);
-            userRepository.save(user); // 기존 사용자 업데이트 후 저장
+            userRepository.save(user);
+            userRepository.flush();// 기존 사용자 업데이트 후 저장
         }
 
         return UserConverter.toUserSignUpResponseDto(user);
