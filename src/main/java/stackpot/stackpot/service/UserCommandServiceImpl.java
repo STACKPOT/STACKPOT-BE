@@ -96,7 +96,6 @@ public class UserCommandServiceImpl implements UserCommandService {
             if (checkNickname != null) {
                 // 기존 유저가 있으면 isNewUser = false
                 User user = existingUser.get();
-                log.info("사용자의 닉네임 : {}", existingUser.get().getNickname());
                 TokenServiceResponse token = jwtTokenProvider.createToken(user);
 
                 return UserResponseDto.loginDto.builder()
@@ -128,18 +127,6 @@ public class UserCommandServiceImpl implements UserCommandService {
 
 
     private void updateUserData(User user, UserRequestDto.JoinDto request) {
-        log.info("Before update - user role: {}", user.getRole());
-        log.info("Received role from request: {}", request.getRole());
-
-        log.info("Before update - user role: {}", user.getRole());
-        log.info("Received role from request: {}", request.getRole());
-
-        if (request.getRole() != null) {
-            user.setRole(request.getRole());
-            log.info("Updated user role: {}", user.getRole());  // ✅ role 변경 확인!
-        } else {
-            log.info("Role is null in request, skipping update.");
-        }
 
         // 값이 존재하는 경우에만 업데이트
         if (request.getKakaoId() != null) user.setKakaoId(request.getKakaoId());
@@ -243,7 +230,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     @Transactional
-    public String createNickname(Role role) {
+    public NicknameResponseDto createNickname(Role role) {
 
         String nickname;
 
@@ -261,7 +248,7 @@ public class UserCommandServiceImpl implements UserCommandService {
             }
         }
 
-        return nickname+getVegetableNameByRole(role.toString());
+        return new NicknameResponseDto(nickname + getVegetableNameByRole(role.toString()));
     }
 
     @Override
