@@ -23,6 +23,5 @@ public class PotOpeningImg extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Pot pot;
 }

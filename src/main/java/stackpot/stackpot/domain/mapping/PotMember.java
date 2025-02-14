@@ -23,12 +23,10 @@ public class PotMember extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Pot pot;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -36,7 +34,7 @@ public class PotMember extends BaseEntity {
     private PotApplication potApplication;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = true, length = 10)
     private Role roleName;
 
     @Getter
@@ -47,4 +45,8 @@ public class PotMember extends BaseEntity {
     @Getter
     @Column(nullable = true)
     private String appealContent;
+
+    public void deletePotMember() {
+        this.roleName = null;
+    }
 }
