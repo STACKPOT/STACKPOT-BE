@@ -45,12 +45,10 @@ public class PotApplication extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Pot pot;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     public void setApplicationStatus(ApplicationStatus status) {
