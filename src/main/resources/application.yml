@@ -60,6 +60,6 @@ spring:
       enabled: true
   data:
     redis:
-     host: redis-container
-      # host: localhost
+      host: redis-container
+#      host: localhost
       port: 6379
