@@ -5,4 +5,5 @@ public enum Role {
     FRONTEND,
     DESIGN,
     PLANNING,
+    UNKNOWN
 }
