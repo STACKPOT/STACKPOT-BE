@@ -95,7 +95,7 @@ public class UserController {
     }
 
 
-    @Operation(summary = "사용자별 정보 조회 API", description = "userId를 통해 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
+    @Operation(summary = "사사용자별 정보 조회 API", description = "userId를 통해 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersPages(
             @PathVariable Long userId){
