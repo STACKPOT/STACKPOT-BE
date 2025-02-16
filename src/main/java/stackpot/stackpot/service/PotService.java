@@ -40,4 +40,6 @@ public interface PotService {
     PotResponseDto patchPotWithRecruitments(Long potId, PotRequestDto requestDto);
 
     List<RecruitingPotResponseDto> getRecruitingPots();
+
+    PotResponseDto UpdateCompletedPot(Long potId, CompletedPotRequestDto requestDto);
 }
