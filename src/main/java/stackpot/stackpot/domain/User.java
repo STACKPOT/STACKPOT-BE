@@ -3,8 +3,6 @@ package stackpot.stackpot.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.DialectOverride;
-import org.hibernate.annotations.Where;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import stackpot.stackpot.domain.common.BaseEntity;
@@ -77,7 +75,7 @@ public class User extends BaseEntity implements UserDetails{
     public void deleteUser() {
         this.isDeleted = true;
         this.nickname = "알 수 없음";  // 표시용 변경
-//        this.role = Role.UNKNOWN;
+        this.role = Role.UNKNOWN;
         this.kakaoId = null;
         this.interest = "UNKNOWN";
         this.userTemperature = null;
