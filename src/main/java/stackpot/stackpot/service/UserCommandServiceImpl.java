@@ -150,6 +150,10 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
+        if(user.getRole() == Role.UNKNOWN){
+            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+        }
+
         // User 정보를 UserResponseDto로 변환
         return UserConverter.toDto(user);
     }
@@ -158,6 +162,10 @@ public class UserCommandServiceImpl implements UserCommandService {
     public UserResponseDto.Userdto getUsers(Long UserId) {
         User user = userRepository.findById(UserId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        if(user.getRole() == Role.UNKNOWN){
+            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+        }
 
         return UserConverter.toDto(user);
     }
@@ -169,6 +177,10 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        if(user.getRole() == Role.UNKNOWN){
+            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+        }
 
         return getMypageByUser(user.getId(), dataType);
     }
@@ -183,6 +195,10 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        if(user.getRole() == Role.UNKNOWN){
+            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+        }
 
         if (dataType == null || dataType.isBlank()) {
             completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
@@ -388,7 +404,8 @@ public class UserCommandServiceImpl implements UserCommandService {
                 "BACKEND", " 양파",
                 "FRONTEND", " 버섯",
                 "DESIGN", " 브로콜리",
-                "PLANNING", " 당근"
+                "PLANNING", " 당근",
+                "UNKNOWN",""
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }

@@ -79,7 +79,8 @@ public class UserMypageConverter {
                 "BACKEND", " 양파",
                 "FRONTEND", " 버섯",
                 "DESIGN", " 브로콜리",
-                "PLANNING", " 당근"
+                "PLANNING", " 당근",
+                "UNKNOWN",""
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
