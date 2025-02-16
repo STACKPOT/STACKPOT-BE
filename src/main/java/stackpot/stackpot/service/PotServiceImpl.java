@@ -642,5 +642,55 @@ public class PotServiceImpl implements PotService {
         return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
     }
 
+    @Override
+    @Transactional
+    public PotResponseDto UpdateCompletedPot(Long potId, CompletedPotRequestDto requestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
+        }
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
+
+        if (requestDto == null) {
+            throw new PotHandler(ErrorStatus._BAD_REQUEST);
+        }
+
+        Map<String, Object> updateValues = new LinkedHashMap<>();
+        updateValues.put("potName", requestDto.getPotName());
+        updateValues.put("potStartDate", requestDto.getPotStartDate());
+        updateValues.put("potLan", requestDto.getPotLan());
+        updateValues.put("potSummary", requestDto.getPotSummary());
+        pot.updateFields(updateValues);
+
+
+        List<PotRecruitmentDetails> recruitmentDetails = pot.getRecruitmentDetails().stream()
+                .map(recruitmentDto -> {
+                    try {
+                        return PotRecruitmentDetails.builder()
+                                .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole().name()))
+                                .recruitmentCount(recruitmentDto.getRecruitmentCount())
+                                .pot(pot)
+                                .build();
+                    } catch (IllegalArgumentException e) {
+                        throw new PotHandler(ErrorStatus.INVALID_ROLE);
+                    }
+                })
+                .collect(Collectors.toList());
+
+        // 변환기(PotDetailConverter) 사용
+
+        return potConverter.toDto(pot, recruitmentDetails);
+    }
+
 
 }
