@@ -13,6 +13,7 @@ import stackpot.stackpot.converter.UserConverter;
 import stackpot.stackpot.converter.UserMypageConverter;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.domain.mapping.PotMember;
@@ -23,6 +24,7 @@ import stackpot.stackpot.repository.FeedRepository.FeedRepository;
 import stackpot.stackpot.repository.PotApplicationRepository.PotApplicationRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
+import stackpot.stackpot.service.EmailService.EmailService;
 import stackpot.stackpot.web.dto.*;
 
 import java.util.List;
@@ -50,6 +52,8 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
+
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -312,12 +316,6 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow( ()-> new IllegalArgumentException(("사용자를 찾을 수 없습니다.")));
-//        try {
-//            // refreshToken 삭제 (존재하지 않아도 예외를 던지지 않도록 함)
-//            refreshTokenRepository.deleteToken(refreshToken);
-//        } catch (Exception e) {
-//            throw new RuntimeException("로그아웃 실패: Refresh Token 삭제 중 오류 발생", e);
-//        }
         long expiration = jwtTokenProvider.getExpiration(token);
 
         try {
@@ -328,40 +326,130 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
 
         boolean isCreator = potRepository.existsByUserId(user.getId());
-
-
-        //potMember, taskborad지우기
+// 1. potMemberId 리스트 추출
         List<PotMember> potMembers = potMemberRepository.findByuserId(user.getId());
         List<Long> potMemberIds = potMembers.stream()
                 .map(PotMember::getPotMemberId)
                 .toList();
 
-        potMemberBadgeRepository.deleteByPotMemberIds(potMemberIds);
-        taskRepository.deleteByPotMemberIds(potMemberIds);
+        log.info("potmemberid {}", potMemberIds);
 
-        taskboardRepository.deleteByUserId(user.getId());
-
-        //feed 지우기
         feedLikeRepository.deleteByUserId(user.getId());
         feedRepository.deleteByUserId(user.getId());
 
         userTodoRepository.deleteByUserId(user.getId());
 
-        potApplicationRepository.deleteByUserId(user.getId());
+        potMemberBadgeRepository.deleteByPotMemberIds(potMemberIds);
 
 
-        if(isCreator){
-            user.deleteUser();
-            for (PotMember potMember : potMembers) {
-                potMember.deletePotMember();
+        taskRepository.deleteByPotMemberIds(potMemberIds);
+
+        List<Taskboard> taskboards = taskboardRepository.findByUserId(user.getId());
+        List<Long> taskboardIds = taskboards.stream()
+                .map(Taskboard::getTaskboardId)
+                .toList();
+
+        if (!taskboardIds.isEmpty()) {
+            log.info("삭제할 Taskboard ID: {}", taskboardIds);
+
+            // Task 삭제 (Taskboard에 속한 모든 Task 삭제)
+            taskRepository.deleteByTaskboardIds(taskboardIds);
+
+            // Taskboard 삭제
+            taskboardRepository.deleteAll(taskboards);
+        }
+
+
+// 7. 유저가 Pot을 생성한 사람인지 확인
+        if (isCreator) {
+            user.deleteUser();  // User 상태 변경
+            List<Pot> userPots = potRepository.findByUserId(user.getId());
+
+            for (Pot pot : userPots) {
+                if (pot.getPotStatus().equals("COMPLETED")) {
+                    PotMember potMember = potMemberRepository.findByPotIdAndUserId(pot.getPotId(), user.getId());
+                    potMember.deletePotMember();
+                    potMemberRepository.save(potMember);
+                } else {
+                    List<PotMember> potMembers1 = potMemberRepository.findByPotId(pot.getPotId());
+
+                    if (pot.getPotStatus().equals("ONGOING")) {
+                        // 이메일 알림 발송
+                        for (PotMember potMember : potMembers1) {
+                            emailService.sendPotDeleteNotification(
+                                    potMember.getUser().getEmail(),
+                                    pot.getPotName(),
+                                    potMember.getUser().getNickname() + getVegetableNameByRole(potMember.getRoleName().name())
+                            );
+                        }
+                    }
+                    potMemberRepository.deleteAll(potMembers1);
+                    potRepository.delete(pot);
+                }
             }
             userRepository.save(user);
-        }
-        else{
+        } else {
+            // 8. PotMember 삭제 (User가 참조됨)
             potMemberRepository.deleteByUserId(user.getId());
+
+            // 9. PotApplication 삭제 (User가 참조됨)
+            potApplicationRepository.deleteByUserId(user.getId());
+
+            // 10. User 삭제
             userRepository.delete(user);
         }
         return null;
+
+//        //potMember, taskborad지우기
+//        List<PotMember> potMembers = potMemberRepository.findByuserId(user.getId());
+//        List<Long> potMemberIds = potMembers.stream()
+//                .map(PotMember::getPotMemberId)
+//                .toList();
+//
+//        log.info("potmemberid {}", potMemberIds);
+//
+//        taskRepository.deleteByPotMemberIds(potMemberIds);
+//        potMemberBadgeRepository.deleteByPotMemberIds(potMemberIds);
+//        taskboardRepository.deleteByUserId(user.getId());
+//
+//        //feed 지우기
+//        feedLikeRepository.deleteByUserId(user.getId());
+//        feedRepository.deleteByUserId(user.getId());
+//
+//        userTodoRepository.deleteByUserId(user.getId());
+//
+//        if(isCreator){
+//            user.deleteUser();
+//            List<Pot> userPots = potRepository.findByUserId(user.getId());
+//
+//            for (Pot pot : userPots) {
+//                if(pot.getPotStatus().equals("COMPLETED")){
+//                    PotMember potMember = potMemberRepository.findByPotIdAndUserId(pot.getPotId(), user.getId());
+//                    potMember.deletePotMember();
+//                    potMemberRepository.save(potMember);
+//                }
+//                else{
+//                    List<PotMember> potMembers1 = potMemberRepository.findByPotId(pot.getPotId());
+//
+//                    if(pot.getPotStatus().equals("ONGOING")){
+//                        //이메일 보내기
+//                        for(PotMember potMember : potMembers1){
+//                            emailService.sendPotDeleteNotification(
+//                            potMember.getUser().getEmail(), pot.getPotName(), potMember.getUser().getNickname() + getVegetableNameByRole(potMember.getRoleName().name()));
+//                        }
+//                    }
+//                    potMemberRepository.deleteAll(potMembers1);
+//                    potRepository.delete(pot);
+//                }
+//            }
+//            userRepository.save(user);
+//        }
+//        else{
+//            potMemberRepository.deleteByUserId(user.getId());
+//            potApplicationRepository.deleteByUserId(user.getId());
+//            userRepository.delete(user);
+//        }
+//        return null;
     }
 
     @Override
