@@ -43,4 +43,8 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     void deleteByUserId(@Param("userId") Long userId);
 
     Optional<PotMember> findByPot_PotIdAndUser_Id(Long potId, Long userId);
+
+    @Query("SELECT pm FROM PotMember pm WHERE pm.pot.potId = :potId AND pm.user.id = :userId")
+    PotMember findByPotIdAndUserId(Long potId, Long userId);
+
 }

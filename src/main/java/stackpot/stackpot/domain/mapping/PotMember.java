@@ -47,6 +47,6 @@ public class PotMember extends BaseEntity {
     private String appealContent;
 
     public void deletePotMember() {
-        this.roleName = null;
+        this.roleName = Role.UNKNOWN;
     }
 }
