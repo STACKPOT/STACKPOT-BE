@@ -21,6 +21,7 @@ public class PotDetailResponseDto {
     private Long potId;
     private String potName;
     private String potStartDate;
+    private String potEndDate;
     private String potDuration;
     private String potLan;
     private String potStatus;

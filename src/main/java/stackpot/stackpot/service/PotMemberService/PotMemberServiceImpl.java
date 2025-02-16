@@ -61,7 +61,6 @@ public class PotMemberServiceImpl implements PotMemberService {
         // owner가 true인 팟 생성자가 항상 맨 위로 오도록 정렬
         memberDtos.sort((a, b) -> Boolean.compare(b.isOwner(), a.isOwner()));
 
-
         return memberDtos;
     }
 
