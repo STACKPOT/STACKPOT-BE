@@ -306,20 +306,18 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Transactional
-    public String deleteUser(String accessToken, String refreshToken) {
+    public String deleteUser(String accessToken) {
         String token = accessToken.replace("Bearer ", "");
         String email = jwtTokenProvider.getEmailFromToken(token);
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow( ()-> new IllegalArgumentException(("사용자를 찾을 수 없습니다.")));
-
-
-        try {
-            // refreshToken 삭제 (존재하지 않아도 예외를 던지지 않도록 함)
-            refreshTokenRepository.deleteToken(refreshToken);
-        } catch (Exception e) {
-            throw new RuntimeException("로그아웃 실패: Refresh Token 삭제 중 오류 발생", e);
-        }
+//        try {
+//            // refreshToken 삭제 (존재하지 않아도 예외를 던지지 않도록 함)
+//            refreshTokenRepository.deleteToken(refreshToken);
+//        } catch (Exception e) {
+//            throw new RuntimeException("로그아웃 실패: Refresh Token 삭제 중 오류 발생", e);
+//        }
         long expiration = jwtTokenProvider.getExpiration(token);
 
         try {

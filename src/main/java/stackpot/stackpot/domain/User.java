@@ -74,12 +74,13 @@ public class User extends BaseEntity implements UserDetails{
 
     public void deleteUser() {
         this.isDeleted = true;
-        this.nickname = "알 수 없음";  // 표시용 변경
+        this.nickname = "(알 수 없음)";  // 표시용 변경
         this.role = Role.UNKNOWN;
         this.kakaoId = null;
         this.interest = "UNKNOWN";
         this.userTemperature = null;
-        this.email=null;
+        this.email = null;
+        this.userIntroduction = null;
         // 이메일 등 개인 정보 삭제
     }
 
