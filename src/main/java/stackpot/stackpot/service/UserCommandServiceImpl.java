@@ -15,10 +15,13 @@ import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
-import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.domain.mapping.PotMember;
+import stackpot.stackpot.repository.*;
+import stackpot.stackpot.repository.BadgeRepository.PotMemberBadgeRepository;
+import stackpot.stackpot.repository.BadgeRepository.UserTodoRepository;
 import stackpot.stackpot.repository.FeedRepository.FeedRepository;
+import stackpot.stackpot.repository.PotApplicationRepository.PotApplicationRepository;
 import stackpot.stackpot.repository.PotRepository.PotRepository;
-import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
@@ -34,6 +37,14 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final UserRepository userRepository;
     private final PotRepository potRepository;
     private final FeedRepository feedRepository;
+    private final PotMemberRepository potMemberRepository;
+    private final PotApplicationRepository potApplicationRepository;
+    private final FeedLikeRepository feedLikeRepository;
+    private final UserTodoRepository userTodoRepository;
+    private final TaskRepository taskRepository;
+    private final TaskboardRepository taskboardRepository;
+    private final PotMemberBadgeRepository potMemberBadgeRepository;
+
     private final UserMypageConverter userMypageConverter;
     private final PotSummarizationService potSummarizationService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -52,7 +63,8 @@ public class UserCommandServiceImpl implements UserCommandService {
         // 2. 기존 사용자일 경우 업데이트
         if (user.getId() != null) {
             updateUserData(user, request);
-            userRepository.save(user); // 기존 사용자 업데이트 후 저장
+            userRepository.save(user);
+
         }
 
         return UserConverter.toUserSignUpResponseDto(user);
@@ -84,12 +96,12 @@ public class UserCommandServiceImpl implements UserCommandService {
             if (checkNickname != null) {
                 // 기존 유저가 있으면 isNewUser = false
                 User user = existingUser.get();
-                log.info("사용자의 닉네임 : {}", existingUser.get().getNickname());
                 TokenServiceResponse token = jwtTokenProvider.createToken(user);
 
                 return UserResponseDto.loginDto.builder()
                         .tokenServiceResponse(token)
                         .isNewUser(false)
+                        .role(user.getRole())
                         .build();
             } else {
                 User user = existingUser.get();
@@ -109,11 +121,13 @@ public class UserCommandServiceImpl implements UserCommandService {
             return UserResponseDto.loginDto.builder()
                     .tokenServiceResponse(token)
                     .isNewUser(true)  // 신규 유저임을 표시
+                    .role(null)
                     .build();
     }
 
 
     private void updateUserData(User user, UserRequestDto.JoinDto request) {
+
         // 값이 존재하는 경우에만 업데이트
         if (request.getKakaoId() != null) user.setKakaoId(request.getKakaoId());
         if (request.getRole() != null) user.setRole(request.getRole());
@@ -136,6 +150,10 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
+        if(user.getRole() == Role.UNKNOWN){
+            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+        }
+
         // User 정보를 UserResponseDto로 변환
         return UserConverter.toDto(user);
     }
@@ -144,6 +162,10 @@ public class UserCommandServiceImpl implements UserCommandService {
     public UserResponseDto.Userdto getUsers(Long UserId) {
         User user = userRepository.findById(UserId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        if(user.getRole() == Role.UNKNOWN){
+            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+        }
 
         return UserConverter.toDto(user);
     }
@@ -155,6 +177,10 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        if(user.getRole() == Role.UNKNOWN){
+            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+        }
 
         return getMypageByUser(user.getId(), dataType);
     }
@@ -169,6 +195,10 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        if(user.getRole() == Role.UNKNOWN){
+            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+        }
 
         if (dataType == null || dataType.isBlank()) {
             completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
@@ -216,7 +246,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     @Transactional
-    public String createNickname(Role role) {
+    public NicknameResponseDto createNickname(Role role) {
 
         String nickname;
 
@@ -232,10 +262,9 @@ public class UserCommandServiceImpl implements UserCommandService {
             else {
                 log.info("사용중인 닉네임 입니다.{}", nickname);
             }
-
         }
 
-        return nickname+getVegetableNameByRole(role.toString());
+        return new NicknameResponseDto(nickname + getVegetableNameByRole(role.toString()));
     }
 
     @Override
@@ -277,30 +306,67 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Transactional
-    public void deleteUser(String accessToken) {
+    public String deleteUser(String accessToken) {
         String token = accessToken.replace("Bearer ", "");
         String email = jwtTokenProvider.getEmailFromToken(token);
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow( ()-> new IllegalArgumentException(("사용자를 찾을 수 없습니다.")));
-
-        userRepository.delete(user);
-
-        // Refresh Token 삭제 (로그아웃)
-//        refreshTokenRepository.deleteRefreshToken(user.getId());
-
-        // Access Token 블랙리스트에 추가
+//        try {
+//            // refreshToken 삭제 (존재하지 않아도 예외를 던지지 않도록 함)
+//            refreshTokenRepository.deleteToken(refreshToken);
+//        } catch (Exception e) {
+//            throw new RuntimeException("로그아웃 실패: Refresh Token 삭제 중 오류 발생", e);
+//        }
         long expiration = jwtTokenProvider.getExpiration(token);
-//        blacklistRepository.addToBlacklist(token, expiration);
 
+        try {
+            // 블랙리스트에 추가
+            blacklistRepository.addToBlacklist(accessToken, expiration);
+        } catch (Exception e) {
+            throw new RuntimeException("로그아웃 실패: 토큰 블랙리스트 등록 중 오류 발생", e);
+        }
+
+        boolean isCreator = potRepository.existsByUserId(user.getId());
+
+
+        //potMember, taskborad지우기
+        List<PotMember> potMembers = potMemberRepository.findByuserId(user.getId());
+        List<Long> potMemberIds = potMembers.stream()
+                .map(PotMember::getPotMemberId)
+                .toList();
+
+        potMemberBadgeRepository.deleteByPotMemberIds(potMemberIds);
+        taskRepository.deleteByPotMemberIds(potMemberIds);
+
+        taskboardRepository.deleteByUserId(user.getId());
+
+        //feed 지우기
+        feedLikeRepository.deleteByUserId(user.getId());
+        feedRepository.deleteByUserId(user.getId());
+
+        userTodoRepository.deleteByUserId(user.getId());
+
+        potApplicationRepository.deleteByUserId(user.getId());
+
+
+        if(isCreator){
+            user.deleteUser();
+            for (PotMember potMember : potMembers) {
+                potMember.deletePotMember();
+            }
+            userRepository.save(user);
+        }
+        else{
+            potMemberRepository.deleteByUserId(user.getId());
+            userRepository.delete(user);
+        }
+        return null;
     }
 
     @Override
     public String logout(String aToken, String refreshToken) {
-
-
         String accessToken = aToken.replace("Bearer ", "");
-
         String email;
         try {
             email = jwtTokenProvider.getEmailFromToken(accessToken);
@@ -336,7 +402,8 @@ public class UserCommandServiceImpl implements UserCommandService {
                 "BACKEND", " 양파",
                 "FRONTEND", " 버섯",
                 "DESIGN", " 브로콜리",
-                "PLANNING", " 당근"
+                "PLANNING", " 당근",
+                "UNKNOWN",""
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }

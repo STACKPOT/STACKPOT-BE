@@ -19,11 +19,11 @@ public interface UserCommandService {
 
     UserResponseDto.Userdto updateUserProfile(UserUpdateRequestDto requestDto);
 
-    String createNickname(Role role);
+    NicknameResponseDto createNickname(Role role);
 
     public String saveNickname(String nickname);
 
-    void deleteUser(String accessToken);
+    String deleteUser(String accessToken);
 
     String logout(String aToken, String refreshToken);
 }

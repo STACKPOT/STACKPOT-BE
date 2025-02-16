@@ -2,6 +2,7 @@ package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.config.security.JwtTokenProvider;
-import stackpot.stackpot.converter.UserConverter;
-import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.repository.BlacklistRepository;
 import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.service.KakaoService;
+import stackpot.stackpot.service.MyPotService;
 import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.*;
 
@@ -35,6 +35,7 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
+    private final MyPotService myPotService;
 
     @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
@@ -68,8 +69,8 @@ public class UserController {
 
     @Operation(summary = "닉네임 생성 API")
     @GetMapping("/nickname")
-    public ResponseEntity<ApiResponse<String>> nickname(@RequestParam Role role){
-        String nickName = userCommandService.createNickname(role);
+    public ResponseEntity<ApiResponse<NicknameResponseDto>> nickname(@RequestParam Role role){
+        NicknameResponseDto nickName = userCommandService.createNickname(role);
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
@@ -82,24 +83,22 @@ public class UserController {
 
     @PostMapping("/logout")
     @Operation(summary = "회원 로그아웃 API", description = "AccessToken 토큰과 함께 요청 시 로그아웃 ")
-    public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String accessToken, @RequestBody String refreshToken) {
-        String response = userCommandService.logout(accessToken,refreshToken);
+    public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String accessToken, @RequestBody TokenRequestDto refreshToken) {
+        String response = userCommandService.logout(accessToken,refreshToken.getRefreshToken());
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
     @DeleteMapping("/delete")
-    @Operation(summary = "[ 구현 중 ] 회원 탈퇴 API", description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 ")
+    @Operation(summary = "회원 탈퇴 API", description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 ")
     public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken) {
-        userCommandService.deleteUser(accessToken);
-        return ResponseEntity.ok(ApiResponse.onSuccess("회원 탈퇴 성공"));
+        String response = userCommandService.deleteUser(accessToken);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-
-    @Operation(summary = "사용자별 정보 조회 API", description = "userId를 통해 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
+    @Operation(summary = "사사용자별 정보 조회 API", description = "userId를 통해 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersPages(
-            @PathVariable Long userId
-    ){
+            @PathVariable Long userId){
         UserResponseDto.Userdto userDetails = userCommandService.getUsers(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
@@ -137,6 +136,14 @@ public class UserController {
         UserResponseDto.Userdto updatedUser = userCommandService.updateUserProfile(requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(updatedUser));
     }
+    @GetMapping("/{pot_id}/details")
+    @Operation(summary = "마이페이지 끓인 팟 상세 보기 모달", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다.")
+    public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
+            @PathVariable("pot_id") Long potId) {
+        CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
 
 
 }

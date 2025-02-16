@@ -29,6 +29,7 @@ public class UserResponseDto {
     @Builder
     public static class loginDto {
         private TokenServiceResponse tokenServiceResponse;
+        private final Role role;
         private Boolean isNewUser;
     }
 }

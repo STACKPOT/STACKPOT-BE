@@ -2,6 +2,8 @@ package stackpot.stackpot.domain.mapping;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.common.BaseEntity;

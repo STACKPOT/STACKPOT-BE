@@ -2,6 +2,8 @@ package stackpot.stackpot.domain.mapping;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.common.BaseEntity;
@@ -32,7 +34,7 @@ public class PotMember extends BaseEntity {
     private PotApplication potApplication;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = true, length = 10)
     private Role roleName;
 
     @Getter
@@ -43,4 +45,8 @@ public class PotMember extends BaseEntity {
     @Getter
     @Column(nullable = true)
     private String appealContent;
+
+    public void deletePotMember() {
+        this.roleName = null;
+    }
 }

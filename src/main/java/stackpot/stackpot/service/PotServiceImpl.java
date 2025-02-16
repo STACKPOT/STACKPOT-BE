@@ -11,7 +11,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
-import stackpot.stackpot.apiPayload.exception.handler.ApplicationHandler;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.config.security.JwtTokenProvider;
@@ -32,7 +31,7 @@ import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
 import java.time.LocalDate;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -119,15 +118,23 @@ public class PotServiceImpl implements PotService {
         if (!List.of("ONLINE", "OFFLINE", "HYBRID").contains(requestDto.getPotModeOfOperation())) {
             throw new PotHandler(ErrorStatus.INVALID_POT_MODE_OF_OPERATION);
         }
-        pot.updateFields(Map.of(
-                "potName", requestDto.getPotName(),
-                "potDuration", requestDto.getPotDuration(),
-                "potLan", requestDto.getPotLan(),
-                "potContent", requestDto.getPotContent(),
-                "potModeOfOperation", requestDto.getPotModeOfOperation(),
-                "potSummary", requestDto.getPotSummary(),
-                "recruitmentDeadline", requestDto.getRecruitmentDeadline()
-        ));
+
+        Map<String, Object> updateValues = new LinkedHashMap<>();
+        updateValues.put("potName", requestDto.getPotName());
+        updateValues.put("potDuration", requestDto.getPotDuration());
+        updateValues.put("potStartDate", requestDto.getPotStartDate());
+        updateValues.put("potLan", requestDto.getPotLan());
+        updateValues.put("potContent", requestDto.getPotContent());
+        updateValues.put("potModeOfOperation", requestDto.getPotModeOfOperation());
+        updateValues.put("recruitmentDeadline", requestDto.getRecruitmentDeadline());
+
+        // potSummary 값이 null이면 넣지 않음
+        if (requestDto.getPotSummary() != null) {
+            updateValues.put("potSummary", requestDto.getPotSummary());
+        }
+
+        pot.updateFields(updateValues);
+
 
         recruitmentDetailsRepository.deleteByPot_PotId(potId);
 
@@ -340,7 +347,8 @@ public class PotServiceImpl implements PotService {
                 "DESIGN", " 브로콜리",
                 "PLANNING", " 당근",
                 "BACKEND", " 양파",
-                "FRONTEND", " 버섯"
+                "FRONTEND", " 버섯",
+                "UNKNOWN",""
         );
 
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");

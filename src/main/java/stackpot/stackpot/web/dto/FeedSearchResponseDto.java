@@ -12,7 +12,7 @@ public class FeedSearchResponseDto {
     private Long userId;
 
     private String creatorRole;
-
+    private Boolean isLiked;
     private String title;
     private String content;
     private String creatorNickname;
