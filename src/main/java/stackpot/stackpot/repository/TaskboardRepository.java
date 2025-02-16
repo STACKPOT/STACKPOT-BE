@@ -13,6 +13,9 @@ import java.util.List;
 @Repository
 public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
         List<Taskboard> findByPot(Pot pot);
+
+        List<Taskboard> findByUserId(Long userId);
+
         Taskboard findByPotAndTaskboardId(Pot pot, Long taskboardId);
 
         @Modifying

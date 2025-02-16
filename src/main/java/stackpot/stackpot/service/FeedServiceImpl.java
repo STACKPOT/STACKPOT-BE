@@ -242,6 +242,23 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
+    public String deleteFeed(Long feedId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
+
+        if(!feed.getUser().getEmail().equals(email)){
+            throw new SecurityException("해당 피드를 삭제할 권한이 없습니다.");
+        }
+
+        feedRepository.delete(feed);
+
+        return "피드를 삭제했습니다.";
+    }
+
+    @Override
     public boolean toggleLike(Long feedId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();

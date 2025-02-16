@@ -76,6 +76,17 @@ public class FeedController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
+    @DeleteMapping("/{feedId}")
+    @Operation(summary = "Feed 삭제 API", description = "요청된 feedId의 feed 내용을 수정합니다.",
+            parameters = {
+                    @Parameter(name = "feedId", description = "삭제 feedId")
+            })
+    public ResponseEntity<ApiResponse<String>> deleteFeed(@PathVariable Long feedId) {
+        // 정상 처리
+        String response = feedService.deleteFeed(feedId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
     @PostMapping("/{feedId}/like")
     @Operation(summary = "Feed 좋아요 API", description = "feed 좋아요를 추가합니다.")
     public ResponseEntity<ApiResponse<Map>> toggleLike(@PathVariable Long feedId) {
