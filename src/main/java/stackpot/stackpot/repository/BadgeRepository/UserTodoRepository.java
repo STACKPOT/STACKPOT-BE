@@ -23,4 +23,8 @@ public interface UserTodoRepository extends JpaRepository<UserTodo, Long> {
     @Modifying
     @Query("DELETE FROM UserTodo f WHERE f.user.id = :userId")
     void deleteByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("DELETE FROM UserTodo f WHERE f.pot.potId = :potId")
+    void deleteByPotId(@Param("potId") Long potId);
 }

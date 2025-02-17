@@ -49,4 +49,8 @@ public class PotMember extends BaseEntity {
     public void deletePotMember() {
         this.roleName = Role.UNKNOWN;
     }
+
+    public void setApplication(PotApplication application) {
+        this.potApplication = application;
+    }
 }
