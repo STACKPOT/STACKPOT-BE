@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.converter.PotMemberConverter.PotMemberConverter;
 import stackpot.stackpot.domain.Pot;
@@ -129,20 +130,22 @@ public class PotMemberServiceImpl implements PotMemberService {
     }
     @Transactional
     @Override
-    public void updateAppealContent(Long potId, Long memberId, String appealContent) {
-        // 1. 멤버 조회
-        PotMember potMember = potMemberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 멤버를 찾을 수 없습니다."));
-
-        // 2. 멤버가 해당 팟에 속해 있는지 확인
-        if (!potMember.getPot().getPotId().equals(potId)) {
-            throw new IllegalArgumentException("해당 멤버는 지정된 팟에 속해 있지 않습니다.");
+    public void updateAppealContent(Long potId, String appealContent) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
         }
+        String email = authentication.getName();
 
-        // 3. 어필 내용 업데이트
+        // 1. 현재 로그인한 사용자의 멤버 정보 조회
+        PotMember potMember = potMemberRepository.findByPot_PotIdAndUser_Email(potId, email)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+
+        // 2. 어필 내용 업데이트
         potMember.setAppealContent(appealContent);
-        potMemberRepository.save(potMember); // 변경 사항 저장
+        potMemberRepository.save(potMember);
     }
+
     @Override
     public void validateIsOwner(Long potId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
