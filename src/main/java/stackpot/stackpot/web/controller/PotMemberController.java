@@ -48,12 +48,12 @@ public class PotMemberController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
     @Operation(summary = "팟 어필 API")
-    @PatchMapping("/{member_id}/appeal")
+    @PatchMapping("/appeal")
     public ResponseEntity<ApiResponse<String>> updateAppealContent(
             @PathVariable("pot_id") Long potId,
-            @PathVariable("member_id") Long memberId,
+
             @RequestBody @Valid UpdateAppealRequestDto requestDto) {
-        potMemberService.updateAppealContent(potId, memberId, requestDto.getAppealContent());
+        potMemberService.updateAppealContent(potId, requestDto.getAppealContent());
         return ResponseEntity.ok(ApiResponse.onSuccess("어필 내용이 성공적으로 업데이트되었습니다."));
     }
 }
