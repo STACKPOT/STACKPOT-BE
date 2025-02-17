@@ -11,12 +11,14 @@ import stackpot.stackpot.domain.enums.Role;
 import java.util.Collection;
 import java.util.List;
 
+
 @Entity
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+//@Where(clause = "is_deleted = false")
 public class User extends BaseEntity implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,13 +42,13 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = true)
     private Integer userTemperature; // 유저 온도
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true, unique = true)
     private String email; // 이메일
 
     @Column(nullable = true, unique = true)
     private String kakaoId;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 10)
     private List<Pot> pots;
 
@@ -72,11 +74,13 @@ public class User extends BaseEntity implements UserDetails{
 
     public void deleteUser() {
         this.isDeleted = true;
-        this.nickname = "알 수 없음";  // 표시용 변경
-        this.role = null;
+        this.nickname = "(알 수 없음)";  // 표시용 변경
+        this.role = Role.UNKNOWN;
         this.kakaoId = null;
-        this.interest = null;
+        this.interest = "UNKNOWN";
         this.userTemperature = null;
+        this.email = null;
+        this.userIntroduction = null;
         // 이메일 등 개인 정보 삭제
     }
 

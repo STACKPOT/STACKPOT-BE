@@ -28,7 +28,7 @@ public class PotMemberController {
     public ResponseEntity<ApiResponse<List<PotMemberInfoResponseDto>>> getPotMembers(
             @PathVariable("pot_id") Long potId) {
 
-        potMemberService.validateIsOwner(potId); // 팟 생성자 검증 추가
+        //potMemberService.validateIsOwner(potId); // 팟 생성자 검증 추가
         List<PotMemberInfoResponseDto> response = potMemberService.getPotMembers(potId);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));

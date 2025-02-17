@@ -62,7 +62,8 @@ public class PotApplicationConverterImpl implements PotApplicationConverter {
                 "DESIGN", " 브로콜리",
                 "PLANNING", " 당근",
                 "BACKEND", " 양파",
-                "FRONTEND", " 버섯"
+                "FRONTEND", " 버섯",
+                "UNKNOWN",""
         );
 
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");

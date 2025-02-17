@@ -2,6 +2,7 @@ package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import stackpot.stackpot.repository.BlacklistRepository;
 import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.service.KakaoService;
 import stackpot.stackpot.service.MyPotService;
+import stackpot.stackpot.service.PotService;
 import stackpot.stackpot.service.UserCommandService;
 import stackpot.stackpot.web.dto.*;
 
@@ -35,6 +37,7 @@ public class UserController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
     private final MyPotService myPotService;
+    private final PotService potService;
 
     @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
@@ -88,12 +91,11 @@ public class UserController {
     }
 
     @DeleteMapping("/delete")
-    @Operation(summary = "[ 수정 중 ] 회원 탈퇴 API", description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 ")
-    public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken, @RequestBody TokenRequestDto refreshToken) {
-        String response = userCommandService.deleteUser(accessToken, refreshToken.getRefreshToken());
+    @Operation(summary = "회원 탈퇴 API", description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 ")
+    public ResponseEntity<ApiResponse<String>> deleteUser(@RequestHeader("Authorization") String accessToken) {
+        String response = userCommandService.deleteUser(accessToken);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-
 
     @Operation(summary = "사용자별 정보 조회 API", description = "userId를 통해 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
     @GetMapping("/{userId}")
@@ -144,6 +146,15 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
+    @Operation(summary = "끓인 팟 수정하기 API")
+    @PatchMapping("/{pot_id}")
+    public ResponseEntity<ApiResponse<PotResponseDto>> updatePot(
+            @PathVariable("pot_id") Long potId,
+            @RequestBody @Valid CompletedPotRequestDto requestDto) {
+        // 팟 수정 로직 호출
+        PotResponseDto responseDto = potService.UpdateCompletedPot(potId, requestDto);
 
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
+    }
 
 }

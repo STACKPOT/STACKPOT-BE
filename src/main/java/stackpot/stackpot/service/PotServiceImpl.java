@@ -347,7 +347,8 @@ public class PotServiceImpl implements PotService {
                 "DESIGN", " 브로콜리",
                 "PLANNING", " 당근",
                 "BACKEND", " 양파",
-                "FRONTEND", " 버섯"
+                "FRONTEND", " 버섯",
+                "UNKNOWN",""
         );
 
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
@@ -512,7 +513,7 @@ public class PotServiceImpl implements PotService {
 
     @Transactional
     @Override
-    public PotResponseDto patchPotWithRecruitments(Long potId, PotRequestDto requestDto) {
+    public PotResponseDto patchPotWithRecruitments(Long potId, CompletedPotRequestDto requestDto) {
         // 인증 정보에서 사용자 이메일 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -542,35 +543,30 @@ public class PotServiceImpl implements PotService {
         userRepository.save(user);
         userRepository.saveAll(potMembers); // 모든 멤버 저장
 
-        // 업데이트 로직
-        pot.updateFields(Map.of(
-                "potName", requestDto.getPotName(),
-                //"potStartDate", requestDto.getPotStartDate(),
-                "potEndDate", LocalDate.now(),
-                "potDuration", requestDto.getPotDuration(),
-                "potLan", requestDto.getPotLan(),
-                "potContent", requestDto.getPotContent(),
-//                "potStatus", (requestDto.getPotStatus() != null ? requestDto.getPotStatus() : "COMPLETED"),
-                "potModeOfOperation", requestDto.getPotModeOfOperation(),
-                "potSummary", requestDto.getPotSummary(),
-                "recruitmentDeadline", requestDto.getRecruitmentDeadline()
-        ));
-
-        // 기존 모집 정보 삭제
-        recruitmentDetailsRepository.deleteByPot_PotId(potId);
-
-        // 새로운 모집 정보 저장
-        List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
-                .map(recruitmentDto -> PotRecruitmentDetails.builder()
-                        .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole()))
-                        .recruitmentCount(recruitmentDto.getRecruitmentCount())
-                        .pot(pot)
-                        .build())
-                .collect(Collectors.toList());
-        recruitmentDetailsRepository.saveAll(recruitmentDetails);
-
-        pot.setPotStatus("COMPLETED");
+        Map<String, Object> updateValues = new LinkedHashMap<>();
+        updateValues.put("potName", requestDto.getPotName());
+        updateValues.put("potStartDate", requestDto.getPotStartDate());
+        updateValues.put("potEndDate", LocalDate.now());
+        updateValues.put("potStatus", "COMPLETED");
+        updateValues.put("potLan", requestDto.getPotLan());
+        updateValues.put("potSummary", requestDto.getPotSummary());
+        pot.updateFields(updateValues);
         potRepository.save(pot); // 변경 사항 반영
+
+
+        List<PotRecruitmentDetails> recruitmentDetails = pot.getRecruitmentDetails().stream()
+                .map(recruitmentDto -> {
+                    try {
+                        return PotRecruitmentDetails.builder()
+                                .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole().name()))
+                                .recruitmentCount(recruitmentDto.getRecruitmentCount())
+                                .pot(pot)
+                                .build();
+                    } catch (IllegalArgumentException e) {
+                        throw new PotHandler(ErrorStatus.INVALID_ROLE);
+                    }
+                })
+                .collect(Collectors.toList());
 
         userTodoService.assignBadgeToTopMembers(potId);
 
@@ -639,6 +635,56 @@ public class PotServiceImpl implements PotService {
                 "PLANNING", "기획"
         );
         return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
+    }
+
+    @Override
+    @Transactional
+    public PotResponseDto UpdateCompletedPot(Long potId, CompletedPotRequestDto requestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
+        }
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
+
+        if (requestDto == null) {
+            throw new PotHandler(ErrorStatus._BAD_REQUEST);
+        }
+
+        Map<String, Object> updateValues = new LinkedHashMap<>();
+        updateValues.put("potName", requestDto.getPotName());
+        updateValues.put("potStartDate", requestDto.getPotStartDate());
+        updateValues.put("potLan", requestDto.getPotLan());
+        updateValues.put("potSummary", requestDto.getPotSummary());
+        pot.updateFields(updateValues);
+
+
+        List<PotRecruitmentDetails> recruitmentDetails = pot.getRecruitmentDetails().stream()
+                .map(recruitmentDto -> {
+                    try {
+                        return PotRecruitmentDetails.builder()
+                                .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole().name()))
+                                .recruitmentCount(recruitmentDto.getRecruitmentCount())
+                                .pot(pot)
+                                .build();
+                    } catch (IllegalArgumentException e) {
+                        throw new PotHandler(ErrorStatus.INVALID_ROLE);
+                    }
+                })
+                .collect(Collectors.toList());
+
+        // 변환기(PotDetailConverter) 사용
+
+        return potConverter.toDto(pot, recruitmentDetails);
     }
 
 
