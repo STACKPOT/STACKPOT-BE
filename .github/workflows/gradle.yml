@@ -77,6 +77,7 @@ jobs:
 
           docker run -d --name spring --network stackpot-network \
             --env-file /home/ubuntu/STACKPOT-BE/.env \
+            -e SPRING_PROFILES_ACTIVE=prod
             -p 8080:8080 \
             ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-be-spring
 
