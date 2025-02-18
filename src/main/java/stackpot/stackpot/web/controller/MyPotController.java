@@ -206,4 +206,11 @@ public class MyPotController {
         MyPotTaskStatusResponseDto response = myPotService.updateTaskStatus(potId, taskId, status);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
+    @GetMapping("/{pot_id}/isOwner")
+    @Operation(summary = "팟 소유자 확인 API", description = "potId를 통해 해당 팟의 소유자인지 아닌지 체크합니다.")
+    public ResponseEntity<ApiResponse<Boolean>> checkPotOwner(@PathVariable("pot_id") Long potId) {
+        boolean isOwner = myPotService.isOwner(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(isOwner));
+    }
 }
