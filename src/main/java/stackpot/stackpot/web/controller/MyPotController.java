@@ -1,6 +1,7 @@
 package stackpot.stackpot.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -182,7 +183,10 @@ public class MyPotController {
     }
     @GetMapping("/{pot_id}/tasks/calendar")
     @Operation(summary = "캘린더 Task 조회 API",
-            description = "특정 날짜 이후의 Task들을 조회합니다. 각 Task의 참여자 목록이 포함됩니다.")
+            description = "특정 날짜 이후의 Task들을 조회합니다. 각 Task의 참여자 목록이 포함됩니다.",
+            parameters = {
+            @Parameter(name = "date", description = "yyyy-MM-dd 형식으로 작성해주세요.")
+    })
     public ResponseEntity<ApiResponse<List<MyPotTaskPreViewResponseDto>>> getPotTaskByDate(@PathVariable("pot_id") Long potId,
             @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
 
