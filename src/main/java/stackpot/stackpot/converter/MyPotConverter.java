@@ -3,6 +3,7 @@ package stackpot.stackpot.converter;
 
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.domain.Pot;
+import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.*;
