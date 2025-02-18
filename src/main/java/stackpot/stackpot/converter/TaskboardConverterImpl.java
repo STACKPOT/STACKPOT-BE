@@ -66,6 +66,7 @@ public class TaskboardConverterImpl implements TaskboardConverter{
                 .build();
     }
 
+    @Override
     public MyPotTaskPreViewResponseDto toDto(Taskboard taskboard, List<PotMember> participants) {
         return MyPotTaskPreViewResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())

@@ -4,12 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.PotRecruitmentDetails;
+import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
-import stackpot.stackpot.web.dto.BadgeDto;
-import stackpot.stackpot.web.dto.CompletedPotBadgeResponseDto;
-import stackpot.stackpot.web.dto.OngoingPotResponseDto;
-import stackpot.stackpot.web.dto.RecruitingPotResponseDto;
+import stackpot.stackpot.web.dto.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
