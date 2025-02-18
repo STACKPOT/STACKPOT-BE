@@ -70,6 +70,8 @@ public class PotApplicationServiceImpl implements PotApplicationService {
         potApplication.setAppliedAt(LocalDateTime.now());
         PotApplication savedApplication = potApplicationRepository.save(potApplication);
 
+        String appliedRole = savedApplication.getPotRole().name();
+        String appliedRoleName = getVegetableNameByRole(savedApplication.getPotRole().name());
 
         String applicantRole = Optional.ofNullable(user.getRole())
                 .map(role -> getVegetableNameByRole(role.name()))
@@ -80,7 +82,9 @@ public class PotApplicationServiceImpl implements PotApplicationService {
         CompletableFuture.runAsync(() -> emailService.sendSupportNotification(
                 pot.getUser().getEmail(),
                 pot.getPotName(),
-                String.format("%s%s", user.getNickname(), applicantRole), // 닉네임 + 역할
+                String.format("%s%s", user.getNickname(), applicantRole),
+                appliedRoleName,
+                appliedRole,
                 Optional.ofNullable(user.getUserIntroduction()).orElse("없음")
         ));
 
