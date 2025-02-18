@@ -6,6 +6,7 @@ import stackpot.stackpot.domain.enums.TaskboardStatus;
 import stackpot.stackpot.domain.mapping.Task;
 import stackpot.stackpot.web.dto.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -34,5 +35,8 @@ public interface MyPotService {
     List<OngoingPotResponseDto> getMyOngoingPots();
 
     MyPotTaskStatusResponseDto updateTaskStatus(Long potId, Long taskId, TaskboardStatus status);
+    List<MyPotTaskPreViewResponseDto> getTasksFromDate(Long potId, LocalDate date);
+
+    List<MonthlyTaskDto> getMonthlyTasks(Long potId, int year, int month);
 
 }

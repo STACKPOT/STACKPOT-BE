@@ -34,6 +34,7 @@ import stackpot.stackpot.repository.TaskboardRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -721,6 +722,75 @@ public class MyPotServiceImpl implements MyPotService {
         taskboardRepository.save(taskboard);
 
         return taskboardConverter.toTaskStatusDto(taskboard, status);
+    }
+
+    @Override
+    public List<MyPotTaskPreViewResponseDto> getTasksFromDate(Long potId, LocalDate date) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 해당 pot의 존재 여부 확인 및 사용자가 pot의 멤버인지 확인
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 팟입니다."));
+
+        List<Taskboard> taskboards = taskboardRepository.findByPotAndDeadLineGreaterThanEqualOrderByDeadLineAsc(pot, date);
+
+        // DTO로 변환
+        return taskboards.stream()
+                .map(taskboard -> {
+                    List<Task> tasks = taskRepository.findByTaskboard(taskboard); // Task 조회
+                    List<PotMember> participants = tasks.stream()
+                            .map(Task::getPotMember) // Task에서 PotMember 추출
+                            .distinct()
+                            .collect(Collectors.toList());
+
+                    return taskboardConverter.toDto(taskboard, participants);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MonthlyTaskDto> getMonthlyTasks(Long potId, int year, int month) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 팟입니다."));
+
+
+        // 현재 사용자의 PotMember 정보 가져오기
+        PotMember currentPotMember = potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new IllegalArgumentException("해당 팟의 멤버가 아닙니다."));
+
+        // 해당 월의 시작일과 마지막 일 계산
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+        // 해당 월의 모든 Taskboard 조회
+        List<Taskboard> taskboards = taskboardRepository
+                .findByPotAndDeadLineBetweenOrderByDeadLineAsc(pot, startDate, endDate);
+
+        return taskboards.stream()
+                .map(taskboard -> {
+                    List<Task> tasks = taskRepository.findByTaskboard(taskboard);
+                    // 현재 사용자의 참여 여부 확인
+                    boolean isParticipating = tasks.stream()
+                            .map(Task::getPotMember)
+                            .anyMatch(potMember -> potMember.equals(currentPotMember));
+
+                    return MonthlyTaskDto.builder()
+                            .taskId(taskboard.getTaskboardId())
+                            .deadLine(taskboard.getDeadLine())
+                            .isParticipating(isParticipating)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     private String getKoreanRoleName(String role) {

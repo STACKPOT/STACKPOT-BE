@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import stackpot.stackpot.service.MyPotService;
 import stackpot.stackpot.service.PotService;
 import stackpot.stackpot.web.dto.*;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,6 +178,27 @@ public class MyPotController {
     @Operation(summary = "Task 조회 API", description = "Task 전체 조회 API입니다. potId를 통해 pot의 전체 task를 조회합니다.")
     public ResponseEntity<ApiResponse<Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>>>> getPotTask(@PathVariable("pot_id") Long potId) {
         Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> response = myPotService.preViewTask(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+    @GetMapping("/{pot_id}/tasks/calendar")
+    @Operation(summary = "캘린더 Task 조회 API",
+            description = "특정 날짜 이후의 Task들을 조회합니다. 각 Task의 참여자 목록이 포함됩니다.")
+    public ResponseEntity<ApiResponse<List<MyPotTaskPreViewResponseDto>>> getPotTaskByDate(@PathVariable("pot_id") Long potId,
+            @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+
+        List<MyPotTaskPreViewResponseDto> response = myPotService.getTasksFromDate(potId, date);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @GetMapping("/{pot_id}/tasks/month")
+    @Operation(summary = "월별 Task 조회 API",
+            description = "특정 년/월의 모든 Task를 조회합니다. 현재 사용자가 참여중인 Task는 별도로 표시됩니다.")
+    public ResponseEntity<ApiResponse<List<MonthlyTaskDto>>> getMonthlyTasks(
+            @PathVariable("pot_id") Long potId,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
+
+        List<MonthlyTaskDto> response = myPotService.getMonthlyTasks(potId, year, month);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
