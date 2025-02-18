@@ -35,4 +35,6 @@ public interface MyPotService {
 
     MyPotTaskStatusResponseDto updateTaskStatus(Long potId, Long taskId, TaskboardStatus status);
 
+    boolean isOwner(Long potId);
+
 }
