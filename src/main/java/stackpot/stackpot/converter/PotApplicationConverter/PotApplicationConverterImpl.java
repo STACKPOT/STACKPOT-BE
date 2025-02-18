@@ -34,26 +34,15 @@ public class PotApplicationConverterImpl implements PotApplicationConverter {
 
     @Override
     public PotApplicationResponseDto toDto(PotApplication entity) {
-        // Null 검사 및 예외 처리
-        if (entity == null) {
-            throw new IllegalArgumentException("PotApplication entity cannot be null");
-        }
-        if (entity.getPot() == null) {
-            throw new IllegalArgumentException("Pot entity cannot be null in PotApplication");
-        }
-        if (entity.getUser() == null) {
-            throw new IllegalArgumentException("User entity cannot be null in PotApplication");
-        }
+
+        String appliedRole = getVegetableNameByRole(entity.getPotRole().name());
 
         return PotApplicationResponseDto.builder()
                 .applicationId(entity.getApplicationId())
                 .potRole(entity.getPotRole().name())
-//                .liked(entity.getLiked())
-                .status(entity.getStatus() != null ? entity.getStatus().name() : "UNKNOWN") // 상태가 null이면 기본값 설정
-//                .appliedAt(entity.getAppliedAt()) // null 가능성을 허용
-//                .potId(entity.getPot().getPotId()) // Pot 엔티티에서 potId 가져오기
-                .userId(entity.getUser().getId()) // User 엔티티에서 id 가져오기
-                .userNickname(entity.getUser().getNickname() + getVegetableNameByRole(String.valueOf(entity.getUser().getRole())))
+                // .status(entity.getStatus() != null ? entity.getStatus().name() : "UNKNOWN")
+                .userId(entity.getUser().getId())
+                .userNickname(entity.getUser().getNickname() + appliedRole)
                 .build();
     }
 

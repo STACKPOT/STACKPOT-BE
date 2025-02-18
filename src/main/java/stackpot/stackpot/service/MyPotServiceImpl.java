@@ -802,4 +802,20 @@ public class MyPotServiceImpl implements MyPotService {
         );
         return roleToKoreanMap.getOrDefault(role, "알 수 없음");
     }
+
+    public boolean isOwner(Long potId) {
+        // 현재 로그인한 사용자 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // 팟 조회
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        // 소유자 여부 확인
+        return pot.getUser().equals(user);
+    }
 }

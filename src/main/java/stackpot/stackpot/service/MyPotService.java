@@ -39,4 +39,6 @@ public interface MyPotService {
 
     List<MonthlyTaskDto> getMonthlyTasks(Long potId, int year, int month);
 
+    boolean isOwner(Long potId);
+
 }

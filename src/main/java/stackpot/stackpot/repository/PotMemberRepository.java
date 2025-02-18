@@ -55,4 +55,5 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     @Query("UPDATE PotMember pm SET pm.potApplication = null WHERE pm.pot.potId = :potId")
     int clearApplicationReferences(@Param("potId") Long potId);
 
+    Optional<PotMember> findByPot_PotIdAndUser_Email(Long potId, String email);
 }

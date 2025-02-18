@@ -211,7 +211,7 @@ public class PotController {
     @PatchMapping("/{pot_id}/complete")
     public ResponseEntity<ApiResponse<PotResponseDto>> patchPot(
             @PathVariable("pot_id") Long potId,
-            @RequestBody @Valid PotRequestDto requestDto) {
+            @RequestBody @Valid CompletedPotRequestDto requestDto) {
         // 팟 다 끓이기 로직 호출
         PotResponseDto responseDto = potService.patchPotWithRecruitments(potId, requestDto);
 

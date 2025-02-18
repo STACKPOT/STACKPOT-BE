@@ -37,7 +37,9 @@ public interface PotService {
     CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size);
 
     // 팟 다 끓이기
-    PotResponseDto patchPotWithRecruitments(Long potId, PotRequestDto requestDto);
+    PotResponseDto patchPotWithRecruitments(Long potId, CompletedPotRequestDto requestDto);
 
     List<RecruitingPotResponseDto> getRecruitingPots();
+
+    PotResponseDto UpdateCompletedPot(Long potId, CompletedPotRequestDto requestDto);
 }
