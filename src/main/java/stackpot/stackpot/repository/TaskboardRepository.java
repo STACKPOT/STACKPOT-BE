@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.Taskboard;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -24,5 +25,14 @@ public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
         @Modifying
         @Query("DELETE FROM Taskboard f WHERE f.pot.potId = :potId")
         void deleteByPotId(@Param("potId") Long potId);
+
+        List<Taskboard> findByPotAndDeadLineGreaterThanEqualOrderByDeadLineAsc(Pot pot, LocalDate date);
+
+        @Query("SELECT t FROM Taskboard t WHERE t.pot = :pot AND t.deadLine BETWEEN :startDate AND :endDate ORDER BY t.deadLine ASC")
+        List<Taskboard> findByPotAndDeadLineBetweenOrderByDeadLineAsc(
+                @Param("pot") Pot pot,
+                @Param("startDate") LocalDate startDate,
+                @Param("endDate") LocalDate endDate
+        );
 
 }

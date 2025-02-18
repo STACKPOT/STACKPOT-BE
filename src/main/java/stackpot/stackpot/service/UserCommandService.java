@@ -21,7 +21,7 @@ public interface UserCommandService {
 
     NicknameResponseDto createNickname(Role role);
 
-    public String saveNickname(String nickname);
+    String saveNickname(String nickname);
 
     String deleteUser(String accessToken);
 
