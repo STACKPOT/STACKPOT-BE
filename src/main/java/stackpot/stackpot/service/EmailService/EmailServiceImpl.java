@@ -1,9 +1,13 @@
 package stackpot.stackpot.service.EmailService;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
+@Slf4j
 @Service
 public class EmailServiceImpl implements EmailService {
 
@@ -52,27 +56,33 @@ public class EmailServiceImpl implements EmailService {
             message.setSubject("[STACKPOT] 팟이 삭제되었음을 알려드립니다.");
 
             // 이메일 본문 작성
-            // 이메일 본문 작성
             String emailBody = String.format(
                     "안녕하세요, %s님.\n\n" +
-                            "참여 중이던 ”[%s]” 프로젝트가 삭제되었습니다.\n"+
-                            "해당 프로젝트는 더 이상 진행되지 않으며, 관련된 모든 정보가 정리되었습니다.\n\n\n"+
-                            "- 프로젝트 종료 사유\n"+
-                            "해당 프로젝트는 팀장의 결정 또는 운영 정책에 따라 종료되었습니다.\n\n"+
-                            "- 추가 안내\n"+
-                            "프로젝트에 대한 자세한 내용은 팀장 또는 운영진에게 문의해 주세요.\n"+
-                            "기존에 등록된 데이터(게시물, 작업 등)는 더 이상 접근할 수 없습니다.\n\n"+
-                            "❗새로운 프로젝트에 도전해보세요!\n"+
-                            "다양한 프로젝트가 진행 중이니, 새로운 기회를 찾아보세요! 😊\n"+
+                            "참여 중이던 ”[%s]” 프로젝트가 삭제되었습니다.\n" +
+                            "해당 프로젝트는 팀장의 탈퇴로 인해 자동 종료되었으며, 관련된 모든 정보가 정리되었습니다.\n\n\n" +
+
+                            "- 프로젝트 종료 사유\n" +
+                            "해당 프로젝트는 팀장의 탈퇴로 인해 더 이상 운영이 어려워 종료되었습니다.\n\n" +
+
+                            "- 추가 안내\n" +
+                            "프로젝트에 대한 궁금한 사항이 있다면, 함께했던 팀원들과 논의해보시길 바랍니다.\n" +
+                            "기존에 등록된 데이터(게시물, 작업 등)는 더 이상 접근할 수 없습니다.\n\n" +
+
+                            "❗새로운 프로젝트에 도전해보세요 \n" +
+                            "다양한 프로젝트가 진행 중이니, 새로운 기회를 찾아보세요! 😊\n" +
                             "감사합니다.\n\n" +
+
                             "STACKPOT 드림\n\n" +
                             "고객센터: stackpot.notice@gmail.com\n" +
                             "홈페이지: https://www.stackpot.co.kr",
                     userName, potName
             );
 
+
+
             message.setText(emailBody);
             mailSender.send(message);
+            log.info("이메일 전송 완료: {} - {}", toEmail, potName);
         } catch (Exception e) {
             // 예외 처리: 이메일 전송 실패 시 로그를 출력
             System.err.println("이메일 전송 실패: " + e.getMessage());
