@@ -18,4 +18,5 @@ public interface TaskboardConverter {
     MyPotTaskResponseDto.Participant toParticipantDto(PotMember participant);
     MyPotTaskPreViewResponseDto toDto(Taskboard taskboard, List<PotMember> participants);
     MyPotTaskStatusResponseDto toTaskStatusDto(Taskboard taskboard, TaskboardStatus taskboardStatus);
+
 }
