@@ -41,4 +41,5 @@ public interface MyPotService {
 
     boolean isOwner(Long potId);
 
+
 }
