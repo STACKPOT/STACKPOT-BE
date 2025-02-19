@@ -49,7 +49,7 @@ public class PotMemberConverterImpl implements PotMemberConverter {
         return PotMemberInfoResponseDto.builder()
                 .potMemberId(entity.getPotMemberId())
                 .nickname(nicknameWithRole)
-                .potRole(null)
+                .potRole(entity.getRoleName().name())
                 .kakaoId(null)
                 .owner(true)
                 .build();
