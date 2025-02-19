@@ -59,8 +59,7 @@ public class FeedController {
             @Parameter(name = "feedId", description = "상세 조회 feedId")
         })
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> getDetailFeed(@PathVariable Long feedId) {
-        Feed feed = feedService.getFeed(feedId);
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
+        FeedResponseDto.FeedDto response = feedService.getFeed(feedId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

@@ -1,7 +1,7 @@
 package stackpot.stackpot.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
-import stackpot.stackpot.domain.enums.Category;
 import stackpot.stackpot.domain.enums.Role;
 
 import java.util.List;
@@ -23,6 +23,7 @@ public class FeedResponseDto {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class FeedDto {
         private Long feedId;
         private Long writerId;
@@ -33,5 +34,16 @@ public class FeedResponseDto {
         private Long likeCount;
         private Boolean isLiked;
         private String createdAt;
+        private Boolean isOwner;
     }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class AuthorizedFeedDto {
+        private FeedDto feed;
+        private boolean isOwner;
+    }
+
 }

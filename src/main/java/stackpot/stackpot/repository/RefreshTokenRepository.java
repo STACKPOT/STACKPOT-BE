@@ -18,22 +18,6 @@ public class RefreshTokenRepository {
         this.redisTemplate = redisTemplate;
     }
 
-//    // Refresh Token 저장 (TTL 포함)
-//    public void saveToken(Long userId, String refreshToken, long expirationTime) {
-//        String key = "refreshToken:" + userId;
-//        redisTemplate.opsForValue().set(key, refreshToken, expirationTime, TimeUnit.MILLISECONDS);
-//    }
-//
-//    // Refresh Token 가져오기
-//    public String getRefreshToken(Long userId) {
-//        return redisTemplate.opsForValue().get("refreshToken:" + userId);
-//    }
-//
-//    // Refresh Token 삭제
-//    public void deleteRefreshToken(Long userId) {
-//        redisTemplate.delete("refreshToken:" + userId);
-//    }
-
     public void saveToken(Long userId, String refreshToken, long expirationTime) {
         String key = "refreshToken:" + refreshToken; //
         redisTemplate.opsForValue().set(key, userId.toString(), expirationTime / 1000, TimeUnit.SECONDS);
