@@ -74,6 +74,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .applied(isApplied)
                 .potModeOfOperation(getKoreanModeOfOperation(String.valueOf(pot.getPotModeOfOperation())))
                 .potContent(pot.getPotContent())
+                .potSummary(pot.getPotSummary())
                 .dDay(dDay)
                 .recruitmentDeadline(formatDate(pot.getRecruitmentDeadline()))
                 .recruitmentDetails(recruitmentDetails)

@@ -28,6 +28,7 @@ public class PotDetailResponseDto {
     private boolean applied;
     private String potModeOfOperation;
     private String potContent;
+    private String potSummary;
     private String dDay;
     private String recruitmentDetails;
     private String recruitmentDeadline;
