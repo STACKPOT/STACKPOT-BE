@@ -1,6 +1,7 @@
 package stackpot.stackpot.converter;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.expression.spel.ast.NullLiteral;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Feed;
 import stackpot.stackpot.repository.FeedLikeRepository;
@@ -29,6 +30,7 @@ public class FeedConverterImpl implements FeedConverter{
                 .content(feed.getContent())
                 .likeCount(feed.getLikeCount())
                 .createdAt(formatLocalDateTime(feed.getCreatedAt()))
+                .isOwner(null)
                 .build();
     }
 
@@ -63,6 +65,22 @@ public class FeedConverterImpl implements FeedConverter{
                 .creatorRole(roleName)
                 .createdAt(formatLocalDateTime(feed.getCreatedAt())) // 시간 포맷 적용
                 .likeCount(feed.getLikeCount()) // 좋아요 개수 포함
+                .build();
+    }
+
+
+    @Override
+    public FeedResponseDto.FeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner){
+        return FeedResponseDto.FeedDto.builder()
+                .feedId(feed.getFeedId())
+                .writerId(feed.getUser().getId())
+                .writer(feed.getUser().getNickname()+""+mapRoleName(String.valueOf(feed.getUser().getRole())))
+                .writerRole(feed.getUser().getRole())
+                .title(feed.getTitle())
+                .content(feed.getContent())
+                .likeCount(feed.getLikeCount())
+                .createdAt(formatLocalDateTime(feed.getCreatedAt()))
+                .isOwner(isOwner)
                 .build();
     }
 

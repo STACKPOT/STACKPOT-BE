@@ -24,6 +24,7 @@ import stackpot.stackpot.web.dto.FeedRequestDto;
 import stackpot.stackpot.web.dto.FeedResponseDto;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -146,10 +147,22 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
-    public Feed getFeed(Long feedId) {
+    public FeedResponseDto.FeedDto getFeed(Long feedId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(()->new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
-        return feed;
+
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        boolean isOwner = Objects.equals(user.getId(), feed.getUser().getUserId());
+
+        FeedResponseDto.FeedDto response = feedConverter.toAuthorizedFeedDto(feed, isOwner);
+
+        return response;
     }
 
     @Transactional

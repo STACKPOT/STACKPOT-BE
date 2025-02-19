@@ -10,4 +10,5 @@ public interface FeedConverter {
     FeedResponseDto.FeedDto feedDto(Feed feed);
     Feed toFeed(FeedRequestDto.createDto request);
     FeedSearchResponseDto toSearchDto(Feed feed);
+    FeedResponseDto.FeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner);
 }
