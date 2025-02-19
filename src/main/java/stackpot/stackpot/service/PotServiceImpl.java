@@ -242,13 +242,14 @@ public class PotServiceImpl implements PotService {
     @Transactional
     @Override
     public List<PotPreviewResponseDto> getAllPots(Role role, Integer page, Integer size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Pot> potPage = (role == null) ? potRepository.findAll(pageable) :
-                potRepository.findByRecruitmentDetails_RecruitmentRole(role, pageable);
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Pot> potPage = (role == null) ?
+                potRepository.findAllOrderByApplicantsCountDesc(pageable) :
+                potRepository.findByRecruitmentRoleOrderByApplicantsCountDesc(role, pageable);
 
         return potPage.getContent().stream()
                 .map(pot -> {
-                    //  recruitmentDetails에서 role을 리스트로 변환하여 그대로 전달
                     List<String> roles = pot.getRecruitmentDetails().stream()
                             .map(recruitmentDetails -> String.valueOf(recruitmentDetails.getRecruitmentRole()))
                             .collect(Collectors.toList());
