@@ -497,10 +497,11 @@ public class MyPotServiceImpl implements MyPotService {
             }
         }
         else{
-            List<Task> existingTasks = taskRepository.findByTaskboard(taskboard);
-            for (Task task : existingTasks) {
-                participants.add(task.getPotMember());
-            }
+            taskRepository.deleteByTaskboard(taskboard);
+//            List<Task> existingTasks = taskRepository.findByTaskboard(taskboard);
+//            for (Task task : existingTasks) {
+//                participants.add(task.getPotMember());
+//            }
         }
 
         createAndSaveTasks(taskboard, participants);
