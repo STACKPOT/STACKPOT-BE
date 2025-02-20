@@ -183,7 +183,7 @@ public class MyPotController {
     }
     @GetMapping("/{pot_id}/tasks/calendar")
     @Operation(summary = "캘린더 Task 조회 API",
-            description = "특정 날짜 이후의 Task들을 조회합니다. 각 Task의 참여자 목록이 포함됩니다.",
+            description = "특정 날짜 D-DAY Task들을 조회합니다. 각 Task의 참여자 목록이 포함됩니다.",
             parameters = {
             @Parameter(name = "date", description = "yyyy-MM-dd 형식으로 작성해주세요.")
     })
