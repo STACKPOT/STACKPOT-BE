@@ -103,7 +103,7 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 .userRole(String.valueOf(user.getRole()))
                 .userNickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
                 .potId(pot.getPotId())
-                .potStatus(getPotStatus(pot.getPotStatus()))
+                .potStatus(pot.getPotStatus())
                 .potName(pot.getPotName())
                 .potStartDate(formatDate(pot.getPotStartDate()))
                 .potDuration(pot.getPotDuration())
@@ -124,12 +124,6 @@ public class PotDetailConverterImpl implements PotDetailConverter {
                 "UNKNOWN",""
         );
         return roleToVegetableMap.getOrDefault(role, "알 수 없음");
-    }
-
-    private String getPotStatus(String  status) {
-        if(!status.equals("RECRUITING"))
-            return "모집 완료";
-        else return "모집 중";
     }
 
     private String formatDate(java.time.LocalDate date) {
