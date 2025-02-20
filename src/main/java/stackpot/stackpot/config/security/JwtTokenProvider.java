@@ -120,34 +120,4 @@ public class JwtTokenProvider {
             throw new IllegalArgumentException("Invalid JWT Token");
         }
     }
-
-    public String refreshAccessToken(String refreshToken) {
-        //  리프레시 토큰이 유효한지 확인
-        if (!refreshTokenRepository.validateRefreshToken(refreshToken)) {
-            return null; //  만료된 경우 null 반환
-        }
-
-        //  Redis에서 userId 조회
-        Long userId = refreshTokenRepository.getUserIdByToken(refreshToken);
-        if (userId == null) {
-            return null;
-        }
-
-        //  userId 기반으로 유저 정보 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
-
-        //  새 액세스 토큰 생성
-        Claims claims = Jwts.claims().setSubject(user.getEmail());
-        Date now = new Date();
-
-        String newAccessToken = Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
-                .compact();
-
-        return newAccessToken;
-    }
 }
