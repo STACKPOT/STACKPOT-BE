@@ -348,8 +348,13 @@ public class MyPotServiceImpl implements MyPotService {
             throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED);
         }
 
-        // To-Do 상태 업데이트
-        userTodo.setStatus(TodoStatus.COMPLETED);
+        // 기존 상태 확인 후 토글
+        if (userTodo.getStatus() == TodoStatus.COMPLETED) {
+            userTodo.setStatus(TodoStatus.NOT_STARTED);
+        } else {
+            userTodo.setStatus(TodoStatus.COMPLETED);
+        }
+
         myPotRepository.save(userTodo);
 
         // 특정 팟의 모든 To-Do 조회 후 반환
@@ -358,14 +363,11 @@ public class MyPotServiceImpl implements MyPotService {
         Map<User, List<UserTodo>> groupedByUser = potTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
-        return potTodos.stream()
-                .collect(Collectors.groupingBy(UserTodo::getUser))
-                .entrySet().stream()
+        return groupedByUser.entrySet().stream()
                 .map(entry -> {
-                    // 소유자인지 확인하고 적절한 역할 적용
                     String roleName = getUserRoleInPot(entry.getKey(), pot);
                     String userNicknameWithRole = entry.getKey().getNickname() + getVegetableNameByRole(roleName);
-                    List<UserTodo> userTodos = groupedByUser.getOrDefault(entry, List.of());
+                    List<UserTodo> userTodos = groupedByUser.getOrDefault(entry.getKey(), List.of());
 
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(userNicknameWithRole)
