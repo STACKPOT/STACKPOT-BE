@@ -159,7 +159,7 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "Todo 완료 API", description = "todo의 status를 COMPLETED로 변경합니다.")
+    @Operation(summary = "Todo 완료 / 해제 API", description = "todo의 status를 토글 형식으로 COMPLETED / NOT_STARTED로 변경합니다.")
     @PatchMapping("/{pot_id}/todos/{todo_id}")
     public ResponseEntity<ApiResponse<List<MyPotTodoResponseDTO>>> completeTodo(
             @PathVariable("pot_id") Long potId,
