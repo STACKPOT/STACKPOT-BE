@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.repository.RefreshTokenRepository;
+import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.TokenServiceResponse;
 
 import java.util.Date;
@@ -22,12 +23,13 @@ import java.util.UUID;
 public class JwtTokenProvider {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    
+    private final UserRepository userRepository;
+
     @Value("${jwt.secret}")
     private String secretKey;
 //    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60; 	//1시간
-private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;
-    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24; // 1일
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 3; // 3분
+    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 1; // 1분
     private final UserDetailsService  userDetailsService;
 
     // JWT 생성 (이메일 포함)
@@ -117,5 +119,35 @@ private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid JWT Token");
         }
+    }
+
+    public String refreshAccessToken(String refreshToken) {
+        //  리프레시 토큰이 유효한지 확인
+        if (!refreshTokenRepository.validateRefreshToken(refreshToken)) {
+            return null; //  만료된 경우 null 반환
+        }
+
+        //  Redis에서 userId 조회
+        Long userId = refreshTokenRepository.getUserIdByToken(refreshToken);
+        if (userId == null) {
+            return null;
+        }
+
+        //  userId 기반으로 유저 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        //  새 액세스 토큰 생성
+        Claims claims = Jwts.claims().setSubject(user.getEmail());
+        Date now = new Date();
+
+        String newAccessToken = Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+
+        return newAccessToken;
     }
 }

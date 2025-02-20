@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.Authentication;
 import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.repository.RefreshTokenRepository;
 import stackpot.stackpot.repository.UserRepository.UserRepository;
 
 import java.io.IOException;
@@ -21,10 +22,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 private final BlacklistRepository blacklistRepository;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, BlacklistRepository blacklistRepository) {
+    private final RefreshTokenRepository refreshTokenRepository;
+
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, BlacklistRepository blacklistRepository, RefreshTokenRepository refreshTokenRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.blacklistRepository = blacklistRepository;
 
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
 
@@ -46,10 +50,35 @@ private final BlacklistRepository blacklistRepository;
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     System.out.println("Authentication set in SecurityContext: " + authentication.getName());
                 } else {
-                    System.out.println("Invalid or expired token.");
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("Invalid or expired token.");
-                    return;
+                    //  액세스 토큰이 만료됨 → 리프레시 토큰 확인
+                    System.out.println("Access token expired, checking refresh token...");
+                    String refreshToken = request.getHeader("Refresh-Token");
+
+                    if (refreshToken != null) {
+                        if (!refreshTokenRepository.validateRefreshToken(refreshToken)) {
+                            //  리프레시 토큰도 만료됨 → 401 반환
+                            refreshTokenRepository.deleteToken(refreshToken);
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("Refresh token expired. 다시 로그인하세요.");
+                            return;
+                        }
+
+                        //  리프레시 토큰이 유효하면 새 액세스 토큰 발급
+                        String newAccessToken = jwtTokenProvider.refreshAccessToken(refreshToken);
+                        if (newAccessToken == null) {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("Refresh token expired. 다시 로그인하세요.");
+                            return;
+                        }
+
+                        //  새 액세스 토큰을 응답 헤더에 추가
+                        response.setHeader("Authorization", "Bearer " + newAccessToken);
+                    } else {
+                        //  리프레시 토큰도 없으면 401 반환
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getWriter().write("Invalid or expired token.");
+                        return;
+                    }
                 }
             } else {
                 // 토큰이 없는 경우 AnonymousAuthenticationToken 설정 (비로그인 요청 정상 처리)
@@ -78,4 +107,5 @@ private final BlacklistRepository blacklistRepository;
         System.out.println("Authorization header is missing or does not start with 'Bearer '.");
         return null;
     }
+
 }
