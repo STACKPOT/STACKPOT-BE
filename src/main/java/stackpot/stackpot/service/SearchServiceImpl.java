@@ -88,7 +88,7 @@ public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable)
                     ? likedFeedIds.contains(feed.getFeedId()) // 로그인한 사용자가 좋아요를 눌렀으면 true, 아니면 false
                     : null; // 비로그인 사용자는 null 처리
 
-            FeedSearchResponseDto feedDto = feedConverter.toSearchDto(feed, isOwner);
+            FeedSearchResponseDto feedDto = feedConverter.toSearchDto(feed);
             feedDto.setIsLiked(isLiked); // 좋아요 상태 추가
             return feedDto;
         });

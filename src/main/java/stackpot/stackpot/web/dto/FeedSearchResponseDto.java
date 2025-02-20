@@ -18,5 +18,4 @@ public class FeedSearchResponseDto {
     private String creatorNickname;
     private String createdAt;
     private Long likeCount;
-    private Boolean isOwner;
 }

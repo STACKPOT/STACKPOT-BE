@@ -50,7 +50,7 @@ public class FeedConverterImpl implements FeedConverter{
     }
 
 
-    public FeedSearchResponseDto toSearchDto(Feed feed, Boolean isOwner) {
+    public FeedSearchResponseDto toSearchDto(Feed feed) {
         // 역할 이름 매핑 (유효한 역할만 처리)
         String roleName = feed.getUser().getRole() != null ? feed.getUser().getRole().name() : "멤버";
         String nicknameWithRole = feed.getUser().getNickname() + mapRoleName(roleName) ;
@@ -61,7 +61,6 @@ public class FeedConverterImpl implements FeedConverter{
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .creatorNickname(nicknameWithRole) // 닉네임과 역할 포함
-                .isOwner(isOwner)
                 .creatorRole(roleName)
                 .createdAt(formatLocalDateTime(feed.getCreatedAt())) // 시간 포맷 적용
                 .likeCount(feed.getLikeCount()) // 좋아요 개수 포함

@@ -112,7 +112,7 @@ public class FeedServiceImpl implements FeedService {
                             ? likedFeedIds.contains(feed.getFeedId())
                             : null; // 비로그인 사용자는 null 처리
 
-                    FeedResponseDto.FeedDto feedDto = feedConverter.toAuthorizedFeedDto(feed, isOwner);
+                    FeedResponseDto.FeedDto feedDto = feedConverter.feedDto(feed);
                     feedDto.setIsLiked(isLiked); // 좋아요 상태 추가
                     return feedDto;
                 })
