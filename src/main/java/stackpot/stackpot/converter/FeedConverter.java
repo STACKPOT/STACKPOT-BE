@@ -9,6 +9,6 @@ import stackpot.stackpot.web.dto.FeedSearchResponseDto;
 public interface FeedConverter {
     FeedResponseDto.FeedDto feedDto(Feed feed);
     Feed toFeed(FeedRequestDto.createDto request);
-    FeedSearchResponseDto toSearchDto(Feed feed);
+    FeedSearchResponseDto toSearchDto(Feed feed, Boolean isOwner);
     FeedResponseDto.FeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner);
 }
