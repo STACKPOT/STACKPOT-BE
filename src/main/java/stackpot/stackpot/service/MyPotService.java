@@ -27,7 +27,6 @@ public interface MyPotService {
 
     public Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> preViewTask(Long potId);
     MyPotTaskResponseDto viewDetailTask(Long potId, Long taskboardId);
-    MyPotTaskResponseDto modfiyTask(Long potId, Long taskboardId, MyPotTaskRequestDto.create request);
     void deleteTaskboard(Long potId, Long taskboardId);
     CompletedPotDetailResponseDto getCompletedPotDetail(Long potId);
     List<CompletedPotBadgeResponseDto> getCompletedPotsWithBadges();
@@ -40,6 +39,8 @@ public interface MyPotService {
     List<MonthlyTaskDto> getMonthlyTasks(Long potId, int year, int month);
 
     boolean isOwner(Long potId);
+
+    MyPotTaskResponseDto modifyTask(Long potId, Long taskboardId, MyPotTaskRequestDto.create request);
 
 
 }
