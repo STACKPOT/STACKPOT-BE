@@ -28,8 +28,8 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String secretKey;
 //    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60; 	//1시간
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 3; // 3분
-    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 1; // 1분
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 30; // 30초
+    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60; // 1분
     private final UserDetailsService  userDetailsService;
 
     // JWT 생성 (이메일 포함)
