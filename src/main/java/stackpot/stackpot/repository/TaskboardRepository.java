@@ -35,4 +35,10 @@ public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
                 @Param("endDate") LocalDate endDate
         );
 
+        @Query("SELECT t FROM Taskboard t WHERE t.pot = :pot AND t.deadLine = :date")
+        List<Taskboard> findByPotAndDeadLine(
+                @Param("pot") Pot pot,
+                @Param("date") LocalDate date
+        );
+
 }
