@@ -244,14 +244,16 @@ public class PotServiceImpl implements PotService {
     public List<PotPreviewResponseDto> getAllPots(Role role, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
 
+        // ✅ JPQL 없이 최적화된 메서드 활용
         Page<Pot> potPage = (role == null) ?
-                potRepository.findAllOrderByApplicantsCountDesc(pageable) :
-                potRepository.findByRecruitmentRoleOrderByApplicantsCountDesc(role, pageable);
+                potRepository.findAllWithApplicantCountOrderByDesc(pageable) :
+                potRepository.findByRecruitmentDetails_RecruitmentRole(role, pageable);
 
         return potPage.getContent().stream()
                 .map(pot -> {
+                    // ✅ recruitmentDetails가 이미 FETCH 되어 있으므로 추가적인 쿼리 발생 없음
                     List<String> roles = pot.getRecruitmentDetails().stream()
-                            .map(recruitmentDetails -> String.valueOf(recruitmentDetails.getRecruitmentRole()))
+                            .map(rd -> rd.getRecruitmentRole().name()) // ✅ Enum 변환 최적화
                             .collect(Collectors.toList());
 
                     return potConverter.toPrviewDto(pot.getUser(), pot, roles);

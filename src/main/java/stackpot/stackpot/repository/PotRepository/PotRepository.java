@@ -3,6 +3,7 @@ package stackpot.stackpot.repository.PotRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,14 @@ import java.util.Optional;
 
 public interface PotRepository extends JpaRepository<Pot, Long> {
     Page<Pot> findByRecruitmentDetails_RecruitmentRole(Role recruitmentRole, Pageable pageable);
+
+    @Query("SELECT p FROM Pot p " +
+            "LEFT JOIN FETCH p.user " +
+            "LEFT JOIN FETCH p.recruitmentDetails " +
+            "LEFT JOIN p.potApplication pa " +
+            "GROUP BY p " +
+            "ORDER BY COUNT(pa.applicationId) DESC, p.createdAt DESC")
+    Page<Pot> findAllWithApplicantCountOrderByDesc(Pageable pageable);
 
     Optional<Pot> findPotWithRecruitmentDetailsByPotId(Long potId);
 
@@ -63,12 +72,8 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
             "ORDER BY COUNT(pa.applicationId) DESC, p.createdAt DESC")
     Page<Pot> findAllOrderByApplicantsCountDesc(Pageable pageable);
 
-    /// 특정 Role을 기준으로 지원자 수 많은 순 정렬
-    @Query("SELECT p FROM Pot p " +
-            "LEFT JOIN PotRecruitmentDetails prd ON p = prd.pot " +
-            "LEFT JOIN PotApplication pa ON p = pa.pot " +
-            "WHERE prd.recruitmentRole = :recruitmentRole " +
-            "GROUP BY p " +
-            "ORDER BY COUNT(pa.applicationId) DESC, p.createdAt DESC")
-    Page<Pot> findByRecruitmentRoleOrderByApplicantsCountDesc(@Param("recruitmentRole") Role recruitmentRole, Pageable pageable);
+
+
+
+
 }

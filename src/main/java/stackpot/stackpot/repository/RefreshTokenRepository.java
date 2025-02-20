@@ -40,4 +40,15 @@ public class RefreshTokenRepository {
         String key = "refreshToken:" + refreshToken;
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
+
+    public boolean validateRefreshToken(String refreshToken) {
+        // Redis에서 해당 리프레시 토큰이 존재하는지 확인
+        if (!existsByToken(refreshToken)) {
+            return false; // Redis에 없으면 이미 만료되었거나 삭제된 토큰
+        }
+
+        // userId를 조회하여 검증 (만료 여부 확인)
+        Long userId = getUserIdByToken(refreshToken);
+        return userId != null;
+    }
 }
