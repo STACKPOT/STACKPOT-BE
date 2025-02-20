@@ -101,10 +101,13 @@ public class FeedServiceImpl implements FeedService {
 //            Thread.currentThread().interrupt();
 //        }
 
+
         List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastFeedId, lastFeedLike, pageable);
 
         List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
                 .map(feed -> {
+                    boolean isOwner = (user != null) && Objects.equals(user.getId(), feed.getUser().getUserId());
+
                     Boolean isLiked = (isAuthenticated && userId != null)
                             ? likedFeedIds.contains(feed.getFeedId())
                             : null; // 비로그인 사용자는 null 처리
