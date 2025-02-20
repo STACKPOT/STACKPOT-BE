@@ -739,7 +739,8 @@ public class MyPotServiceImpl implements MyPotService {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 팟입니다."));
 
-        List<Taskboard> taskboards = taskboardRepository.findByPotAndDeadLineGreaterThanEqualOrderByDeadLineAsc(pot, date);
+//        List<Taskboard> taskboards = taskboardRepository.findByPotAndDeadLineGreaterThanEqualOrderByDeadLineAsc(pot, date);
+        List<Taskboard> taskboards = taskboardRepository.findByPotAndDeadLine(pot,date);
 
         // DTO로 변환
         return taskboards.stream()
