@@ -178,7 +178,7 @@ public class MyPotServiceImpl implements MyPotService {
             throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
-        //  팟의 모든 멤버 조회 (소유자 포함) 후, User 기준으로 페이징
+        // 팟의 모든 멤버 조회 (소유자 포함) 후, User 기준으로 페이징
         List<User> allPotMembers = potMemberRepository.findByPotId(pot.getPotId())
                 .stream()
                 .map(PotMember::getUser)
@@ -186,7 +186,7 @@ public class MyPotServiceImpl implements MyPotService {
 
         allPotMembers.sort((u1, u2) -> u1.equals(user) ? -1 : (u2.equals(user) ? 1 : 0));
 
-        //  User 기준으로 페이징 적용
+        // User 기준으로 페이징 적용
         int totalUsers = allPotMembers.size();
         int startIndex = (int) pageRequest.getOffset();
         int endIndex = Math.min(startIndex + pageRequest.getPageSize(), totalUsers);
@@ -197,10 +197,10 @@ public class MyPotServiceImpl implements MyPotService {
 
         List<User> pagedUsers = allPotMembers.subList(startIndex, endIndex);
 
-        //  선택된 User들의 투두 조회
+        // 선택된 User들의 투두 조회
         List<UserTodo> todos = myPotRepository.findByPotAndUsers(pot, pagedUsers);
 
-        //  createdAt이 전날 새벽 3시 이후인 것만 필터링
+        // createdAt이 전날 새벽 3시 이후인 것만 필터링
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime todayAt3AM = LocalDateTime.of(now.toLocalDate(), LocalTime.of(3, 00));
         LocalDateTime yesterdayAt3AM = todayAt3AM.minusDays(1);
@@ -209,7 +209,7 @@ public class MyPotServiceImpl implements MyPotService {
                 .filter(todo -> todo.getCreatedAt().isAfter(yesterdayAt3AM))
                 .collect(Collectors.toList());
 
-        //  투두를 User 기준으로 그룹핑
+        // 투두를 User 기준으로 그룹핑
         Map<User, List<UserTodo>> groupedByUser = filteredTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
@@ -219,11 +219,16 @@ public class MyPotServiceImpl implements MyPotService {
                     String roleName = getUserRoleInPot(member, pot);
                     List<UserTodo> userTodos = groupedByUser.getOrDefault(member, List.of());
 
+                    // **NOT_STARTED 상태인 To-Do 개수만 카운트**
+                    long notStartedCount = userTodos.stream()
+                            .filter(todo -> todo.getStatus() == TodoStatus.NOT_STARTED)
+                            .count();
+
                     return MyPotTodoResponseDTO.builder()
                             .userNickname(member.getNickname() + getVegetableNameByRole(roleName))
                             .userRole(roleName)
                             .userId(member.getId())
-                            .todoCount(userTodos.size())
+                            .todoCount((int) notStartedCount) // **NOT_STARTED 상태의 투두 개수 반영**
                             .todos(userTodos.isEmpty() ? null : userTodos.stream()
                                     .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
                                             .todoId(todo.getTodoId())
@@ -235,7 +240,7 @@ public class MyPotServiceImpl implements MyPotService {
                 })
                 .collect(Collectors.toList());
 
-        //  Page 객체로 변환하여 반환
+        // Page 객체로 변환하여 반환
         return new PageImpl<>(responseList, pageRequest, totalUsers);
     }
 
