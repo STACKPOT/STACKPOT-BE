@@ -155,14 +155,11 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
-    @Override
     @Transactional
     public Page<MyPotTodoResponseDTO> getTodo(Long potId, PageRequest pageRequest) {
         // 현재 인증된 사용자 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-
-        // 사용자 정보 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
@@ -213,31 +210,13 @@ public class MyPotServiceImpl implements MyPotService {
         Map<User, List<UserTodo>> groupedByUser = filteredTodos.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
-        // DTO 변환
+        // DTO 변환 (Converter 사용)
         List<MyPotTodoResponseDTO> responseList = pagedUsers.stream()
-                .map(member -> {
-                    String roleName = getUserRoleInPot(member, pot);
-                    List<UserTodo> userTodos = groupedByUser.getOrDefault(member, List.of());
-
-                    // **NOT_STARTED 상태인 To-Do 개수만 카운트**
-                    long notStartedCount = userTodos.stream()
-                            .filter(todo -> todo.getStatus() == TodoStatus.NOT_STARTED)
-                            .count();
-
-                    return MyPotTodoResponseDTO.builder()
-                            .userNickname(member.getNickname() + getVegetableNameByRole(roleName))
-                            .userRole(roleName)
-                            .userId(member.getId())
-                            .todoCount((int) notStartedCount) // **NOT_STARTED 상태의 투두 개수 반영**
-                            .todos(userTodos.isEmpty() ? null : userTodos.stream()
-                                    .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
-                                            .todoId(todo.getTodoId())
-                                            .content(todo.getContent())
-                                            .status(todo.getStatus())
-                                            .build())
-                                    .collect(Collectors.toList()))
-                            .build();
-                })
+                .map(member -> myPotConverter.toDto(
+                        member,
+                        pot,
+                        groupedByUser.getOrDefault(member, List.of()),
+                        user))
                 .collect(Collectors.toList());
 
         // Page 객체로 변환하여 반환
