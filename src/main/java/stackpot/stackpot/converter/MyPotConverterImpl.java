@@ -7,6 +7,10 @@ import stackpot.stackpot.domain.PotRecruitmentDetails;
 import stackpot.stackpot.domain.Taskboard;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
+import stackpot.stackpot.domain.enums.TodoStatus;
+import stackpot.stackpot.domain.mapping.PotMember;
+import stackpot.stackpot.domain.mapping.UserTodo;
+import stackpot.stackpot.repository.PotMemberRepository;
 import stackpot.stackpot.web.dto.*;
 
 import java.time.LocalDate;
@@ -21,6 +25,8 @@ import java.util.stream.Collectors;
 public class MyPotConverterImpl implements MyPotConverter{
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy. MM. dd");
+    private final PotMemberRepository potMemberRepository;
+
     private String formatDate(java.time.LocalDate date) {
         return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
     }
@@ -112,4 +118,50 @@ public class MyPotConverterImpl implements MyPotConverter{
                 .dDay(dDay)
                 .build();
     }
+
+    @Override
+    public MyPotTodoResponseDTO toDto(User member, Pot pot, List<UserTodo> userTodos, User currentUser) {
+        String roleName = getUserRoleInPot(member, pot);
+        String userNicknameWithRole = member.getNickname() + mapRoleName(roleName);
+
+        // 현재 로그인한 사용자만 todoCount 포함
+        Integer notStartedCount = null;
+        if (member.equals(currentUser)) {
+            notStartedCount = (int) userTodos.stream()
+                    .filter(todo -> todo.getStatus() == TodoStatus.NOT_STARTED)
+                    .count();
+        }
+
+        return MyPotTodoResponseDTO.builder()
+                .userNickname(userNicknameWithRole)
+                .userRole(roleName)
+                .userId(member.getId())
+                .todoCount(notStartedCount) // 다른 사용자는 자동으로 null 처리됨
+                .todos(userTodos.isEmpty() ? null : userTodos.stream()
+                        .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
+                                .todoId(todo.getTodoId())
+                                .content(todo.getContent())
+                                .status(todo.getStatus())
+                                .build())
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
+    private String mapRoleName(String roleName) {
+        return switch (roleName) {
+            case "BACKEND" -> " 양파";
+            case "FRONTEND" -> " 버섯";
+            case "DESIGN" -> " 브로콜리";
+            case "PLANNING" -> " 당근";
+            default -> "멤버";
+        };
+    }
+
+    public String getUserRoleInPot(User member, Pot pot) {
+        return potMemberRepository.findByPotAndUser(pot, member)
+                .map(PotMember::getRoleName)
+                .map(Enum::name) // Enum 타입이라면 .name() 호출
+                .orElse("멤버"); // 역할 정보가 없으면 기본값 반환
+    }
+
 }
