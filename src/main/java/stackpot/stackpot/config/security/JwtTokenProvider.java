@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.repository.RefreshTokenRepository;
-import stackpot.stackpot.repository.UserRepository.UserRepository;
 import stackpot.stackpot.web.dto.TokenServiceResponse;
 
 import java.util.Date;
@@ -23,15 +22,12 @@ import java.util.UUID;
 public class JwtTokenProvider {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRepository userRepository;
-
+    
     @Value("${jwt.secret}")
     private String secretKey;
-//    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60; 	//1시간
 
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24; // 1일
-
     private final UserDetailsService  userDetailsService;
 
     // JWT 생성 (이메일 포함)
