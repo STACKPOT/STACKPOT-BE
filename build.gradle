@@ -74,6 +74,7 @@ dependencies {
 	implementation 'mysql:mysql-connector-java:8.0.33'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.security:spring-security-crypto'
+
 	//dotenv
 	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 
