@@ -40,3 +40,6 @@ out/
 application-secrets.yml.DS_Store
 .DS_Store
 certbot/conf/accounts/
+
+### Spring Boot ###
+src/main/resources/application.yml
