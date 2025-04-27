@@ -1,6 +1,8 @@
 # Java 17이 설치된 베이스 이미지 사용
 FROM openjdk:17-jdk-slim
 
+RUN apt-get update && apt-get install -y curl
+
 # JAR 파일을 컨테이너 내부에 복사
 ARG JAR_FILE=build/libs/*.jar
 COPY ${JAR_FILE} app.jar
