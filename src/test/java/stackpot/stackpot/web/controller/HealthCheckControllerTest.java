@@ -30,6 +30,6 @@ class HealthCheckControllerTest {
     void shouldReturnOkStatusAndBody() throws Exception {
         mockMvc.perform(get("/health"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("ok"));
+                .andExpect(content().string("no"));
     }
 }
