@@ -1,4 +1,3 @@
-
 spring:
   mvc:
     servlet:
@@ -63,4 +62,11 @@ spring:
        host: redis-container
 #      host: localhost
        port: 6379
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
