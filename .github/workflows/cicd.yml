@@ -31,26 +31,20 @@ jobs:
         with:
           arguments: build
 
-      - name: Decide Target Version (blue/green)
+      - name: Decide Target Version (Blue/Green)
         id: decide
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            ACTIVE_PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
-            if [ "$ACTIVE_PORT" == "8081" ]; then
-              echo "green"  # 현재 blue니까 green에 배포
-            else
-              echo "blue"
-            fi
-
-      - name: Set Target Version
-        run: echo "TARGET_VERSION=${{ steps.decide.outputs.stdout }}" >> $GITHUB_ENV
-
+        run: |
+          echo "현재 실행 중인 컨테이너 확인 중..."
+          if docker ps --format '{{.Names}}' | grep -q 'stackpot-server-green'; then
+            echo "TARGET_VERSION=blue" >> $GITHUB_ENV
+          else
+            echo "TARGET_VERSION=green" >> $GITHUB_ENV
+          fi
+    
+          # 🔵 Docker Build (Blue/Green 버전)
       - name: Build Docker Image
         run: |
+          echo "Building Image: ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }}"
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }} .
 
       - name: Login to DockerHub
