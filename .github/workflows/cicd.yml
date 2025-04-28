@@ -39,19 +39,23 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
+          script_stop: false
           script: |
+            set +e
             ACTIVE_PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
+            if [ -z "$ACTIVE_PORT" ]; then
+              ACTIVE_PORT=8081
+            fi
             if [ "$ACTIVE_PORT" == "8081" ]; then
-              echo "version=green" >> $GITHUB_OUTPUT
+              echo "green"
             else
-              echo "version=blue" >> $GITHUB_OUTPUT
+              echo "blue"
             fi
 
-      # 🔵 Build Docker Image
       - name: Build Docker Image (Blue/Green)
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ steps.decide-target.outputs.version }} .
+          echo "Target Version: ${{ steps.decide-target.outputs.stdout }}"
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ steps.decide-target.outputs.stdout }} .
 
       # 🔵 DockerHub 로그인
       - name: Login to DockerHub
