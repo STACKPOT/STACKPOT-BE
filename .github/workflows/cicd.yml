@@ -31,17 +31,38 @@ jobs:
         with:
           arguments: build
 
-      - name: Build Docker Image
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:latest .
+      # 🔵 현재 활성화된 포트에 따라 blue/green 결정 (outputs로 전달)
+      - name: Decide Target Version (Blue/Green)
+        id: decide-target
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            ACTIVE_PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
+            if [ "$ACTIVE_PORT" == "8081" ]; then
+              echo "version=green" >> $GITHUB_OUTPUT
+            else
+              echo "version=blue" >> $GITHUB_OUTPUT
+            fi
 
+      # 🔵 Build Docker Image
+      - name: Build Docker Image (Blue/Green)
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ steps.decide-target.outputs.version }} .
+
+      # 🔵 DockerHub 로그인
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
+      # 🔵 Push Docker Image
       - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ steps.decide-target.outputs.version }}
 
-      - name: SSH and Deploy
+      # 🔵 SSH 접속해서 Pull, Up, Switch
+      - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -49,7 +70,18 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/stackpot
+
+            echo "[INFO] 기존 이미지를 삭제합니다: stackpot-server:${{ steps.decide-target.outputs.version }}"
+            sudo docker rmi stackpot/stackpot-server:${{ steps.decide-target.outputs.version }} || true
+
+            echo "[INFO] 새로운 이미지를 pull합니다."
             sudo docker-compose pull
+
+            echo "[INFO] 컨테이너를 up 합니다."
             sudo docker-compose up -d
+
+            echo "[INFO] 사용하지 않는 이미지 정리."
             sudo docker image prune -f
+
+            echo "[INFO] Nginx 스위칭 스크립트를 실행합니다."
             ./switch_backend.sh
