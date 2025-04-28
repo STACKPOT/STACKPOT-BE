@@ -1,0 +1,95 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Make application.yml
+        run: |
+          cd ./src/main/resources
+          echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
+        shell: bash
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+
+      # 🔵 현재 활성 포트 읽기
+      - name: Get Current Active Port
+        id: get-port
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1
+
+      - name: Set Target Version
+        run: |
+          if [ "${{ steps.get-port.outputs.stdout }}" == "8081" ]; then
+            echo "TARGET_VERSION=green" >> $GITHUB_ENV
+          else
+            echo "TARGET_VERSION=blue" >> $GITHUB_ENV
+          fi
+
+      # 🔵 Docker Image Build
+      - name: Build Docker Image
+        run: |
+          echo "Building for $TARGET_VERSION"
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }} .
+
+      # 🔵 DockerHub Login
+      - name: Login to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      # 🔵 Push Docker Image
+      - name: Push Docker Image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }}
+
+      # 🔵 EC2에 접속해서 pull, recreate(up), switch
+      - name: SSH into EC2 and Deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/stackpot
+
+            echo "[INFO] 활성화된 포트를 확인합니다."
+            ACTIVE_PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
+
+            if [ "$ACTIVE_PORT" = "8081" ]; then
+              echo "[INFO] 현재 active: 8081 (blue). green을 업데이트합니다."
+              sudo docker-compose pull stackpot-server-green
+              sudo docker-compose up -d --no-deps --build stackpot-server-green
+            else
+              echo "[INFO] 현재 active: 8082 (green). blue를 업데이트합니다."
+              sudo docker-compose pull stackpot-server-blue
+              sudo docker-compose up -d --no-deps --build stackpot-server-blue
+            fi
+
+            echo "[INFO] 필요 없는 Docker 이미지 정리"
+            sudo docker image prune -f
+
+            echo "[INFO] Nginx 스위칭 스크립트 실행"
+            ./switch_backend.sh

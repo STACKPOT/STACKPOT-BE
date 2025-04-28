@@ -153,7 +153,6 @@ public class UserController {
             @RequestBody @Valid CompletedPotRequestDto requestDto) {
         // 팟 수정 로직 호출
         PotResponseDto responseDto = potService.UpdateCompletedPot(potId, requestDto);
-
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
 

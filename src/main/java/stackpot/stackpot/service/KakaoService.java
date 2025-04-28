@@ -23,7 +23,7 @@ public class KakaoService {
     private final String KAUTH_USER_URL_HOST;
 
     @Autowired
-    public KakaoService(@Value("${KAKAO_CLIENT_ID}") String clientId) {
+    public KakaoService(@Value("${spring.kakao.client-id}") String clientId) {
         this.clientId = clientId;
         this.KAUTH_TOKEN_URL_HOST = "https://kauth.kakao.com";
         this.KAUTH_USER_URL_HOST = "https://kapi.kakao.com";
