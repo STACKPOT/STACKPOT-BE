@@ -47,10 +47,15 @@ jobs:
               ACTIVE_PORT=8081
             fi
             if [ "$ACTIVE_PORT" == "8081" ]; then
-              echo "TARGET_VERSION=green" >> $GITHUB_ENV
+              echo "blue"
             else
-              echo "TARGET_VERSION=blue" >> $GITHUB_ENV
+              echo "green"
             fi
+
+      - name: Set Target Version Output
+        id: set-target
+        run: |
+          echo "TARGET_VERSION=$(echo '${{ steps.decide-target.outputs.stdout }}' | tr -d '\r\n')" >> $GITHUB_ENV
 
       - name: Build Docker Image (Blue/Green)
         run: |
