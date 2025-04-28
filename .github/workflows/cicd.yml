@@ -65,7 +65,7 @@ jobs:
       - name: Push Docker Image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }}
 
-      # 🔵 SSH into EC2 and Deploy
+      # 🔵 EC2에 접속해서 pull, recreate(up), switch
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -75,11 +75,21 @@ jobs:
           script: |
             cd ~/stackpot
 
-            echo "[INFO] 새로운 이미지 pull"
-            sudo docker-compose pull
+            echo "[INFO] 활성화된 포트를 확인합니다."
+            ACTIVE_PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
 
-            echo "[INFO] docker-compose up -d"
-            sudo docker-compose up -d --force-recreate
+            if [ "$ACTIVE_PORT" = "8081" ]; then
+              echo "[INFO] 현재 active: 8081 (blue). green을 업데이트합니다."
+              sudo docker-compose pull stackpot-server-green
+              sudo docker-compose up -d --no-deps --build stackpot-server-green
+            else
+              echo "[INFO] 현재 active: 8082 (green). blue를 업데이트합니다."
+              sudo docker-compose pull stackpot-server-blue
+              sudo docker-compose up -d --no-deps --build stackpot-server-blue
+            fi
+
+            echo "[INFO] 필요 없는 Docker 이미지 정리"
+            sudo docker image prune -f
 
             echo "[INFO] Nginx 스위칭 스크립트 실행"
             ./switch_backend.sh
