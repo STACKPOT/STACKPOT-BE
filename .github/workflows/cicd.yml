@@ -31,33 +31,33 @@ jobs:
         with:
           arguments: build
 
-      - name: Decide Target Version (Blue/Green)
-        id: decide-target
+      - name: Decide Target Version (blue/green)
+        id: decide
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: false
           script: |
-            set +e
             ACTIVE_PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
-            if [ "$ACTIVE_PORT" = "8081" ]; then
-              echo "::set-output name=target::green"
+            if [ "$ACTIVE_PORT" == "8081" ]; then
+              echo "green"  # 현재 blue니까 green에 배포
             else
-              echo "::set-output name=target::blue"
+              echo "blue"
             fi
 
-      - name: Build Docker Image (Blue/Green)
+      - name: Set Target Version
+        run: echo "TARGET_VERSION=${{ steps.decide.outputs.stdout }}" >> $GITHUB_ENV
+
+      - name: Build Docker Image
         run: |
-          echo "Target Version: ${{ steps.decide-target.outputs.target }}"
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ steps.decide-target.outputs.target }} .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }} .
 
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ steps.decide-target.outputs.target }}
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }}
 
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.10
@@ -66,15 +66,10 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            set -e
             cd ~/stackpot
-
-            echo "[INFO] Pull and restart containers..."
+            echo "[INFO] 새로운 이미지 pull"
             sudo docker-compose pull
+            echo "[INFO] 컨테이너 up (detached mode)"
             sudo docker-compose up -d
-
-            echo "[INFO] Clean up unused images."
-            sudo docker image prune -f
-
-            echo "[INFO] Switch backend."
+            echo "[INFO] nginx 스위칭 스크립트 실행"
             ./switch_backend.sh
