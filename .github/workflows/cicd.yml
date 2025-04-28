@@ -32,9 +32,37 @@ jobs:
         with:
           arguments: build
 
-      # 여기까지는 "코드"를 빌드하는 작업!
+      # 🔵 현재 활성 포트 읽기
+      - name: Get Current Active Port
+        id: get-port
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            ACTIVE_PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
+            if [ "$ACTIVE_PORT" = "8081" ]; then
+              echo "TARGET_VERSION=green" >> $GITHUB_ENV
+            else
+              echo "TARGET_VERSION=blue" >> $GITHUB_ENV
+            fi
 
-      # 이제 EC2로 SSH 접속해서 "docker build, compose up" 수행
+      # 🔵 Docker Image Build
+      - name: Build Docker Image
+        run: |
+          echo "Building for $TARGET_VERSION"
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }} .
+
+      # 🔵 DockerHub Login
+      - name: Login to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      # 🔵 Push Docker Image
+      - name: Push Docker Image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }}
+
+      # 🔵 SSH into EC2 and Deploy
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -42,17 +70,13 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "[INFO] EC2 서버 접속 완료"
             cd ~/stackpot
 
-            echo "[INFO] 현재 docker-compose down 시작"
-            sudo docker-compose down || true
+            echo "[INFO] 새로운 이미지 pull"
+            sudo docker-compose pull
 
-            echo "[INFO] 새 Docker 이미지 build 시작 (Blue or Green 선택은 스위칭 스크립트에서)"
-            ./build_and_switch.sh
-
-            echo "[INFO] Docker Compose Up (백그라운드)"
+            echo "[INFO] docker-compose up -d"
             sudo docker-compose up -d
 
-            echo "[INFO] 필요 없는 Docker 이미지 청소"
-            sudo docker image prune -f
+            echo "[INFO] Nginx 스위칭 스크립트 실행"
+            ./switch_backend.sh
