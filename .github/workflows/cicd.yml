@@ -31,7 +31,6 @@ jobs:
         with:
           arguments: build
 
-      # 🔵 현재 활성화된 포트에 따라 blue/green 결정 (outputs로 전달)
       - name: Decide Target Version (Blue/Green)
         id: decide-target
         uses: appleboy/ssh-action@v0.1.10
@@ -43,34 +42,23 @@ jobs:
           script: |
             set +e
             ACTIVE_PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
-            if [ -z "$ACTIVE_PORT" ]; then
-              ACTIVE_PORT=8081
-            fi
-            if [ "$ACTIVE_PORT" == "8081" ]; then
-              echo "blue"
+            if [ "$ACTIVE_PORT" = "8081" ]; then
+              echo "::set-output name=target::green"
             else
-              echo "green"
+              echo "::set-output name=target::blue"
             fi
-
-      - name: Set Target Version Output
-        id: set-target
-        run: |
-          echo "TARGET_VERSION=$(echo '${{ steps.decide-target.outputs.stdout }}' | tr -d '\r\n')" >> $GITHUB_ENV
 
       - name: Build Docker Image (Blue/Green)
         run: |
-          echo "Target Version: $TARGET_VERSION"
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }} .
+          echo "Target Version: ${{ steps.decide-target.outputs.target }}"
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ steps.decide-target.outputs.target }} .
 
-      # 🔵 DockerHub 로그인
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      # 🔵 Push Docker Image
       - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ steps.decide-target.outputs.version }}
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ steps.decide-target.outputs.target }}
 
-      # 🔵 SSH 접속해서 Pull, Up, Switch
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -78,19 +66,15 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             cd ~/stackpot
 
-            echo "[INFO] 기존 이미지를 삭제합니다: stackpot-server:${{ steps.decide-target.outputs.version }}"
-            sudo docker rmi stackpot/stackpot-server:${{ steps.decide-target.outputs.version }} || true
-
-            echo "[INFO] 새로운 이미지를 pull합니다."
+            echo "[INFO] Pull and restart containers..."
             sudo docker-compose pull
-
-            echo "[INFO] 컨테이너를 up 합니다."
             sudo docker-compose up -d
 
-            echo "[INFO] 사용하지 않는 이미지 정리."
+            echo "[INFO] Clean up unused images."
             sudo docker image prune -f
 
-            echo "[INFO] Nginx 스위칭 스크립트를 실행합니다."
+            echo "[INFO] Switch backend."
             ./switch_backend.sh
