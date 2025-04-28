@@ -21,7 +21,6 @@ public class UserTodoController {
     @PostMapping("/{potId}")
     public ResponseEntity<ApiResponse<Void>> assignBadgeToTopMembers(
             @PathVariable Long potId) {
-
         userTodoService.assignBadgeToTopMembers(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
