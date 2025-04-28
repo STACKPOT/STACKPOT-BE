@@ -2,14 +2,15 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [dev]
+    branches: [ dev ]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -31,28 +32,9 @@ jobs:
         with:
           arguments: build
 
-      - name: Decide Target Version (Blue/Green)
-        id: decide
-        run: |
-          echo "현재 실행 중인 컨테이너 확인 중..."
-          if docker ps --format '{{.Names}}' | grep -q 'stackpot-server-green'; then
-            echo "TARGET_VERSION=blue" >> $GITHUB_ENV
-          else
-            echo "TARGET_VERSION=green" >> $GITHUB_ENV
-          fi
-    
-          # 🔵 Docker Build (Blue/Green 버전)
-      - name: Build Docker Image
-        run: |
-          echo "Building Image: ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }}"
-          :docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }} .
+      # 여기까지는 "코드"를 빌드하는 작업!
 
-      - name: Login to DockerHub
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-      - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }}
-
+      # 이제 EC2로 SSH 접속해서 "docker build, compose up" 수행
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -60,10 +42,17 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            echo "[INFO] EC2 서버 접속 완료"
             cd ~/stackpot
-            echo "[INFO] 새로운 이미지 pull"
-            sudo docker-compose pull
-            echo "[INFO] 컨테이너 up (detached mode)"
+
+            echo "[INFO] 현재 docker-compose down 시작"
+            sudo docker-compose down || true
+
+            echo "[INFO] 새 Docker 이미지 build 시작 (Blue or Green 선택은 스위칭 스크립트에서)"
+            ./build_and_switch.sh
+
+            echo "[INFO] Docker Compose Up (백그라운드)"
             sudo docker-compose up -d
-            echo "[INFO] nginx 스위칭 스크립트 실행"
-            ./switch_backend.sh
+
+            echo "[INFO] 필요 없는 Docker 이미지 청소"
+            sudo docker image prune -f
