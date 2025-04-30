@@ -9,7 +9,7 @@ import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.config.security.JwtTokenProvider;
-import stackpot.stackpot.converter.PotApplicationConverter.PotApplicationConverter;
+import stackpot.stackpot.converter.PotApplicationConverter;
 import stackpot.stackpot.converter.PotDetailConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;

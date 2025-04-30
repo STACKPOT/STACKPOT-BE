@@ -23,7 +23,6 @@ import static com.mysql.cj.util.TimeUtil.DATE_FORMATTER;
 @RequiredArgsConstructor
 public class UserMypageConverter {
     private final PotMemberRepository potMemberRepository;
-    private final FeedLikeRepository feedLikeRepository;
     private final FeedConverter feedConverter;
     private final MyPotConverter myPotConverter;
     private final PotMemberBadgeRepository potMemberBadgeRepository;

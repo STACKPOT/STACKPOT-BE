@@ -87,23 +87,32 @@ public class FeedController {
     }
 
     @PostMapping("/{feedId}/like")
-    @Operation(summary = "Feed 좋아요 API", description = "feed 좋아요를 추가합니다.")
+    @Operation(summary = "Feed 좋아요 API", description = "feed 좋아요를 추가합니다.",
+            parameters = {
+                    @Parameter(name = "feedId", description = "좋아요를 누를 Feed의 ID", required = true)
+            })
     public ResponseEntity<ApiResponse<Map>> toggleLike(@PathVariable Long feedId) {
-
-        // 좋아요 토글
         boolean isLiked = feedService.toggleLike(feedId);
         return ResponseEntity.ok(ApiResponse.onSuccess(Map.of(
                 "liked", isLiked,
                 "message", isLiked ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다."
         )));
     }
-    @Operation(summary = "사용자별 Feed 조회 API")
     @GetMapping("/{userId}")
+    @Operation(
+            summary = "사용자별 Feed 조회 API",
+            description = "사용자의 feed를 조회합니다."
+    )
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeedsByUserId(
-            @PathVariable Long userId,
-            @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") int size) {
+            @Parameter(description = "사용자 ID", example = "1")
+            @PathVariable("userId") Long userId,
 
+            @Parameter(description = "커서", example = "100", required = false)
+            @RequestParam(value = "cursor", required = false) Long cursor,
+
+            @Parameter(description = "페이지 크기", example = "10")
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
         FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeedsByUserId(userId, cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
     }
@@ -111,8 +120,8 @@ public class FeedController {
     @Operation(summary = "나의 Feed 조회 API")
     @GetMapping("/my-feeds")
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeeds(
-            @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "cursor", required = false) Long cursor,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
 
         FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeeds(cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));

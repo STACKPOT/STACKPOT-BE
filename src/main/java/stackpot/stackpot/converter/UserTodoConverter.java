@@ -1,9 +1,20 @@
 package stackpot.stackpot.converter;
 
+import org.springframework.stereotype.Component;
 import stackpot.stackpot.web.dto.UserTodoTopMemberDto;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public interface UserTodoConverter {
-    List<UserTodoTopMemberDto> toTopMemberDto(List<Object[]> userTodoData);
+@Component
+public class UserTodoConverter{
+
+    public List<UserTodoTopMemberDto> toTopMemberDto(List<Object[]> userTodoData) {
+        return userTodoData.stream()
+                .map(result -> new UserTodoTopMemberDto(
+                        (Long) result[0], // userId
+                        (Long) result[1]  // todoCount
+                ))
+                .collect(Collectors.toList());
+    }
 }

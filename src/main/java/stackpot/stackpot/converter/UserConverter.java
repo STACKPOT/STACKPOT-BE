@@ -1,5 +1,6 @@
 package stackpot.stackpot.converter;
 
+import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.Role;
 import stackpot.stackpot.web.dto.UserRequestDto;
@@ -8,6 +9,7 @@ import stackpot.stackpot.web.dto.UserSignUpResponseDto;
 
 import java.util.Map;
 
+@Component
 public class UserConverter {
     public static User toUser(UserRequestDto.JoinDto request) {
 

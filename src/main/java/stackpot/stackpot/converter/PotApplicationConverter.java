@@ -1,4 +1,4 @@
-package stackpot.stackpot.converter.PotApplicationConverter;
+package stackpot.stackpot.converter;
 
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.domain.Pot;
@@ -13,9 +13,8 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Component
-public class PotApplicationConverterImpl implements PotApplicationConverter {
+public class PotApplicationConverter{
 
-    @Override
     public PotApplication toEntity(PotApplicationRequestDto dto, Pot pot, User user) {
         // User와 Pot 객체가 null인지 확인
         if (pot == null || user == null) {
@@ -32,7 +31,6 @@ public class PotApplicationConverterImpl implements PotApplicationConverter {
                 .build();
     }
 
-    @Override
     public PotApplicationResponseDto toDto(PotApplication entity) {
 
         String appliedRole = getVegetableNameByRole(entity.getPotRole().name());

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
-import stackpot.stackpot.converter.PotMemberConverter.PotMemberConverter;
+import stackpot.stackpot.converter.PotMemberConverter;
 import stackpot.stackpot.domain.Pot;
 import stackpot.stackpot.domain.User;
 import stackpot.stackpot.domain.enums.ApplicationStatus;
