@@ -9,9 +9,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
-import stackpot.stackpot.domain.User;
-import stackpot.stackpot.repository.RefreshTokenRepository;
-import stackpot.stackpot.web.dto.TokenServiceResponse;
+import stackpot.stackpot.user.entity.User;
+import stackpot.stackpot.user.repository.RefreshTokenRepository;
+import stackpot.stackpot.user.dto.TokenServiceResponse;
 
 import java.util.Date;
 import java.util.UUID;

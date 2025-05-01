@@ -3,7 +3,7 @@ package stackpot.stackpot.Validation.validator;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import stackpot.stackpot.Validation.annotation.ValidRole;
-import stackpot.stackpot.domain.enums.Role;
+import stackpot.stackpot.user.entity.enums.Role;
 
 public class RoleValidator implements ConstraintValidator<ValidRole, String> {
 

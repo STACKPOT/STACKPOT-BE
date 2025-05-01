@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.user.repository.BlacklistRepository;
 
 @EnableWebSecurity
 @Configuration
