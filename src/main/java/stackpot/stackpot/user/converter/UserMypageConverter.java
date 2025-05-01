@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserMypageConverter {
     private final PotMemberRepository potMemberRepository;
-    private final FeedLikeRepository feedLikeRepository;
     private final FeedConverter feedConverter;
     private final MyPotConverter myPotConverter;
     private final PotMemberBadgeRepository potMemberBadgeRepository;

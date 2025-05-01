@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ dev ]
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
@@ -65,7 +65,7 @@ jobs:
       - name: Push Docker Image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stackpot-server:${{ env.TARGET_VERSION }}
 
-      # 🔵 EC2에 접속해서 pull, recreate(up), switch
+      # 🔵 SSH into EC2 and Deploy
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.10
         with:

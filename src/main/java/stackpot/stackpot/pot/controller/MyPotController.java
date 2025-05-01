@@ -113,8 +113,8 @@ public class MyPotController {
     @GetMapping("/{pot_id}/todos")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getMyTodo(
             @PathVariable("pot_id") Long potId,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(name = "page", defaultValue = "1") Integer page,
+            @RequestParam(name="size", defaultValue = "10") Integer size) {
 
         // 페이지 번호 보정 (1부터 시작하도록)
         if (page < 1) {

@@ -73,14 +73,14 @@ public class UserController {
 
     @Operation(summary = "닉네임 생성 API")
     @GetMapping("/nickname")
-    public ResponseEntity<ApiResponse<NicknameResponseDto>> nickname(@RequestParam Role role){
+    public ResponseEntity<ApiResponse<NicknameResponseDto>> nickname(@RequestParam("role") Role role){
         NicknameResponseDto nickName = userCommandService.createNickname(role);
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
     @Operation(summary = "닉네임 저장 API", description = "사용자의 닉네임을 저장하고 회원가입을 완료합니다.")
     @PostMapping("/nickname/save")
-    public ResponseEntity<ApiResponse<String>> saveNickname(@RequestParam String nickname) {
+    public ResponseEntity<ApiResponse<String>> saveNickname(@RequestParam("nickname") String nickname) {
         String savedNickname = userCommandService.saveNickname(nickname);
         return ResponseEntity.ok(ApiResponse.onSuccess(savedNickname));
     }
@@ -102,7 +102,7 @@ public class UserController {
     @Operation(summary = "사용자별 정보 조회 API", description = "userId를 통해 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersPages(
-            @PathVariable Long userId){
+            @PathVariable(name = "userId") Long userId){
         UserResponseDto.Userdto userDetails = userCommandService.getUsers(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
@@ -117,7 +117,7 @@ public class UserController {
     @Operation(summary = "나의 마이페이지 조회 API", description = "토큰을 통해 자신의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)")
     @GetMapping("/mypages")
     public ResponseEntity<ApiResponse<UserMyPageResponseDto>> usersMypages(
-            @RequestParam(required = false) String dataType){
+            @RequestParam(name = "dataType", required = false) String dataType){
         UserMyPageResponseDto userDetails = userCommandService.getMypages(dataType);
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
@@ -126,8 +126,8 @@ public class UserController {
     @Operation(summary = "사용자별 마이페이지 조회 API", description = "userId를 통해 사용자의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)")
     @GetMapping("/{userId}/mypages")
     public ResponseEntity<ApiResponse<UserMyPageResponseDto>> getUserMypage(
-            @PathVariable Long userId,
-            @RequestParam(required = false) String dataType) {
+            @PathVariable("userId") Long userId,
+            @RequestParam(name = "dataType", required = false) String dataType) {
         UserMyPageResponseDto response = userCommandService.getUserMypage(userId, dataType);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
@@ -143,7 +143,7 @@ public class UserController {
     @GetMapping("/{pot_id}/details")
     @Operation(summary = "마이페이지 끓인 팟 상세 보기 모달", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다.")
     public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
-            @PathVariable("pot_id") Long potId) {
+            @PathVariable(name = "pot_id") Long potId) {
         CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
@@ -151,7 +151,7 @@ public class UserController {
     @Operation(summary = "끓인 팟 수정하기 API")
     @PatchMapping("/{pot_id}")
     public ResponseEntity<ApiResponse<PotResponseDto>> updatePot(
-            @PathVariable("pot_id") Long potId,
+            @PathVariable(name = "pot_id") Long potId,
             @RequestBody @Valid CompletedPotRequestDto requestDto) {
         // 팟 수정 로직 호출
         PotResponseDto responseDto = potService.UpdateCompletedPot(potId, requestDto);

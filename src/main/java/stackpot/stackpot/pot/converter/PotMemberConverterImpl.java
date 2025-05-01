@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:src/main/java/stackpot/stackpot/pot/converter/PotMemberConverterImpl.java
 package stackpot.stackpot.pot.converter;
+========
+package stackpot.stackpot.converter;
+>>>>>>>> 94fbdae680703b75013d577ddb5ffdc41c56007c:src/main/java/stackpot/stackpot/pot/converter/PotMemberConverter.java
 
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.pot.entity.Pot;
@@ -11,9 +15,8 @@ import stackpot.stackpot.pot.dto.PotMemberInfoResponseDto;
 import java.util.Map;
 
 @Component
-public class PotMemberConverterImpl implements PotMemberConverter {
+public class PotMemberConverter{
 
-    @Override
     public PotMember toEntity(User user, Pot pot, PotApplication application, Boolean isOwner) {
         return PotMember.builder()
                 .user(user)
@@ -25,7 +28,6 @@ public class PotMemberConverterImpl implements PotMemberConverter {
                 .build();
     }
 
-    @Override
     public PotMemberAppealResponseDto toDto(PotMember entity) {
         String roleName = entity.getRoleName() != null ? entity.getRoleName().name() : "멤버";
         String nicknameWithRole = entity.getUser().getNickname() + " "+mapRoleName(roleName) ;
