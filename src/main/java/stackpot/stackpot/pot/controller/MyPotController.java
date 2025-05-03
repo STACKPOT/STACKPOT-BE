@@ -22,7 +22,6 @@ import stackpot.stackpot.task.dto.*;
 import stackpot.stackpot.task.entity.enums.TaskboardStatus;
 import stackpot.stackpot.pot.repository.PotRepository;
 import stackpot.stackpot.pot.service.MyPotService;
-import stackpot.stackpot.pot.service.PotService;
 import stackpot.stackpot.todo.dto.MyPotTodoResponseDTO;
 import stackpot.stackpot.todo.dto.MyPotTodoUpdateRequestDTO;
 

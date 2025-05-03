@@ -1,0 +1,265 @@
+package stackpot.stackpot.pot.service;
+
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.common.util.AuthService;
+import stackpot.stackpot.pot.converter.MyPotConverter;
+import stackpot.stackpot.pot.converter.PotConverter;
+import stackpot.stackpot.pot.converter.PotDetailConverter;
+import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
+import stackpot.stackpot.pot.dto.PotRequestDto;
+import stackpot.stackpot.pot.dto.PotResponseDto;
+import stackpot.stackpot.pot.dto.RecruitingPotResponseDto;
+import stackpot.stackpot.pot.entity.Pot;
+import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
+import stackpot.stackpot.pot.entity.mapping.PotApplication;
+import stackpot.stackpot.pot.entity.mapping.PotMember;
+import stackpot.stackpot.pot.repository.PotApplicationRepository;
+import stackpot.stackpot.pot.repository.PotMemberRepository;
+import stackpot.stackpot.pot.repository.PotRecruitmentDetailsRepository;
+import stackpot.stackpot.pot.repository.PotRepository;
+import stackpot.stackpot.todo.service.UserTodoService;
+import stackpot.stackpot.user.entity.User;
+import stackpot.stackpot.user.entity.enums.Role;
+import stackpot.stackpot.user.repository.UserRepository;
+
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+
+@Service
+@RequiredArgsConstructor
+public class PotCommandServiceImpl implements PotCommandService {
+
+    private final PotRepository potRepository;
+    private final PotRecruitmentDetailsRepository recruitmentDetailsRepository;
+    private final PotConverter potConverter;
+    private final UserRepository userRepository;
+    private final PotMemberRepository potMemberRepository;
+    private final UserTodoService userTodoService;
+    private final AuthService authService;
+
+    @Override
+    @Transactional
+    public PotResponseDto createPotWithRecruitments(PotRequestDto requestDto) {
+        User user = authService.getCurrentUser();
+
+        if (requestDto == null || requestDto.getRecruitmentDetails() == null) {
+            throw new PotHandler(ErrorStatus._BAD_REQUEST);
+        }
+        if (!List.of("ONLINE", "OFFLINE", "HYBRID").contains(requestDto.getPotModeOfOperation())) {
+            throw new PotHandler(ErrorStatus.INVALID_POT_MODE_OF_OPERATION);
+        }
+
+        Pot pot = potConverter.toEntity(requestDto, user);
+        pot.setPotStatus("RECRUITING");
+        Pot savedPot = potRepository.save(pot);
+
+        List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
+                .map(dto -> PotRecruitmentDetails.builder()
+                        .recruitmentRole(Role.valueOf(dto.getRecruitmentRole()))
+                        .recruitmentCount(dto.getRecruitmentCount())
+                        .pot(savedPot)
+                        .build())
+                .collect(Collectors.toList());
+
+        recruitmentDetailsRepository.saveAll(recruitmentDetails);
+
+        return potConverter.toDto(savedPot, recruitmentDetails);
+    }
+
+    @Override
+    @Transactional
+    public PotResponseDto updatePotWithRecruitments(Long potId, PotRequestDto requestDto) {
+        User user = authService.getCurrentUser();
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
+
+        if (!List.of("ONLINE", "OFFLINE", "HYBRID").contains(requestDto.getPotModeOfOperation())) {
+            throw new PotHandler(ErrorStatus.INVALID_POT_MODE_OF_OPERATION);
+        }
+
+        Map<String, Object> updateValues = new LinkedHashMap<>();
+        updateValues.put("potName", requestDto.getPotName());
+        updateValues.put("potDuration", requestDto.getPotDuration());
+        updateValues.put("potStartDate", requestDto.getPotStartDate());
+        updateValues.put("potLan", requestDto.getPotLan());
+        updateValues.put("potContent", requestDto.getPotContent());
+        updateValues.put("potModeOfOperation", requestDto.getPotModeOfOperation());
+        updateValues.put("recruitmentDeadline", requestDto.getRecruitmentDeadline());
+        if (requestDto.getPotSummary() != null) {
+            updateValues.put("potSummary", requestDto.getPotSummary());
+        }
+
+        pot.updateFields(updateValues);
+        recruitmentDetailsRepository.deleteByPot_PotId(potId);
+
+        List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
+                .map(dto -> PotRecruitmentDetails.builder()
+                        .recruitmentRole(Role.valueOf(dto.getRecruitmentRole()))
+                        .recruitmentCount(dto.getRecruitmentCount())
+                        .pot(pot)
+                        .build())
+                .collect(Collectors.toList());
+
+        recruitmentDetailsRepository.saveAll(recruitmentDetails);
+
+        return potConverter.toDto(pot, recruitmentDetails);
+    }
+
+    @Override
+    @Transactional
+    public void deletePot(Long potId) {
+        User user = authService.getCurrentUser();
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
+
+        recruitmentDetailsRepository.deleteByPot_PotId(potId);
+        potRepository.delete(pot);
+    }
+    // 특정 팟 지원자의 좋아요 상태 변경
+    @Override
+    public void patchLikes(Long potId, Long applicationId, Boolean liked) {
+        // 현재 로그인한 사용자 조회
+        User currentUser = authService.getCurrentUser();
+
+        // 팟 조회
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        // 팟 생성자 확인
+        if (!pot.getUser().getId().equals(currentUser.getId())) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
+
+        // 지원자 목록에서 해당 지원자 찾기
+        PotApplication application = pot.getPotApplication().stream()
+                .filter(app -> app.getApplicationId().equals(applicationId))
+                .findFirst()
+                .orElseThrow(() -> new PotHandler(ErrorStatus.APPLICATION_NOT_FOUND));
+
+        application.setLiked(liked);
+        potRepository.save(pot);
+    }
+
+
+
+    @Override
+    @Transactional
+    public PotResponseDto patchPotWithRecruitments(Long potId, CompletedPotRequestDto requestDto) {
+        User user = authService.getCurrentUser();
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
+
+        user.setUserTemperature(Math.min(user.getUserTemperature() + 5, 100));
+        List<User> potMembers = pot.getPotMembers().stream()
+                .map(PotMember::getUser)
+                .collect(Collectors.toList());
+
+        userRepository.save(user);
+        userRepository.saveAll(potMembers);
+
+        Map<String, Object> updateValues = new LinkedHashMap<>();
+        updateValues.put("potName", requestDto.getPotName());
+        updateValues.put("potStartDate", requestDto.getPotStartDate());
+        updateValues.put("potEndDate", LocalDate.now());
+        updateValues.put("potStatus", "COMPLETED");
+        updateValues.put("potLan", requestDto.getPotLan());
+        updateValues.put("potSummary", requestDto.getPotSummary());
+        pot.updateFields(updateValues);
+
+        potRepository.save(pot);
+
+        List<PotRecruitmentDetails> recruitmentDetails = pot.getRecruitmentDetails().stream()
+                .map(dto -> PotRecruitmentDetails.builder()
+                        .recruitmentRole(Role.valueOf(dto.getRecruitmentRole().name()))
+                        .recruitmentCount(dto.getRecruitmentCount())
+                        .pot(pot)
+                        .build())
+                .collect(Collectors.toList());
+
+        userTodoService.assignBadgeToTopMembers(potId);
+
+        return potConverter.toDto(pot, recruitmentDetails);
+    }
+
+    @Override
+    @Transactional
+    public String removePotOrMember(Long potId) {
+        User user = authService.getCurrentUser();
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        if (pot.getUser().equals(user)) {
+            potRepository.delete(pot);
+            return "팟이 성공적으로 삭제되었습니다.";
+        } else {
+            PotMember member = potMemberRepository.findByPotAndUser(pot, user)
+                    .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+            potMemberRepository.delete(member);
+            return "팟 멤버가 성공적으로 삭제되었습니다.";
+        }
+    }
+
+    @Override
+    @Transactional
+    public void removeMemberFromPot(Long potId) {
+        User user = authService.getCurrentUser();
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+        PotMember member = potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+        potMemberRepository.delete(member);
+    }
+
+    @Override
+    @Transactional
+    public PotResponseDto updateCompletedPot(Long potId, CompletedPotRequestDto requestDto) {
+        User user = authService.getCurrentUser();
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
+
+        Map<String, Object> updateValues = new LinkedHashMap<>();
+        updateValues.put("potName", requestDto.getPotName());
+        updateValues.put("potStartDate", requestDto.getPotStartDate());
+        updateValues.put("potLan", requestDto.getPotLan());
+        updateValues.put("potSummary", requestDto.getPotSummary());
+        pot.updateFields(updateValues);
+
+        List<PotRecruitmentDetails> recruitmentDetails = pot.getRecruitmentDetails().stream()
+                .map(dto -> PotRecruitmentDetails.builder()
+                        .recruitmentRole(Role.valueOf(dto.getRecruitmentRole().name()))
+                        .recruitmentCount(dto.getRecruitmentCount())
+                        .pot(pot)
+                        .build())
+                .collect(Collectors.toList());
+
+        return potConverter.toDto(pot, recruitmentDetails);
+    }
+}

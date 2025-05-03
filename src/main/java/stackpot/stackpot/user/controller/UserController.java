@@ -20,7 +20,6 @@ import stackpot.stackpot.user.repository.BlacklistRepository;
 import stackpot.stackpot.user.repository.RefreshTokenRepository;
 import stackpot.stackpot.user.service.KakaoService;
 import stackpot.stackpot.pot.service.MyPotService;
-import stackpot.stackpot.pot.service.PotService;
 import stackpot.stackpot.user.service.UserCommandService;
 import stackpot.stackpot.user.dto.*;
 
