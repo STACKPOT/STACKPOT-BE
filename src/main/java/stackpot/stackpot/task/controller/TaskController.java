@@ -27,7 +27,10 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping("/{pot_id}/tasks")
-    @Operation(summary = "Task 생성 API", description = "Task를 생성합니다.")
+    @Operation(summary = "Task 생성 API",
+            description = "participants는 참여자의 memberID를 ,로 구분하여 적어주시면 됩니다\n" +
+                    "memberID는 [Pot Member Management] > [/pots/{pot_id}/members]를 통해 확인하실 수 있습니다."+
+                    "ex) \"participants\": [1, 2]")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> createPotTask(@PathVariable("pot_id") Long potId,
                                                                            @RequestBody @Valid MyPotTaskRequestDto.create request) {
         MyPotTaskResponseDto response = taskService.creatTask(potId, request);
@@ -44,7 +47,9 @@ public class TaskController {
     }
 
     @GetMapping("/{pot_id}/tasks")
-    @Operation(summary = "Task 조회 API", description = "Task 전체 조회 API입니다. potId를 통해 pot의 전체 task를 조회합니다.")
+    @Operation(summary = "Task 조회 API",
+            description = "Task 전체 조회 API입니다. potId를 통해 pot의 전체 task를 조회합니다.\n" +
+                    " \"category는 참여한 멤버의 role로 자동으로 결정됩니다.\"")
     public ResponseEntity<ApiResponse<Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>>>> getPotTask(@PathVariable("pot_id") Long potId) {
         Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> response = taskService.preViewTask(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
