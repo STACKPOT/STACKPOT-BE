@@ -22,6 +22,7 @@ import stackpot.stackpot.pot.controller.MyPotController;
 import stackpot.stackpot.pot.controller.PotApplicationController;
 import stackpot.stackpot.pot.controller.PotController;
 import stackpot.stackpot.pot.controller.PotMemberController;
+import stackpot.stackpot.todo.controller.UserTodoController;
 import stackpot.stackpot.user.controller.UserController;
 
 import java.util.LinkedHashMap;
@@ -29,7 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
-@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {UserController.class, PotController.class, FeedController.class, MyPotController.class, PotApplicationController.class, PotMemberController.class})
+@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {UserController.class, PotController.class, FeedController.class, MyPotController.class, PotApplicationController.class, PotMemberController.class, UserTodoController.class})
 public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 
 

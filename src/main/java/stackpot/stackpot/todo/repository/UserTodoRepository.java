@@ -5,7 +5,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.todo.entity.mapping.UserTodo;
+import stackpot.stackpot.user.entity.User;
 
 import java.util.List;
 
@@ -27,4 +29,5 @@ public interface UserTodoRepository extends JpaRepository<UserTodo, Long> {
     @Modifying
     @Query("DELETE FROM UserTodo f WHERE f.pot.potId = :potId")
     void deleteByPotId(@Param("potId") Long potId);
+
 }

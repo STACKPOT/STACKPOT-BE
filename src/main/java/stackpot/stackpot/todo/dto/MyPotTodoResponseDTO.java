@@ -19,11 +19,7 @@ public class MyPotTodoResponseDTO {
         private Integer todoCount;
         private List<TodoDetailDTO> todos;
 
-
         @Getter
-        @Setter
-        @NoArgsConstructor
-        @AllArgsConstructor
         @Builder
         public static class TodoDetailDTO {
                 private Long todoId;
@@ -31,5 +27,6 @@ public class MyPotTodoResponseDTO {
                 private TodoStatus status;
         }
 }
+
 
 

@@ -1,5 +1,8 @@
 package stackpot.stackpot.task.converter;
 
+import stackpot.stackpot.common.util.DateFormatter;
+import stackpot.stackpot.common.util.DdayCounter;
+import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.task.entity.Taskboard;
 import stackpot.stackpot.task.entity.enums.TaskboardStatus;
@@ -15,17 +18,10 @@ import org.springframework.stereotype.Component;
 import stackpot.stackpot.user.entity.enums.Role;
 
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class TaskboardConverter{
-
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy. MM. dd");
+public class TaskBoardConverter {
     public Taskboard toTaskboard(Pot pot, MyPotTaskRequestDto.create requset) {
         return Taskboard.builder()
                 .title(requset.getTitle())
@@ -40,10 +36,10 @@ public class TaskboardConverter{
                 .taskboardId(taskboard.getTaskboardId())
                 .title(taskboard.getTitle())
                 .creatorUserId(taskboard.getUser().getUserId())
-                .creatorNickname(taskboard.getUser().getNickname()+getVegetableNameByRole(String.valueOf(taskboard.getUser().getRole())))
+                .creatorNickname(taskboard.getUser().getNickname()+RoleNameMapper.mapRoleName(String.valueOf(taskboard.getUser().getRole())))
                 .creatorRole(taskboard.getUser().getRole())
-                .deadLine(formatDate(taskboard.getDeadLine()))
-                .dDay(dDayCount(taskboard.getDeadLine()))
+                .deadLine(DateFormatter.dotFormatter(taskboard.getDeadLine()))
+                .dDay(DdayCounter.dDayCount(taskboard.getDeadLine()))
                 .description(taskboard.getDescription())
                 .status(taskboard.getStatus())
                 .potId(taskboard.getPot().getPotId())
@@ -61,7 +57,7 @@ public class TaskboardConverter{
         return MyPotTaskResponseDto.Participant.builder()
                 .potMemberId(participant.getPotMemberId())
                 .userId(participant.getUser().getId())
-                .nickName(participant.getUser().getNickname() + getVegetableNameByRole(participant.getRoleName().toString()))
+                .nickName(participant.getUser().getNickname() + RoleNameMapper.mapRoleName(participant.getRoleName().toString()))
                 .role(participant.getRoleName())
                 .build();
     }
@@ -70,13 +66,13 @@ public class TaskboardConverter{
         return MyPotTaskPreViewResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())
                 .title(taskboard.getTitle())
-                .creatorNickname(taskboard.getUser().getNickname()+getVegetableNameByRole(String.valueOf(taskboard.getUser().getRole())))
+                .creatorNickname(taskboard.getUser().getNickname()+ RoleNameMapper.mapRoleName(String.valueOf(taskboard.getUser().getRole())))
                 .creatorRole(taskboard.getUser().getRole())
-                .dDay(dDayCount(taskboard.getDeadLine()))
+                .dDay(DdayCounter.dDayCount(taskboard.getDeadLine()))
                 .description(taskboard.getDescription())
                 .category(determineCategories(participants)) // 카테고리 설정
                 .status(taskboard.getStatus()) // OPEN, IN_PROGRESS, CLOSED
-                .deadLine(formatDate(taskboard.getDeadLine()))
+                .deadLine(DateFormatter.dotFormatter(taskboard.getDeadLine()))
                 .participants(toParticipantDtoList(participants)) // 참여자 리스트 변환
                 .build();
     }
@@ -89,16 +85,6 @@ public class TaskboardConverter{
                 .build();
     }
 
-    private String getVegetableNameByRole(String role) {
-        Map<String, String> roleToVegetableMap = Map.of(
-                "BACKEND", " 양파",
-                "FRONTEND", " 버섯",
-                "DESIGN", " 브로콜리",
-                "PLANNING", " 당근",
-                "UNKNOWN",""
-        );
-        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
-    }
 
     private List<Role> determineCategories(List<PotMember> participants) {
         return participants.stream()
@@ -107,24 +93,6 @@ public class TaskboardConverter{
                 .collect(Collectors.toList()); // 리스트로 변환
     }
 
-    private String formatDate(java.time.LocalDate date) {
-        return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
-    }
 
-    private String dDayCount(LocalDate deadLine){
-        LocalDate today = LocalDate.now();
-        LocalDate deadline = deadLine;
 
-        long daysDiff = ChronoUnit.DAYS.between(today, deadline);
-
-        String dDay;
-        if (daysDiff == 0) {
-            dDay = "D-Day";
-        } else if (daysDiff > 0) {
-            dDay = "D-" + daysDiff;
-        } else {
-            dDay = "D+" + Math.abs(daysDiff);
-        }
-        return dDay;
-    }
 }
