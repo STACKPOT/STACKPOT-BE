@@ -1,11 +1,13 @@
 package stackpot.stackpot.pot.service;
 
+import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.dto.LikedApplicantResponseDTO;
 import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.search.dto.CursorPageResponse;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface PotService {
