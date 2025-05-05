@@ -10,6 +10,7 @@ import stackpot.stackpot.task.entity.Taskboard;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
@@ -17,7 +18,7 @@ public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
 
         List<Taskboard> findByUserId(Long userId);
 
-        Taskboard findByPotAndTaskboardId(Pot pot, Long taskboardId);
+        Optional<Taskboard> findByPotAndTaskboardId(Pot pot, Long taskboardId);
 
         @Modifying
         @Query("DELETE FROM Taskboard f WHERE f.user.id = :userId")

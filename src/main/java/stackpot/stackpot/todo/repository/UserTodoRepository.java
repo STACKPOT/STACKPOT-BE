@@ -5,9 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.todo.entity.mapping.UserTodo;
-import stackpot.stackpot.user.entity.User;
 
 import java.util.List;
 

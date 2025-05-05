@@ -10,10 +10,10 @@ import java.util.Map;
 public interface TaskService {
     MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request);
     Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> preViewTask(Long potId);
-    MyPotTaskResponseDto viewDetailTask(Long potId, Long taskboardId);
-    void deleteTaskboard(Long potId, Long taskboardId);
+    MyPotTaskResponseDto viewDetailTask(Long potId, Long taskBoardId);
+    void deleteTaskBoard(Long potId, Long taskBoardId);
     MyPotTaskStatusResponseDto updateTaskStatus(Long potId, Long taskId, TaskboardStatus status);
     List<MyPotTaskPreViewResponseDto> getTasksFromDate(Long potId, LocalDate date);
     List<MonthlyTaskDto> getMonthlyTasks(Long potId, int year, int month);
-    MyPotTaskResponseDto modifyTask(Long potId, Long taskboardId, MyPotTaskRequestDto.create request);
+    MyPotTaskResponseDto modifyTask(Long potId, Long taskBoardId, MyPotTaskRequestDto.create request);
 }

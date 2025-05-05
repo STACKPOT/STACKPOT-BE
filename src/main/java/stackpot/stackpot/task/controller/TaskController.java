@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
@@ -31,10 +30,8 @@ public class TaskController {
             description = "participants는 참여자의 memberID를 ,로 구분하여 적어주시면 됩니다\n" +
                     "memberID는 [Pot Member Management] > [/pots/{pot_id}/members]를 통해 확인하실 수 있습니다."+
                     "ex) \"participants\": [1, 2]")
-    public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> createPotTask(@PathVariable("pot_id") Long potId,
-                                                                           @RequestBody @Valid MyPotTaskRequestDto.create request) {
+    public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> createPotTask(@PathVariable("pot_id") Long potId, @RequestBody @Valid MyPotTaskRequestDto.create request) {
         MyPotTaskResponseDto response = taskService.creatTask(potId, request);
-
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -60,9 +57,7 @@ public class TaskController {
             parameters = {
                     @Parameter(name = "date", description = "yyyy-MM-dd 형식으로 작성해주세요.")
             })
-    public ResponseEntity<ApiResponse<List<MyPotTaskPreViewResponseDto>>> getPotTaskByDate(@PathVariable("pot_id") Long potId,
-                                                                                           @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-
+    public ResponseEntity<ApiResponse<List<MyPotTaskPreViewResponseDto>>> getPotTaskByDate(@PathVariable("pot_id") Long potId, @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
         List<MyPotTaskPreViewResponseDto> response = taskService.getTasksFromDate(potId, date);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
@@ -89,15 +84,8 @@ public class TaskController {
     @DeleteMapping("/{pot_id}/tasks/{task_id}")
     @Operation(summary = "Task 삭제 API", description = "Task 삭제 API입니다. potId와 taskId를 pot의 특정 task를 삭제합니다.")
     public ResponseEntity<?> deletetPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
-        try {
-            taskService.deleteTaskboard(potId, taskId);
-            return ResponseEntity.ok(ApiResponse.onSuccess("할일이 삭제되었습니다."));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while deleting the taskboard and associated tasks.");
-        }
+        taskService.deleteTaskBoard(potId, taskId);
+        return ResponseEntity.ok(ApiResponse.onSuccess("할일이 삭제되었습니다."));
     }
 
     @PatchMapping("/{pot_id}/tasks/{task_id}/status")

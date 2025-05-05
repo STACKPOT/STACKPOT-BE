@@ -12,7 +12,6 @@ import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.EnumHandler;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.repository.PotRepository;
-import stackpot.stackpot.pot.service.PotService;
 import stackpot.stackpot.todo.dto.MyPotTodoResponseDTO;
 import stackpot.stackpot.todo.dto.MyPotTodoUpdateRequestDTO;
 import stackpot.stackpot.todo.service.UserTodoService;

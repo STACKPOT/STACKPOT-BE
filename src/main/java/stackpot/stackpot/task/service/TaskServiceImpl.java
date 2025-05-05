@@ -3,9 +3,9 @@ package stackpot.stackpot.task.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
@@ -19,7 +19,6 @@ import stackpot.stackpot.task.entity.mapping.Task;
 import stackpot.stackpot.task.repository.TaskRepository;
 import stackpot.stackpot.task.repository.TaskboardRepository;
 import stackpot.stackpot.user.entity.User;
-import stackpot.stackpot.user.repository.UserRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,9 +40,12 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request) {
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         User user = authService.getCurrentUser();
+
+        potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
 
         Taskboard taskboard = taskboardConverter.toTaskboard(pot, request);
         taskboard.setUser(user);
@@ -58,8 +60,6 @@ public class TaskServiceImpl implements TaskService {
                 .filter(potMember -> requestedParticipantIds.contains(potMember.getPotMemberId()))
                 .collect(Collectors.toList());
 
-        log.info("유효한 참가자 목록: {}", participants);
-
         createAndSaveTasks(taskboard, participants);
 
         List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
@@ -71,17 +71,21 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> preViewTask(Long potId) {
+        User user = authService.getCurrentUser();
 
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(()->new IllegalArgumentException("Pot not found with id: " + potId));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
 
         List<Taskboard> taskboards = taskboardRepository.findByPot(pot);
 
         List<MyPotTaskPreViewResponseDto> taskboardDtos = taskboards.stream()
                 .map(taskboard -> {
-                    List<Task> tasks = taskRepository.findByTaskboard(taskboard); // Task 조회
+                    List<Task> tasks = taskRepository.findByTaskboard(taskboard);
                     List<PotMember> participants = tasks.stream()
-                            .map(Task::getPotMember) // Task에서 PotMember 추출
+                            .map(Task::getPotMember)
                             .distinct()
                             .collect(Collectors.toList());
 
@@ -96,20 +100,18 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Override
-    public MyPotTaskResponseDto viewDetailTask(Long potId, Long taskboardId) {
+    public MyPotTaskResponseDto viewDetailTask(Long potId, Long taskBoardId) {
 
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(()-> new IllegalArgumentException("pot을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskboardId);
-        if (taskboard == null) {
-            throw new IllegalArgumentException("taskboard를 찾을 수 없습니다.");
-        }
+        Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskBoardId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.TASKBOARD_NOT_FOUND));
 
         List<Task> tasks = taskRepository.findByTaskboard(taskboard);
 
         List<PotMember> participants = tasks.stream()
-                .map(Task::getPotMember) // Task에서 PotMember 추출
+                .map(Task::getPotMember)
                 .distinct()
                 .collect(Collectors.toList());
 
@@ -120,29 +122,26 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public MyPotTaskResponseDto modifyTask(Long potId, Long taskboardId, MyPotTaskRequestDto.create request) {
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("pot을 찾을 수 없습니다."));
+    public MyPotTaskResponseDto modifyTask(Long potId, Long taskBoardId, MyPotTaskRequestDto.create request) {
+        User user = authService.getCurrentUser();
 
-        Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskboardId);
-        if (taskboard == null) {
-            throw new IllegalArgumentException("taskboard를 찾을 수 없습니다.");
-        }
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+
+        Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskBoardId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.TASKBOARD_NOT_FOUND));
 
         updateUserData(taskboard, request);
 
         List<Long> requestedParticipantIds = request.getParticipants() != null ? request.getParticipants() : List.of();
         List<PotMember> participants = potMemberRepository.findAllById(requestedParticipantIds);
 
-        log.info("참가자 {}", participants);
-
         taskRepository.deleteByTaskboard(taskboard);
 
-        if (!participants.isEmpty()) {
-            createAndSaveTasks(taskboard, participants);
-        } else {
-            log.info("참여자가 없어 기존 테스크 삭제 후 새로운 Task는 생성되지 않습니다.");
-        }
+        if (!participants.isEmpty()) createAndSaveTasks(taskboard, participants);
 
         List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
         MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard, participants);
@@ -153,14 +152,17 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
-    public void deleteTaskboard(Long potId, Long taskboardId) {
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("pot을 찾을 수 없습니다."));
+    public void deleteTaskBoard(Long potId, Long taskBoardId) {
+        User user = authService.getCurrentUser();
 
-        Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskboardId);
-        if (taskboard == null) {
-            throw new IllegalArgumentException("taskboard를 찾을 수 없습니다.");
-        }
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+
+        Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskBoardId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.TASKBOARD_NOT_FOUND));
 
         // Taskboard에 연결된 Task 삭제
         List<Task> tasks = taskRepository.findByTaskboard(taskboard);
@@ -183,12 +185,19 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public MyPotTaskStatusResponseDto updateTaskStatus(Long potId, Long taskId, TaskboardStatus status) {
-        Taskboard taskboard = taskboardRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Taskboard not found with id: " + taskId));
+        User user = authService.getCurrentUser();
 
-        //Taskboard가 해당 Pot에 속해 있는지 확인
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+
+        Taskboard taskboard = taskboardRepository.findById(taskId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.TASKBOARD_NOT_FOUND));
+
         if (!taskboard.getPot().getPotId().equals(potId)) {
-            throw new IllegalArgumentException("The taskboard does not belong to the specified pot.");
+            throw new PotHandler(ErrorStatus.TASKBOARD_POT_MISMATCH);
         }
 
         // 입력받은 status 값으로 업데이트
@@ -202,14 +211,16 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<MyPotTaskPreViewResponseDto> getTasksFromDate(Long potId, LocalDate date) {
-        // 해당 pot의 존재 여부 확인 및 사용자가 pot의 멤버인지 확인
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 팟입니다."));
+        User user = authService.getCurrentUser();
 
-        // List<Taskboard> taskboards = taskboardRepository.findByPotAndDeadLineGreaterThanEqualOrderByDeadLineAsc(pot, date);
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        potMemberRepository.findByPotAndUser(pot, user)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+
         List<Taskboard> taskboards = taskboardRepository.findByPotAndDeadLine(pot,date);
 
-        // DTO로 변환
         return taskboards.stream()
                 .map(taskboard -> {
                     List<Task> tasks = taskRepository.findByTaskboard(taskboard); // Task 조회
@@ -228,12 +239,11 @@ public class TaskServiceImpl implements TaskService {
         User user = authService.getCurrentUser();
 
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 팟입니다."));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-
-        // 현재 사용자의 PotMember 정보 가져오기
         PotMember currentPotMember = potMemberRepository.findByPotAndUser(pot, user)
-                .orElseThrow(() -> new IllegalArgumentException("해당 팟의 멤버가 아닙니다."));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+
 
         // 해당 월의 시작일과 마지막 일 계산
         LocalDate startDate = LocalDate.of(year, month, 1);
