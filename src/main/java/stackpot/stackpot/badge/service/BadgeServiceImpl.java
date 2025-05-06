@@ -32,19 +32,12 @@ public class BadgeServiceImpl implements BadgeService {
     private final PotMemberBadgeRepository potMemberBadgeRepository;
     private final PotBadgeMemberConverter potBadgeMemberConverter;
 
-
     private static final Long DEFAULT_BADGE_ID = 1L;
-
-
-    @Override
-    public Badge getBadgeById(Long badgeId) {
-        return badgeRepository.findBadgeByBadgeId(badgeId)
-                .orElseThrow(() -> new PotHandler(BADGE_NOT_FOUND));
-    }
 
     @Override
     public Badge getDefaultBadge() {
-        return getBadgeById(DEFAULT_BADGE_ID);
+        return badgeRepository.findBadgeByBadgeId(DEFAULT_BADGE_ID)
+                .orElseThrow(() -> new PotHandler(BADGE_NOT_FOUND));
     }
 
     @Transactional
@@ -53,13 +46,8 @@ public class BadgeServiceImpl implements BadgeService {
         long completedTodoCount = userTodoRepository.countByPot_PotIdAndStatus(potId, TodoStatus.COMPLETED);
         List<Object[]> topUsers = userTodoRepository.findTop2UsersWithMostTodos(potId);
 
-        if (completedTodoCount == 0) {
-            throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS);
-        }
-
-        if (topUsers.size() < 2) {
-            throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TOP_MEMBERS);
-        }
+        if (completedTodoCount == 0) throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS);
+        if (topUsers.size() < 2) throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TOP_MEMBERS);
 
         List<UserTodoTopMemberDto> topMemberDtos = potBadgeMemberConverter.toTopMemberDto(topUsers);
 
