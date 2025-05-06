@@ -13,6 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.user.dto.request.TokenRequestDto;
+import stackpot.stackpot.user.dto.request.UserRequestDto;
+import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
+import stackpot.stackpot.user.dto.response.*;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
@@ -21,7 +25,6 @@ import stackpot.stackpot.user.service.KakaoService;
 import stackpot.stackpot.pot.service.MyPotService;
 import stackpot.stackpot.pot.service.PotService;
 import stackpot.stackpot.user.service.UserCommandService;
-import stackpot.stackpot.user.dto.*;
 
 import java.io.IOException;
 

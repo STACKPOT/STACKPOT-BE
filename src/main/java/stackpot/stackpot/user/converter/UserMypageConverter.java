@@ -9,9 +9,8 @@ import stackpot.stackpot.pot.converter.MyPotConverter;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.badge.repository.PotMemberBadgeRepository;
-import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
-import stackpot.stackpot.user.dto.UserMyPageResponseDto;
+import stackpot.stackpot.user.dto.response.UserMyPageResponseDto;
 import stackpot.stackpot.user.entity.enums.Role;
 
 import java.util.List;
@@ -30,7 +29,7 @@ public class UserMypageConverter {
     public UserMyPageResponseDto toDto(User user, List<Pot> completedPots, List<Feed> feeds) {
         return UserMyPageResponseDto.builder()
                 .id(user.getId())
-                .nickname(user.getNickname() + getVegetableNameByRole(String.valueOf(user.getRole())))
+                .nickname(user.getNickname() + Role.toVegetable(String.valueOf(user.getRole())))
                 .role(user.getRole())
                 .userTemperature(user.getUserTemperature())
                 .userIntroduction(user.getUserIntroduction())
@@ -45,7 +44,7 @@ public class UserMypageConverter {
                                     ));
 
                             String formattedMembers = roleCountsMap.entrySet().stream()
-                                    .map(entry -> getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
+                                    .map(entry -> Role.toKoreanName(entry.getKey()) + "(" + entry.getValue() + ")")
                                     .collect(Collectors.joining(", "));
 
                             Role userPotRole = pot.getUser().getId().equals(user.getId()) ?
@@ -69,27 +68,5 @@ public class UserMypageConverter {
                         .map(feedConverter::feedDto)
                         .collect(Collectors.toList()))
                 .build();
-    }
-
-
-    private String getVegetableNameByRole(String role) {
-        Map<String, String> roleToVegetableMap = Map.of(
-                "BACKEND", " 양파",
-                "FRONTEND", " 버섯",
-                "DESIGN", " 브로콜리",
-                "PLANNING", " 당근",
-                "UNKNOWN",""
-        );
-        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
-    }
-
-    private String getKoreanRoleName(String role) {
-        Map<String, String> roleToKoreanMap = Map.of(
-                "BACKEND", "백엔드",
-                "FRONTEND", "프론트엔드",
-                "DESIGN", "디자인",
-                "PLANNING", "기획"
-        );
-        return roleToKoreanMap.getOrDefault(role, "알 수 없음");
     }
 }

@@ -17,6 +17,9 @@ import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.task.entity.Taskboard;
+import stackpot.stackpot.user.dto.request.UserRequestDto;
+import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
+import stackpot.stackpot.user.dto.response.*;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
@@ -32,7 +35,6 @@ import stackpot.stackpot.user.repository.BlacklistRepository;
 import stackpot.stackpot.user.repository.RefreshTokenRepository;
 import stackpot.stackpot.user.repository.UserRepository;
 import stackpot.stackpot.common.service.EmailService;
-import stackpot.stackpot.user.dto.*;
 
 import java.util.List;
 import java.util.Map;
@@ -277,7 +279,7 @@ public class UserCommandServiceImpl implements UserCommandService {
             }
         }
 
-        return new NicknameResponseDto(nickname + getVegetableNameByRole(role.toString()));
+        return new NicknameResponseDto(nickname + " " + Role.toVegetable(role.toString()));
     }
 
     @Override
@@ -292,10 +294,10 @@ public class UserCommandServiceImpl implements UserCommandService {
         nickname = trimNickname(nickname);
 
         user.setNickname(nickname); // 유저 객체에 닉네임 저장
-        user.setUserIntroduction(user.getRole() + "에 관심있는 " + nickname + getVegetableNameByRole(String.valueOf(user.getRole())) + "입니다.");
+        user.setUserIntroduction(user.getRole() + "에 관심있는 " + nickname + " " + Role.toVegetable(String.valueOf(user.getRole())) + "입니다.");
         userRepository.save(user); // DB에 저장
 
-        return nickname + getVegetableNameByRole(user.getRole().toString());
+        return nickname + " " + Role.toVegetable(user.getRole().toString());
     }
 
     private String trimNickname(String nickname) {
@@ -472,8 +474,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 emailService.sendPotDeleteNotification(
                         potMember.getUser().getEmail(),
                         pot.getPotName(),
-                        potMember.getUser().getNickname() +
-                                getVegetableNameByRole(potMember.getRoleName().name())
+                        potMember.getUser().getNickname() + " " + Role.toVegetable(potMember.getRoleName().name())
                 );
             } catch (Exception e) {
                 log.error("이메일 발송 실패: {}", e.getMessage());
@@ -518,18 +519,6 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
 
         return "로그아웃이 성공적으로 완료되었습니다.";
-    }
-
-    // 역할에 따른 채소명을 반환하는 메서드
-    private String getVegetableNameByRole(String role) {
-        Map<String, String> roleToVegetableMap = Map.of(
-                "BACKEND", " 양파",
-                "FRONTEND", " 버섯",
-                "DESIGN", " 브로콜리",
-                "PLANNING", " 당근",
-                "UNKNOWN",""
-        );
-        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
     }
 
     private String getPromptByRole(Role role) {

@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.RefreshTokenRepository;
-import stackpot.stackpot.user.dto.TokenServiceResponse;
+import stackpot.stackpot.user.dto.response.TokenServiceResponse;
 
 import java.util.Date;
 import java.util.UUID;

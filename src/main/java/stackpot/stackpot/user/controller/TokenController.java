@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.user.service.TokenService;
-import stackpot.stackpot.user.dto.TokenRequestDto;
-import stackpot.stackpot.user.dto.TokenServiceResponse;
+import stackpot.stackpot.user.dto.request.TokenRequestDto;
+import stackpot.stackpot.user.dto.response.TokenServiceResponse;
 
 @RequiredArgsConstructor
 @RestController

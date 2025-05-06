@@ -9,7 +9,7 @@ import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.RefreshTokenRepository;
 import stackpot.stackpot.user.repository.UserRepository;
-import stackpot.stackpot.user.dto.TokenServiceResponse;
+import stackpot.stackpot.user.dto.response.TokenServiceResponse;
 
 @RequiredArgsConstructor
 @Transactional
