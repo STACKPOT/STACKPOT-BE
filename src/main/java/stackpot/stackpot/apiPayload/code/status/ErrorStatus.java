@@ -51,7 +51,12 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // Taskboard 관련 에러
     TASKBOARD_NOT_FOUND(HttpStatus.NOT_FOUND, "TASKBOARD4004", "해당 Task를 찾을 수 없습니다."),
-    TASKBOARD_POT_MISMATCH(HttpStatus.BAD_REQUEST, "TASKBOARD4005", "Task가 해당 Pot에 속하지 않습니다.");
+    TASKBOARD_POT_MISMATCH(HttpStatus.BAD_REQUEST, "TASKBOARD4005", "Task가 해당 Pot에 속하지 않습니다."),
+
+    // Badge 관련 에러
+    BADGE_NOT_FOUND(HttpStatus.NOT_FOUND, "BADGE4004", "해당 BADGE를 찾을 수 없습니다."),
+    BADGE_INSUFFICIENT_TOP_MEMBERS(HttpStatus.BAD_REQUEST, "BADGE4001", "팀원이 1명 이하라 뱃지 수여 조건을 만족하지 않습니다. 팀원은 최소 2명 이상이어야 합니다."),
+    BADGE_INSUFFICIENT_TODO_COUNTS(HttpStatus.BAD_REQUEST, "BADGE4002", "TODO를 완료한 사람이 존재하지 않습니다.");
 
 
     private final HttpStatus httpStatus;

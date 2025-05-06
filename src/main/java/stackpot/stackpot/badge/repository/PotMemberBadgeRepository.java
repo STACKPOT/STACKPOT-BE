@@ -15,7 +15,7 @@ public interface PotMemberBadgeRepository extends JpaRepository<PotMemberBadge, 
     List<PotMemberBadge> findByPotMember_Pot_PotIdAndPotMember_User_Id(Long potId, Long userId);
 
     @Modifying
-    @Query("DELETE FROM PotMemberBadge b WHERE b.potMember.id IN :potMemberIds")
+    @Query("DELETE FROM PotMemberBadge b WHERE b.potMember.potMemberId IN :potMemberIds")
     void deleteByPotMemberIds(@Param("potMemberIds") List<Long> potMemberIds);
 }
 

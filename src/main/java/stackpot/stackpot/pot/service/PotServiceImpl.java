@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.badge.service.BadgeService;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.pot.dto.LikedApplicantResponseDTO;
 import stackpot.stackpot.pot.converter.MyPotConverter;
@@ -48,12 +49,10 @@ public class PotServiceImpl implements PotService {
     private final PotRecruitmentDetailsRepository recruitmentDetailsRepository;
     private final PotConverter potConverter;
     private final PotDetailConverter potDetailConverter;
-    private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final PotMemberRepository potMemberRepository;
-    private final PotMemberBadgeRepository potMemberBadgeRepository;
-    private final UserTodoService userTodoService;
     private final MyPotConverter myPotConverter;
+    private final BadgeService badgeService;
 
 
     @Transactional
@@ -562,7 +561,7 @@ public class PotServiceImpl implements PotService {
                 .map(recruitmentDto -> {
                     try {
                         return PotRecruitmentDetails.builder()
-                                .recruitmentRole(Role.valueOf(recruitmentDto.getRecruitmentRole().name()))
+                                .recruitmentRole(recruitmentDto.getRecruitmentRole())
                                 .recruitmentCount(recruitmentDto.getRecruitmentCount())
                                 .pot(pot)
                                 .build();
@@ -572,7 +571,7 @@ public class PotServiceImpl implements PotService {
                 })
                 .collect(Collectors.toList());
 
-        userTodoService.assignBadgeToTopMembers(potId);
+        badgeService.assignBadgeToTopMembers(potId);
 
         // DTO로 변환 후 반환
         return potConverter.toDto(pot, recruitmentDetails);

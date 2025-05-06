@@ -46,34 +46,7 @@ public class UserTodoServiceImpl implements UserTodoService {
     private final AuthService authService;
     private static final Long DEFAULT_BADGE_ID = 1L;
 
-    @Transactional
-    @Override
-    public void assignBadgeToTopMembers(Long potId) {
-        List<Object[]> topUsers = userTodoRepository.findTop2UsersWithMostTodos(potId);
 
-        if (topUsers.isEmpty()) {
-            return;
-        }
-
-        List<UserTodoTopMemberDto> topMemberDtos = userTodoConverter.toTopMemberDto(topUsers);
-
-        List<PotMember> topPotMembers = topMemberDtos.stream()
-                .map(user -> potMemberRepository.findByPot_PotIdAndUser_Id(potId, user.getUserId()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
-
-        Badge badge = badgeService.getDefaultBadge(); // 변경: 기본 뱃지(1번 뱃지) 가져오기
-
-        for (PotMember potMember : topPotMembers) {
-            PotMemberBadge potMemberBadge = PotMemberBadge.builder()
-                    .badge(badge)
-                    .potMember(potMember)
-                    .build();
-            potMemberBadgeRepository.save(potMemberBadge);
-        }
-
-    }
 
     @Transactional
     @Override

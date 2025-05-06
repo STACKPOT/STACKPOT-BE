@@ -1,5 +1,6 @@
 package stackpot.stackpot.todo.converter;
 
+import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.todo.dto.MyPotTodoResponseDTO;
 import stackpot.stackpot.todo.dto.UserTodoTopMemberDto;
@@ -16,15 +17,6 @@ import java.util.stream.Collectors;
 @Component
 public class UserTodoConverter{
 
-    public List<UserTodoTopMemberDto> toTopMemberDto(List<Object[]> userTodoData) {
-        return userTodoData.stream()
-                .map(result -> new UserTodoTopMemberDto(
-                        (Long) result[0], // userId
-                        (Long) result[1]  // todoCount
-                ))
-                .collect(Collectors.toList());
-    }
-
     public MyPotTodoResponseDTO toDto(
             User member,
             Pot pot,
@@ -32,7 +24,7 @@ public class UserTodoConverter{
             User current) {
 
         String role = String.valueOf(member.getRole());
-        String nicknameWithRole = member.getNickname() + role;
+        String nicknameWithRole = member.getNickname() + " " + RoleNameMapper.mapRoleName(role);
 
         Integer notStartedCount = null;
         if (member.equals(current)) {
