@@ -1,5 +1,8 @@
 package stackpot.stackpot.pot.converter;
 
+import stackpot.stackpot.common.util.DateFormatter;
+import stackpot.stackpot.common.util.DdayCounter;
+import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
@@ -23,21 +26,17 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class PotConverter{
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy. MM. dd");
-
     public Pot toEntity(PotRequestDto requestDto, User user) {
         return Pot.builder()
                 .potName(requestDto.getPotName())
                 .potStartDate(requestDto.getPotStartDate())
-//                .potEndDate(requestDto.getPotEndDate())
                 .potDuration(requestDto.getPotDuration())
                 .potLan(requestDto.getPotLan())
                 .potContent(requestDto.getPotContent())
-//                .potStatus(requestDto.getPotStatus())
                 .potModeOfOperation(PotModeOfOperation.valueOf(requestDto.getPotModeOfOperation()))
                 .potSummary(requestDto.getPotSummary())
                 .recruitmentDeadline(requestDto.getRecruitmentDeadline())
-                .user(user) // 사용자 설정
+                .user(user)
                 .build();
     }
 
@@ -45,8 +44,8 @@ public class PotConverter{
         return PotResponseDto.builder()
                 .potId(entity.getPotId())
                 .potName(entity.getPotName())
-                .potStartDate(formatDate(entity.getPotStartDate()))
-                .potEndDate(formatDate(entity.getPotEndDate()))
+                .potStartDate(DateFormatter.dotFormatter(entity.getPotStartDate()))
+                .potEndDate(DateFormatter.dotFormatter(entity.getPotEndDate()))
                 .potDuration(entity.getPotDuration())
                 .potLan(entity.getPotLan())
                 .potContent(entity.getPotContent())
@@ -54,78 +53,60 @@ public class PotConverter{
                 .potModeOfOperation(entity.getPotModeOfOperation().name())
                 .potSummary(entity.getPotSummary())
                 .recruitmentDeadline(entity.getRecruitmentDeadline())
-                .recruitmentDetails(recruitmentDetails.stream().map(r -> PotRecruitmentResponseDto.builder()
-                        .recruitmentRole(r.getRecruitmentRole().name())
-                        .recruitmentCount(r.getRecruitmentCount())
-                        .build()).collect(Collectors.toList()))
+                .recruitmentDetails(recruitmentDetails.stream().map(r ->
+                        PotRecruitmentResponseDto.builder()
+                                .recruitmentRole(r.getRecruitmentRole().name())
+                                .recruitmentCount(r.getRecruitmentCount())
+                                .build()
+                ).collect(Collectors.toList()))
                 .build();
     }
 
     public PotPreviewResponseDto toPrviewDto(User user, Pot pot, List<String> recruitmentRoles) {
-        LocalDate today = LocalDate.now();
-        LocalDate deadline = pot.getRecruitmentDeadline();
-
-        long daysDiff = ChronoUnit.DAYS.between(today, deadline);
-
-        String dDay;
-        if (daysDiff == 0) {
-            dDay = "D-Day";
-        } else if (daysDiff > 0) {
-            dDay = "D-" + daysDiff;
-        } else {
-            dDay = "D+" + Math.abs(daysDiff);
-        }
+        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
 
         List<String> koreanRoles = recruitmentRoles.stream()
-                .map(this::getKoreanRoleName)  // 역할명을 한글로 변환
+                .map(RoleNameMapper::getKoreanRoleName)
                 .collect(Collectors.toList());
 
         return PotPreviewResponseDto.builder()
                 .userId(user.getId())
                 .userRole(String.valueOf(user.getRole()))
-                .userNickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
+                .userNickname(user.getNickname() + RoleNameMapper.mapRoleName(user.getRole().name()))
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potContent(pot.getPotContent())
-                .recruitmentRoles(koreanRoles)  //  리스트 그대로 전달
+                .recruitmentRoles(koreanRoles)
                 .dDay(dDay)
                 .build();
     }
 
-
-    private String formatDate(java.time.LocalDate date) {
-        return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
-    }
-
     public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, String formattedMembers, Role userPotRole) {
-        // Role별 인원 수 집계
         Map<String, Integer> roleCountMap = pot.getPotMembers().stream()
                 .collect(Collectors.groupingBy(
-                        member -> member.getRoleName().name(), // Role Enum을 문자열로 변환
-                        Collectors.reducing(0, e -> 1, Integer::sum) // 각 역할의 개수를 세기
+                        member -> member.getRoleName().name(),
+                        Collectors.reducing(0, e -> 1, Integer::sum)
                 ));
 
         return CompletedPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(formatDate(pot.getPotStartDate()))
-                .potEndDate(formatDate(pot.getPotEndDate()))
+                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
+                .potEndDate(DateFormatter.dotFormatter(pot.getPotEndDate()))
                 .potLan(pot.getPotLan())
-                .members(formattedMembers)  //  변환된 "프론트엔드(2), 백엔드(1)" 형식 적용
-                .userPotRole(getKoreanRoleName(String.valueOf(userPotRole)))
+                .members(formattedMembers)
+                .userPotRole(RoleNameMapper.getKoreanRoleName(userPotRole.name()))
                 .memberCounts(roleCountMap)
                 .build();
     }
 
-
     public PotSearchResponseDto toSearchDto(Pot pot) {
-        // 역할 이름 매핑 (유효한 역할만 처리)
-        String roleName = pot.getUser() != null && pot.getUser().getRole() != null
+        String roleName = (pot.getUser() != null && pot.getUser().getRole() != null)
                 ? pot.getUser().getRole().name()
                 : "멤버";
 
-        String nicknameWithRole = pot.getUser() != null && pot.getUser().getNickname() != null
-                ? pot.getUser().getNickname() + " " + mapRoleName(roleName)
+        String nicknameWithRole = (pot.getUser() != null && pot.getUser().getNickname() != null)
+                ? pot.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(roleName)
                 : "Unknown 멤버";
 
         return PotSearchResponseDto.builder()
@@ -133,61 +114,17 @@ public class PotConverter{
                 .potName(pot.getPotName())
                 .potContent(pot.getPotContent())
                 .creatorNickname(nicknameWithRole)
-                .creatorRole(
-                        pot.getUser() != null && pot.getUser().getRole() != null
-                                ? pot.getUser().getRole().name()
-                                : "멤버" // 기본값 설정
-                )
+                .creatorRole(roleName)
                 .recruitmentPart(
                         pot.getRecruitmentDetails() != null
                                 ? pot.getRecruitmentDetails().stream()
                                 .filter(rd -> rd.getRecruitmentRole() != null)
                                 .map(rd -> rd.getRecruitmentRole().name())
                                 .collect(Collectors.joining(", "))
-                                : "없음" // 기본값 설정
+                                : "없음"
                 )
                 .recruitmentDeadline(pot.getRecruitmentDeadline())
                 .build();
     }
 
-
-    private String mapRoleName(String roleName) {
-        return switch (roleName) {
-            case "BACKEND" -> "양파";
-            case "FRONTEND" -> "버섯";
-            case "DESIGN" -> "브로콜리";
-            case "PLANNING" -> "당근";
-            default -> "멤버";
-        };
-    }
-
-    private String getVegetableNameByRole(String role) {
-        Map<String, String> roleToVegetableMap = Map.of(
-                "BACKEND", " 양파",
-                "FRONTEND", " 버섯",
-                "DESIGN", " 브로콜리",
-                "PLANNING", " 당근",
-                "UNKNOWN",""
-        );
-        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
-    }
-
-    private String getKoreanModeOfOperation(String modeOfOperation) {
-        Map<String, String> modeOfOperationToKoreanMap = Map.of(
-                "ONLINE", "온라인",
-                "OFFLINE", "오프라인",
-                "HYBRID", "혼합"
-        );
-        return modeOfOperationToKoreanMap.getOrDefault(modeOfOperation, "알 수 없음");
-    }
-
-    private String getKoreanRoleName(String role) {
-        Map<String, String> roleToKoreaneMap = Map.of(
-                "BACKEND", "백엔드",
-                "FRONTEND", "프론트엔드",
-                "DESIGN", "디자인",
-                "PLANNING", "기획"
-        );
-        return roleToKoreaneMap.getOrDefault(role, "알 수 없음");
-    }
 }
