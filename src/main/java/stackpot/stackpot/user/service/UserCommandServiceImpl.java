@@ -6,8 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.BaseErrorCode;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.GeneralException;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
+import stackpot.stackpot.apiPayload.exception.handler.TokenHandler;
+import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.task.repository.TaskRepository;
 import stackpot.stackpot.task.repository.TaskboardRepository;
@@ -163,10 +167,11 @@ public class UserCommandServiceImpl implements UserCommandService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         if(user.getRole() == Role.UNKNOWN){
-            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+            log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
+            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         }
 
         // User 정보를 UserResponseDto로 변환
@@ -176,10 +181,12 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public UserResponseDto.Userdto getUsers(Long UserId) {
         User user = userRepository.findById(UserId)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
+        //탈퇴한 사용자
         if(user.getRole() == Role.UNKNOWN){
-            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+            log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
+            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         }
 
         return UserConverter.toDto(user);
@@ -191,10 +198,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
+        //탈퇴한 사용자
         if(user.getRole() == Role.UNKNOWN){
-            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+            log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
+            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         }
 
         return getMypageByUser(user.getId(), dataType);
@@ -209,10 +218,10 @@ public class UserCommandServiceImpl implements UserCommandService {
         List<Feed> feeds = List.of();
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         if(user.getRole() == Role.UNKNOWN){
-            throw new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND);
+            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         }
 
         if (dataType == null || dataType.isBlank()) {
@@ -223,7 +232,8 @@ public class UserCommandServiceImpl implements UserCommandService {
         } else if ("feed".equalsIgnoreCase(dataType)) {
             feeds = feedRepository.findByUser_Id(userId);
         } else {
-            throw new IllegalArgumentException("Invalid data type. Use 'pot', 'feed', or leave empty for all data.");
+            log.error("pot, feed 의 요청이 잘 못 되었습니다.");
+            throw new GeneralException(ErrorStatus._BAD_REQUEST);
         }
 
         return userMypageConverter.toDto(user, completedPots, feeds);
@@ -237,7 +247,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         // 업데이트할 필드 적용
         if (requestDto.getRole() != null) {
@@ -272,13 +282,13 @@ public class UserCommandServiceImpl implements UserCommandService {
 
             // 중복 검사
             if (!userRepository.existsByNickname(nickname)) {
+                log.info("닉네임이 생성되었습니다.{}",nickname);
                 break;
             }
             else {
-                log.info("사용중인 닉네임 입니다.{}", nickname);
+                log.debug("사용중인 닉네임 입니다.{}", nickname);
             }
         }
-
         return new NicknameResponseDto(nickname + " " + Role.toVegetable(role.toString()));
     }
 
@@ -289,7 +299,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         nickname = trimNickname(nickname);
 
@@ -316,7 +326,6 @@ public class UserCommandServiceImpl implements UserCommandService {
                 return nickname.replace(vegetable, "").trim();
             }
         }
-
         return nickname; // 기본적으로 원래 닉네임 반환
     }
 
@@ -326,11 +335,14 @@ public class UserCommandServiceImpl implements UserCommandService {
         String token = accessToken.replace("Bearer ", "");
         String email = jwtTokenProvider.getEmailFromToken(token);
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        log.info("회원 탈퇴 시작 id:{}", user.getUserId());
 
         try {
             // 2. 토큰 블랙리스트 처리
             blacklistRepository.addToBlacklist(token, jwtTokenProvider.getExpiration(token));
+            log.info("토큰 ");
 
             // 3. Feed 관련 데이터 삭제
             deleteFeedRelatedData(user.getId());
@@ -348,7 +360,6 @@ public class UserCommandServiceImpl implements UserCommandService {
             } else {
                 handleNormalUserPotDeletion(user);
             }
-
             return "회원 탈퇴가 완료되었습니다.";
 
         } catch (Exception e) {
@@ -496,11 +507,13 @@ public class UserCommandServiceImpl implements UserCommandService {
         try {
             email = jwtTokenProvider.getEmailFromToken(accessToken);
         } catch (Exception e) {
-            throw new IllegalArgumentException("로그아웃 실패: 유효하지 않은 토큰입니다.", e);
+            log.info("로그아웃 실패 {}",e);
+            throw new TokenHandler(ErrorStatus.INVALID_AUTH_TOKEN);
+
         }
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("로그아웃 실패: 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         try {
             // refreshToken 삭제 (존재하지 않아도 예외를 던지지 않도록 함)
