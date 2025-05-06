@@ -5,6 +5,7 @@ import stackpot.stackpot.search.dto.CursorPageResponse;
 import stackpot.stackpot.user.entity.enums.Role;
 
 import java.util.List;
+import java.util.Map;
 
 public interface PotQueryService {
     CursorPageResponse<CompletedPotResponseDto> getMyCompletedPots(Long cursor, int size);
@@ -16,4 +17,6 @@ public interface PotQueryService {
     CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size);
     CompletedPotDetailResponseDto getCompletedPotDetail(Long potId, Long userId);
     List<RecruitingPotResponseDto> getRecruitingPots();
+    Map<String, Object> getAllPotsWithPaging(Role roleEnum, int page, int size);
+
 }

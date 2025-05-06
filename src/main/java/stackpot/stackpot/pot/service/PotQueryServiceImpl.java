@@ -25,6 +25,7 @@ import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.user.repository.UserRepository;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -230,5 +231,31 @@ public class PotQueryServiceImpl implements PotQueryService {
 
         return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
     }
+    @Override
+    public Map<String, Object> getAllPotsWithPaging(Role role, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Pot> potPage = (role == null)
+                ? potRepository.findAllOrderByApplicantsCountDesc(pageable)
+                : potRepository.findByRecruitmentRoleOrderByApplicantsCountDesc(role, pageable);
+
+        List<PotPreviewResponseDto> pots = potPage.getContent().stream()
+                .map(pot -> {
+                    List<String> roles = pot.getRecruitmentDetails().stream()
+                            .map(rd -> String.valueOf(rd.getRecruitmentRole()))
+                            .collect(Collectors.toList());
+                    return potConverter.toPrviewDto(pot.getUser(), pot, roles);
+                })
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("pots", pots);
+        response.put("totalPages", potPage.getTotalPages());
+        response.put("currentPage", potPage.getNumber() + 1);
+        response.put("totalElements", potPage.getTotalElements());
+
+        return response;
+    }
+
+
 }
 

@@ -18,6 +18,8 @@ import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
+import stackpot.stackpot.pot.service.PotCommandService;
+import stackpot.stackpot.pot.service.PotQueryService;
 import stackpot.stackpot.task.dto.*;
 import stackpot.stackpot.task.entity.enums.TaskboardStatus;
 import stackpot.stackpot.pot.repository.PotRepository;
@@ -37,7 +39,8 @@ import java.util.Map;
 public class MyPotController {
 
     private final MyPotService myPotService;
-    private final PotService potService;
+    private final PotCommandService potCommandService;
+    private final PotQueryService potQueryService;
     private final PotRepository potRepository;
 
     // 사용자가 만든 진행 중인 팟 조회
@@ -57,7 +60,7 @@ public class MyPotController {
     public ResponseEntity<ApiResponse<String>> removePotOrMember(
             @PathVariable("pot_id") Long potId) {
 
-        String responseMessage = potService.removePotOrMember(potId);
+        String responseMessage = potCommandService.removePotOrMember(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseMessage));
     }
 

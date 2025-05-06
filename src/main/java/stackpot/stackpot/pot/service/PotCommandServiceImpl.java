@@ -223,16 +223,7 @@ public class PotCommandServiceImpl implements PotCommandService {
         }
     }
 
-    @Override
-    @Transactional
-    public void removeMemberFromPot(Long potId) {
-        User user = authService.getCurrentUser();
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
-        PotMember member = potMemberRepository.findByPotAndUser(pot, user)
-                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
-        potMemberRepository.delete(member);
-    }
+
 
     @Override
     @Transactional

@@ -16,7 +16,7 @@ public interface PotCommandService {
 
     String removePotOrMember(Long potId);
 
-    void removeMemberFromPot(Long potId);
+
 
     void patchLikes(Long potId, Long applicationId, Boolean liked);
 

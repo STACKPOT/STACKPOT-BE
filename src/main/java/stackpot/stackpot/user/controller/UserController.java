@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.config.security.JwtTokenProvider;
+import stackpot.stackpot.pot.service.PotCommandService;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
@@ -38,7 +39,7 @@ public class UserController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
     private final MyPotService myPotService;
-    private final PotService potService;
+    private final PotCommandService potCommandService;
 
     @Operation(summary = "토큰 테스트 API")
     @GetMapping("/login/token")
@@ -153,7 +154,7 @@ public class UserController {
             @PathVariable(name = "pot_id") Long potId,
             @RequestBody @Valid CompletedPotRequestDto requestDto) {
         // 팟 수정 로직 호출
-        PotResponseDto responseDto = potService.UpdateCompletedPot(potId, requestDto);
+        PotResponseDto responseDto = potCommandService.updateCompletedPot(potId, requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
 

@@ -15,6 +15,7 @@ import stackpot.stackpot.apiPayload.exception.handler.EnumHandler;
 import stackpot.stackpot.pot.dto.LikedApplicantResponseDTO;
 import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.pot.entity.Pot;
+import stackpot.stackpot.pot.service.PotApplicationQueryService;
 import stackpot.stackpot.pot.service.PotCommandService;
 import stackpot.stackpot.pot.service.PotQueryService;
 import stackpot.stackpot.user.entity.enums.Role;
@@ -33,7 +34,7 @@ public class PotController {
 
     private final PotCommandService potCommandService;
     private final PotQueryService potQueryService;
-    private final PotApplicationService potApplicationService;
+    private final PotApplicationQueryService potApplicationQueryService;
     private final PotRepository potRepository;
 
     @Operation(summary = "팟 생성 API", description = """
@@ -75,14 +76,14 @@ public class PotController {
     }
 
 
+    @GetMapping
     @Operation(
             summary = "모든 팟 조회 API",
             description = """
-        - Role: FRONTEND / BACKEND / DESIGN / PLANNING / (NULL)
-        만약 null인 경우 모든 role에 대해서 조회합니다.    
-    """
+    - Role: FRONTEND / BACKEND / DESIGN / PLANNING / (NULL)
+    만약 null인 경우 모든 role에 대해서 조회합니다.
+"""
     )
-    @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
             @RequestParam(required = false) String recruitmentRole,
             @RequestParam(defaultValue = "1") Integer page,
@@ -93,33 +94,14 @@ public class PotController {
         }
 
         Role roleEnum = null;
-//        if (recruitmentRole != null && !recruitmentRole.isEmpty()) {
-//            try {
-//                roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
-//            } catch (IllegalArgumentException e) {
-//                throw new RecruitmentHandler(ErrorStatus.INVALID_ROLE);
-//            }
-//        }
         if (recruitmentRole != null && !recruitmentRole.isEmpty()) {
             roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
         }
 
-        int adjustedPage = page - 1;
-
-        List<PotPreviewResponseDto> pots = potQueryService.getAllPots(roleEnum, adjustedPage, size);
-
-        Page<Pot> potPage = (roleEnum == null)
-                ? potRepository.findAll(PageRequest.of(adjustedPage, size))
-                : potRepository.findByRecruitmentDetails_RecruitmentRole(roleEnum, PageRequest.of(adjustedPage, size));
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("pots", pots);
-        response.put("totalPages", potPage.getTotalPages());
-        response.put("currentPage", potPage.getNumber() + 1);
-        response.put("totalElements", potPage.getTotalElements());
-
+        Map<String, Object> response = potQueryService.getAllPotsWithPaging(roleEnum, page, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
 
 
 
@@ -163,7 +145,7 @@ public class PotController {
     @Operation(summary = "특정 Pot의 상세 정보 및 지원자 목록 조회 API")
     @GetMapping("/{pot_id}/details")
     public ResponseEntity<ApiResponse<PotDetailWithApplicantsResponseDto>> getPotDetailsAndApplicants(@PathVariable("pot_id") Long potId) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(potApplicationService.getPotDetailsAndApplicants(potId)));
+        return ResponseEntity.ok(ApiResponse.onSuccess(potApplicationQueryService.getPotDetailsAndApplicants(potId)));
     }
 
     @Operation(summary = "내가 만든 팟 - 모집 중인 팟 조회 API")
