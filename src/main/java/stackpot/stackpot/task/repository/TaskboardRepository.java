@@ -10,6 +10,7 @@ import stackpot.stackpot.task.entity.Taskboard;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
@@ -17,7 +18,7 @@ public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
 
         List<Taskboard> findByUserId(Long userId);
 
-        Taskboard findByPotAndTaskboardId(Pot pot, Long taskboardId);
+        Optional<Taskboard> findByPotAndTaskboardId(Pot pot, Long taskboardId);
 
         @Modifying
         @Query("DELETE FROM Taskboard f WHERE f.user.id = :userId")
@@ -25,8 +26,6 @@ public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
         @Modifying
         @Query("DELETE FROM Taskboard f WHERE f.pot.potId = :potId")
         void deleteByPotId(@Param("potId") Long potId);
-
-        List<Taskboard> findByPotAndDeadLineGreaterThanEqualOrderByDeadLineAsc(Pot pot, LocalDate date);
 
         @Query("SELECT t FROM Taskboard t WHERE t.pot = :pot AND t.deadLine BETWEEN :startDate AND :endDate ORDER BY t.deadLine ASC")
         List<Taskboard> findByPotAndDeadLineBetweenOrderByDeadLineAsc(

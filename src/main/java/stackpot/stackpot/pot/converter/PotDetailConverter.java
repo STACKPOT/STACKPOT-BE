@@ -1,6 +1,11 @@
 package stackpot.stackpot.pot.converter;
 
+import stackpot.stackpot.common.util.DateFormatter;
+import stackpot.stackpot.common.util.DdayCounter;
+import stackpot.stackpot.common.util.OperationModeMapper;
+import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.entity.Pot;
+import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.pot.dto.AppliedPotResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
@@ -17,17 +22,12 @@ import java.util.stream.Collectors;
 
 @Component
 public class PotDetailConverter{
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy. MM. dd");
-
     public CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, String userPotRole, String appealContent) {
-        // 날짜 포맷 설정
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy. MM. dd");
-
         return CompletedPotDetailResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(pot.getPotStartDate() != null ? pot.getPotStartDate().format(formatter) : null)
-                .potEndDate(pot.getPotEndDate() != null ? pot.getPotEndDate().format(formatter) : null)
+                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
+                .potEndDate(DateFormatter.dotFormatter(pot.getPotEndDate()))
                 .potContent(pot.getPotContent())
                 .potStatus(pot.getPotStatus())
                 .potSummary(pot.getPotSummary())
@@ -36,116 +36,57 @@ public class PotDetailConverter{
                 .build();
     }
 
-    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied){
-        LocalDate today = LocalDate.now();
-        LocalDate deadline = pot.getRecruitmentDeadline();
+    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied) {
+        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
 
-        long daysDiff = ChronoUnit.DAYS.between(today, deadline);
-
-        String dDay;
-        if (daysDiff == 0) {
-            dDay = "D-Day";
-        } else if (daysDiff > 0) {
-            dDay = "D-" + daysDiff;
-        } else {
-            dDay = "D+" + Math.abs(daysDiff);
-        }
-
-        // recruitmentDetails를 Map<String, Integer> 형태로 변환
         Map<String, Integer> recruitingMembers = pot.getRecruitmentDetails().stream()
                 .collect(Collectors.toMap(
-
-                        recruitmentDetail -> recruitmentDetail.getRecruitmentRole().name(),
-                        recruitmentDetail -> recruitmentDetail.getRecruitmentCount()
+                        rd -> rd.getRecruitmentRole().name(),
+                        PotRecruitmentDetails::getRecruitmentCount
                 ));
 
         return PotDetailResponseDto.builder()
                 .userId(user.getId())
-                .userRole(String.valueOf(user.getRole()))
-                .userNickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
+                .userRole(user.getRole().name())
+                .userNickname(user.getNickname() + RoleNameMapper.mapRoleName(user.getRole().name()))
                 .isOwner(isOwner)
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(formatDate(pot.getPotStartDate()))
-                .potEndDate(formatDate(pot.getPotEndDate()))
+                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
+                .potEndDate(DateFormatter.dotFormatter(pot.getPotEndDate()))
                 .potDuration(pot.getPotDuration())
                 .potLan(pot.getPotLan())
                 .potStatus(pot.getPotStatus())
                 .applied(isApplied)
-                .potModeOfOperation(getKoreanModeOfOperation(String.valueOf(pot.getPotModeOfOperation())))
+                .potModeOfOperation(OperationModeMapper.getKoreanMode(pot.getPotModeOfOperation().name()))
                 .potContent(pot.getPotContent())
                 .potSummary(pot.getPotSummary())
                 .dDay(dDay)
-                .recruitmentDeadline(formatDate(pot.getRecruitmentDeadline()))
+                .recruitmentDeadline(DateFormatter.dotFormatter(pot.getRecruitmentDeadline()))
                 .recruitmentDetails(recruitmentDetails)
                 .recruitingMembers(recruitingMembers)
                 .build();
     }
 
     public AppliedPotResponseDto toAppliedPotResponseDto(User user, Pot pot, String recruitmentDetails) {
-        LocalDate today = LocalDate.now();
-        LocalDate deadline = pot.getRecruitmentDeadline();
-
-        long daysDiff = ChronoUnit.DAYS.between(today, deadline);
-
-        String dDay;
-        if (daysDiff == 0) {
-            dDay = "D-Day";
-        } else if (daysDiff > 0) {
-            dDay = "D-" + daysDiff;
-        } else {
-            dDay = "D+" + Math.abs(daysDiff);
-        }
+        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
 
         return AppliedPotResponseDto.builder()
                 .userId(user.getId())
-                .userRole(String.valueOf(user.getRole()))
-                .userNickname(user.getNickname() + getVegetableNameByRole(user.getRole().name()))
+                .userRole(user.getRole().name())
+                .userNickname(user.getNickname() + RoleNameMapper.mapRoleName(user.getRole().name()))
                 .potId(pot.getPotId())
                 .potStatus(pot.getPotStatus())
                 .potName(pot.getPotName())
-                .potStartDate(formatDate(pot.getPotStartDate()))
+                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
                 .potDuration(pot.getPotDuration())
                 .potLan(pot.getPotLan())
-                .potModeOfOperation(getKoreanModeOfOperation(String.valueOf(pot.getPotModeOfOperation())))
+                .potModeOfOperation(OperationModeMapper.getKoreanMode(pot.getPotModeOfOperation().name()))
                 .potContent(pot.getPotContent())
                 .dDay(dDay)
                 .recruitmentDetails(recruitmentDetails)
                 .build();
     }
 
-    private String getVegetableNameByRole(String role) {
-        Map<String, String> roleToVegetableMap = Map.of(
-                "BACKEND", " 양파",
-                "FRONTEND", " 버섯",
-                "DESIGN", " 브로콜리",
-                "PLANNING", " 당근",
-                "UNKNOWN",""
-        );
-        return roleToVegetableMap.getOrDefault(role, "알 수 없음");
-    }
-
-    private String formatDate(java.time.LocalDate date) {
-        return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
-    }
-
-    private String getKoreanModeOfOperation(String modeOfOperation) {
-        Map<String, String> modeOfOperationToKoreanMap = Map.of(
-                "ONLINE", "온라인",
-                "OFFLINE", "오프라인",
-                "HYBRID", "혼합"
-        );
-        return modeOfOperationToKoreanMap.getOrDefault(modeOfOperation, "알 수 없음");
-    }
-
-    private String getKoreanRoleName(String role) {
-        Map<String, String> roleToKoreanMap = Map.of(
-                "BACKEND", "백엔드",
-                "FRONTEND", "프론트엔드",
-                "DESIGN", "디자인",
-                "PLANNING", "기획"
-        );
-        return roleToKoreanMap.getOrDefault(role, "알 수 없음");
-    }
 }
 

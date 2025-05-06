@@ -13,12 +13,9 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByTaskboard(Taskboard taskboard);
+
     void deleteByTaskboard(Taskboard taskboard);
 
-
-//    @Modifying
-//    @Query("DELETE FROM Task b WHERE b.potMember.potMemberId IN :potMemberIds")
-//    void deleteByPotMemberIds(@Param("potMemberIds") List<Long> potMemberIds);
     @Modifying
     @Query("DELETE FROM Task t WHERE t.potMember.potMemberId IN :potMemberIds")
     void deleteByPotMemberIds(@Param("potMemberIds") List<Long> potMemberIds);

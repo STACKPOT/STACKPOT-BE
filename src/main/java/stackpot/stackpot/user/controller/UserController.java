@@ -17,13 +17,13 @@ import stackpot.stackpot.user.dto.request.TokenRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
+import stackpot.stackpot.pot.service.PotCommandService;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
 import stackpot.stackpot.pot.dto.PotResponseDto;
 import stackpot.stackpot.user.service.KakaoService;
 import stackpot.stackpot.pot.service.MyPotService;
-import stackpot.stackpot.pot.service.PotService;
 import stackpot.stackpot.user.service.UserCommandService;
 
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class UserController {
     private final UserCommandService userCommandService;
     private final KakaoService kakaoService;
     private final MyPotService myPotService;
-    private final PotService potService;
+    private final PotCommandService potCommandService;
 
 
     @GetMapping("/login/token")
@@ -369,7 +369,7 @@ public class UserController {
             @PathVariable(name = "pot_id") Long potId,
             @RequestBody @Valid CompletedPotRequestDto requestDto) {
         // 팟 수정 로직 호출
-        PotResponseDto responseDto = potService.UpdateCompletedPot(potId, requestDto);
+        PotResponseDto responseDto = potCommandService.updateCompletedPot(potId, requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
 
