@@ -10,8 +10,7 @@ import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
 import stackpot.stackpot.pot.service.MyPotService;
-import stackpot.stackpot.pot.service.PotService;
-
+import stackpot.stackpot.pot.service.PotCommandService;
 import java.util.List;
 
 @RestController
@@ -21,7 +20,7 @@ import java.util.List;
 public class MyPotController {
 
     private final MyPotService myPotService;
-    private final PotService potService;
+    private final PotCommandService potCommandService;
 
     // 사용자가 만든 진행 중인 팟 조회
     @Operation(summary = "나의 팟 조회 API",
@@ -40,7 +39,7 @@ public class MyPotController {
     public ResponseEntity<ApiResponse<String>> removePotOrMember(
             @PathVariable("pot_id") Long potId) {
 
-        String responseMessage = potService.removePotOrMember(potId);
+        String responseMessage = potCommandService.removePotOrMember(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseMessage));
     }
 
