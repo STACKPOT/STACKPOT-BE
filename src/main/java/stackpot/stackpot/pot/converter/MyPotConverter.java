@@ -1,19 +1,14 @@
 package stackpot.stackpot.pot.converter;
 
-
 import stackpot.stackpot.badge.dto.BadgeDto;
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
+import stackpot.stackpot.common.util.DateFormatter;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
 import stackpot.stackpot.pot.dto.RecruitingPotResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
-import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
-import stackpot.stackpot.todo.dto.MyPotTodoResponseDTO;
-import stackpot.stackpot.todo.entity.enums.TodoStatus;
-import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
-import stackpot.stackpot.todo.entity.mapping.UserTodo;
 
 import java.util.List;
 
@@ -31,14 +26,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Component
 public class MyPotConverter{
-
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy. MM. dd");
-    private final PotMemberRepository potMemberRepository;
-
-    private String formatDate(java.time.LocalDate date) {
-        return (date != null) ? date.format(DATE_FORMATTER) : "N/A";
-    }
-
 
     public OngoingPotResponseDto convertToOngoingPotResponseDto(Pot pot, Long userId) {
         // Role별 인원 수 집계
@@ -74,8 +61,8 @@ public class MyPotConverter{
         return CompletedPotBadgeResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(formatDate(pot.getPotStartDate()))
-                .potEndDate(formatDate(pot.getPotEndDate()))
+                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
+                .potEndDate(DateFormatter.dotFormatter(pot.getPotEndDate()))
                 .potLan(pot.getPotLan())
                 .members(formattedMembers)  //  "프론트엔드(2), 백엔드(1)" 형식 적용
                 .userPotRole(getKoreanRoleName(String.valueOf(userPotRole)))
@@ -123,50 +110,6 @@ public class MyPotConverter{
                 .members(recruitmentCountMap)// 역할 개수 Map 적용
                 .dDay(dDay)
                 .build();
-    }
-
-    public MyPotTodoResponseDTO toDto(User member, Pot pot, List<UserTodo> userTodos, User currentUser) {
-        String roleName = getUserRoleInPot(member, pot);
-        String userNicknameWithRole = member.getNickname() + mapRoleName(roleName);
-
-        // 현재 로그인한 사용자만 todoCount 포함
-        Integer notStartedCount = null;
-        if (member.equals(currentUser)) {
-            notStartedCount = (int) userTodos.stream()
-                    .filter(todo -> todo.getStatus() == TodoStatus.NOT_STARTED)
-                    .count();
-        }
-
-        return MyPotTodoResponseDTO.builder()
-                .userNickname(userNicknameWithRole)
-                .userRole(roleName)
-                .userId(member.getId())
-                .todoCount(notStartedCount) // 다른 사용자는 자동으로 null 처리됨
-                .todos(userTodos.isEmpty() ? null : userTodos.stream()
-                        .map(todo -> MyPotTodoResponseDTO.TodoDetailDTO.builder()
-                                .todoId(todo.getTodoId())
-                                .content(todo.getContent())
-                                .status(todo.getStatus())
-                                .build())
-                        .collect(Collectors.toList()))
-                .build();
-    }
-
-    private String mapRoleName(String roleName) {
-        return switch (roleName) {
-            case "BACKEND" -> " 양파";
-            case "FRONTEND" -> " 버섯";
-            case "DESIGN" -> " 브로콜리";
-            case "PLANNING" -> " 당근";
-            default -> "멤버";
-        };
-    }
-
-    public String getUserRoleInPot(User member, Pot pot) {
-        return potMemberRepository.findByPotAndUser(pot, member)
-                .map(PotMember::getRoleName)
-                .map(Enum::name) // Enum 타입이라면 .name() 호출
-                .orElse("멤버"); // 역할 정보가 없으면 기본값 반환
     }
 
 }

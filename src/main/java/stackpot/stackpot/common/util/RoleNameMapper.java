@@ -11,6 +11,16 @@ public final class RoleNameMapper {
             "PLANNING", "당근"
     );
 
+    public static String getKoreanRoleName(String role) {
+        Map<String, String> roleToKoreanMap = Map.of(
+                "BACKEND", "백엔드",
+                "FRONTEND", "프론트엔드",
+                "DESIGN", "디자인",
+                "PLANNING", "기획"
+        );
+        return roleToKoreanMap.getOrDefault(role, "알 수 없음");
+    }
+
     private RoleNameMapper() {} // 인스턴스화 방지
 
     public static String mapRoleName(String potRole) {
