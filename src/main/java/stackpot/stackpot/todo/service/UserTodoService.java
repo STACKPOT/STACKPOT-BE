@@ -8,7 +8,6 @@ import stackpot.stackpot.todo.dto.MyPotTodoUpdateRequestDTO;
 import java.util.List;
 
 public interface UserTodoService {
-    void assignBadgeToTopMembers(Long potId);
     Page<MyPotTodoResponseDTO> getTodo(Long potId, PageRequest pageRequest);
     List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> requestList);
     List<MyPotTodoResponseDTO> completeTodo(Long potId, Long todoId);

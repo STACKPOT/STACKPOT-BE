@@ -31,14 +31,6 @@ public class UserTodoController {
     private final UserTodoService userTodoService;
     private final PotRepository potRepository;
 
-    @Operation(summary = "팟에서 가장 많은 `투두를 완료한 멤버에게 뱃지 부여")
-    @PostMapping("badges/{potId}")
-    public ResponseEntity<ApiResponse<Void>> assignBadgeToTopMembers(
-            @PathVariable Long potId) {
-        userTodoService.assignBadgeToTopMembers(potId);
-        return ResponseEntity.ok(ApiResponse.onSuccess(null));
-    }
-
     @Operation(summary = "Todo 생성 및 수정 API",
             description = "사용자의 모든 투두 내용을 한 번에 수정할 수 있는 API입니다. 이 API는 리스트를 통한 생성 방식과 유사하지만, 기존에 생성된 투두의 경우 " +
                     "status 값을 유지해야 하므로 todoId를 함께 보내야 합니다.\n\n" +

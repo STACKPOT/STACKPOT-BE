@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import stackpot.stackpot.todo.entity.enums.TodoStatus;
 import stackpot.stackpot.todo.entity.mapping.UserTodo;
 
 import java.util.List;
@@ -27,5 +28,7 @@ public interface UserTodoRepository extends JpaRepository<UserTodo, Long> {
     @Modifying
     @Query("DELETE FROM UserTodo f WHERE f.pot.potId = :potId")
     void deleteByPotId(@Param("potId") Long potId);
+
+    long countByPot_PotIdAndStatus(Long potPotId, TodoStatus status);
 
 }
