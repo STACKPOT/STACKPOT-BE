@@ -50,6 +50,11 @@ public class UserController {
                             responseCode = "200",
                             description = "유요한 토큰",
                             content = @Content(mediaType = "application/json")
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "401",
+                            description = "유요하지 않은 토큰",
+                            content = @Content(mediaType = "application/json")
                     )
             }
     )
@@ -65,11 +70,21 @@ public class UserController {
             summary = "로그인 및 토큰발급 API",
             description = "\"code\" 와 함께 요청시 기존/신규 유저 구분 및 Accesstoken을 발급합니다. isNewUser : false( DB 조회 확인 기존 유저 ), ture ( DB에 없음 신규 유저 )",
             responses = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "성공적으로 토큰 발급",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.loginDto.class))
-            )
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "200",
+                            description = "성공적으로 토큰 발급",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.loginDto.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid Parameter",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(mediaType = "application/json")
+                    )
         }
     )
     public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
@@ -127,7 +142,12 @@ public class UserController {
                             responseCode = "200",
                             description = "신규 유저 생성 성공",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
-                    )
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "유저를 찾을 수 없음",
+                    content = @Content(mediaType = "application/json")
+            )
             }
     )
     public ResponseEntity<ApiResponse<String>> saveNickname(@RequestParam("nickname") String nickname) {
@@ -144,6 +164,11 @@ public class UserController {
                             responseCode = "200",
                             description = "로그아웃 성공",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "401",
+                            description = "유요하지 않은 토큰",
+                            content = @Content(mediaType = "application/json")
                     )
             }
     )
@@ -163,6 +188,16 @@ public class UserController {
                             responseCode = "200",
                             description = "회읜탈퇴 성공",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "404",
+                            description = "유저를 찾을 수 없음",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "500",
+                            description = "회읜탈퇴 중 오류 발생",
+                            content = @Content(mediaType = "application/json")
                     )
             }
 
@@ -181,6 +216,11 @@ public class UserController {
                             responseCode = "200",
                             description = "유저 정보 조회 성공",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.Userdto.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "404",
+                            description = "유저를 찾을 수 없음",
+                            content = @Content(mediaType = "application/json")
                     )
             }
     )
@@ -195,11 +235,16 @@ public class UserController {
             summary = "나의 정보 조회 API",
             description = "토큰을 통해 '설정 페이지'와 '마이페이지'의 피드, 끓인 팟을 제외한 사용자 자신의 정보만을 제공하는 API입니다. 사용자의 Pot, FEED 조회와 조합해서 마이페이지를 제작하실 수 있습니다.",
             responses = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "사용자 정보 조회 성공",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.Userdto.class))
-            )
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "200",
+                            description = "사용자 정보 조회 성공",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.Userdto.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "404",
+                            description = "유저를 찾을 수 없음",
+                            content = @Content(mediaType = "application/json")
+                    )
     }
     )
     public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersMyPages(){
@@ -216,6 +261,16 @@ public class UserController {
                             responseCode = "200",
                             description = "나의 페이지 조회 성공",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserMyPageResponseDto.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "400",
+                            description = "잘못된 요청",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "404",
+                            description = "유저를 찾을 수 없음",
+                            content = @Content(mediaType = "application/json")
                     )
             }
     )
@@ -235,6 +290,16 @@ public class UserController {
                             responseCode = "200",
                             description = "사용자별 myPage 조회 성공",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserMyPageResponseDto.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "400",
+                            description = "잘못된 요청",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "404",
+                            description = "유저를 찾을 수 없음",
+                            content = @Content(mediaType = "application/json")
                     )
             }
     )
@@ -254,16 +319,22 @@ public class UserController {
                             responseCode = "200",
                             description = "사용자 정보 수정 성공",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.Userdto.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "404",
+                            description = "유저를 찾을 수 없음",
+                            content = @Content(mediaType = "application/json")
                     )
             }
             )
     public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> updateUserProfile(
             @RequestBody UserUpdateRequestDto requestDto) {
-
         UserResponseDto.Userdto updatedUser = userCommandService.updateUserProfile(requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(updatedUser));
     }
 
+
+    //TODO : MyPotService 수정 이후 @Operation, responses 수정
     @GetMapping("/{pot_id}/details")
     @Operation(
             summary = "마이페이지 끓인 팟 상세 보기 모달",

@@ -232,7 +232,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         } else if ("feed".equalsIgnoreCase(dataType)) {
             feeds = feedRepository.findByUser_Id(userId);
         } else {
-            log.error("pot, feed 의 요청이 잘 못 되었습니다.");
+            log.error("pot, feed의 요청이 잘 못 되었습니다.");
             throw new GeneralException(ErrorStatus._BAD_REQUEST);
         }
 
