@@ -9,8 +9,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import stackpot.stackpot.user.dto.KakaoTokenResponseDto;
-import stackpot.stackpot.user.dto.KakaoUserInfoResponseDto;
+import stackpot.stackpot.user.dto.response.KakaoTokenResponseDto;
+import stackpot.stackpot.user.dto.response.KakaoUserInfoResponseDto;
 import org.springframework.http.HttpStatusCode;
 
 @Slf4j
