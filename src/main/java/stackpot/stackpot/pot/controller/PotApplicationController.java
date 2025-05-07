@@ -58,7 +58,7 @@ public class PotApplicationController {
     @GetMapping("")
     public ResponseEntity<ApiResponse<List<PotApplicationResponseDto>>> getApplicants(
             @PathVariable("pot_id") Long potId) {
-        // 서비스 호출
+
         List<PotApplicationResponseDto> applicants = potApplicationQueryService.getApplicantsByPotId(potId);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(applicants));

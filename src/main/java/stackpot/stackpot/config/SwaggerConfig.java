@@ -42,21 +42,21 @@ public class SwaggerConfig {
         // API 요청 헤더에 인증 정보 포함
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
 
-        // SecuritySchemes 등록
+
         Components components = new Components()
                 .addSecuritySchemes(jwtSchemeName, new SecurityScheme()
                         .name(jwtSchemeName)
-                        .type(SecurityScheme.Type.HTTP) // HTTP 방식
+                        .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
                         .bearerFormat("JWT"));
 
         return new OpenAPI()
-                .info(info) // API 정보 설정
+                .info(info)
                 .addServersItem(new Server().url("http://localhost:8080").description("Local server"))// 서버 URL 설정
                 .addServersItem(new Server().url("http://dev.stackpot.co.kr").description("Dev server"))
-                .addServersItem(new Server().url("https://api.stackpot.co.kr").description("Production server")) // 서버 URL 설정
-                .addSecurityItem(securityRequirement) // SecurityRequirement 추가
-                .components(components); // SecuritySchemes 등록
+                .addServersItem(new Server().url("https://api.stackpot.co.kr").description("Production server"))
+                .addSecurityItem(securityRequirement)
+                .components(components);
     }
 
 
@@ -102,11 +102,11 @@ public class SwaggerConfig {
     }
 
     private Example getSwaggerExample(ErrorStatus errorStatus) {
-        // ✅ ErrorReasonDTO를 상속한 ErrorResponseDto 기반으로 예시 작성
+
         ErrorResponseDto errorResponseDto = ErrorResponseDto.of(errorStatus);
 
         Example example = new Example();
-        example.setValue(errorResponseDto); // 자동 직렬화되어 Swagger UI에 보여짐
+        example.setValue(errorResponseDto);
         return example;
     }
 

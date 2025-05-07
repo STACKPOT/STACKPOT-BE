@@ -34,7 +34,7 @@ public class ErrorResponseDto extends ErrorReasonDTO {
         return new ErrorResponseDto(
                 errorStatus.getHttpStatus(),
                 errorStatus.getCode(),
-                errorStatus.getMessage() // 예외 메시지를 포함하려면 따로 가공 필요
+                errorStatus.getMessage()
         );
     }
 }
