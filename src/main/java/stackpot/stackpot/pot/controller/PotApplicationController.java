@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.common.swagger.ApiErrorCodeExample;
+import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
 import stackpot.stackpot.pot.dto.PotApplicationRequestDto;
 import stackpot.stackpot.pot.dto.PotApplicationResponseDto;
 import stackpot.stackpot.pot.service.PotApplicationCommandService;
@@ -23,17 +26,24 @@ public class PotApplicationController {
     private final PotApplicationCommandService potApplicationCommandService;
     private final PotApplicationQueryService potApplicationQueryService;
     @Operation(summary = "팟 지원 API")
+    @ApiErrorCodeExamples({
+            ErrorStatus.POT_NOT_FOUND,
+            ErrorStatus.DUPLICATE_APPLICATION
+    })
     @PostMapping
     public ResponseEntity<ApiResponse<PotApplicationResponseDto>> applyToPot(
             @PathVariable("pot_id") Long potId,
             @RequestBody @Valid PotApplicationRequestDto requestDto) {
 
-        // 팟 지원 로직 호출
+
         PotApplicationResponseDto responseDto = potApplicationCommandService.applyToPot(requestDto, potId);
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 성공 시 ApiResponse로 감싸서 응답 반환
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
     @Operation(summary = "팟 지원 취소 API")
+    @ApiErrorCodeExamples({
+            ErrorStatus.APPLICATION_NOT_FOUND
+    })
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> cancelApplication(@PathVariable("pot_id") Long potId) {
         potApplicationCommandService.cancelApplication(potId);
@@ -42,13 +52,16 @@ public class PotApplicationController {
 
 
     @Operation(summary = "팟 지원자 조회 API")
+    @ApiErrorCodeExamples({
+            ErrorStatus.UNAUTHORIZED_ACCESS
+    })
     @GetMapping("")
     public ResponseEntity<ApiResponse<List<PotApplicationResponseDto>>> getApplicants(
             @PathVariable("pot_id") Long potId) {
         // 서비스 호출
         List<PotApplicationResponseDto> applicants = potApplicationQueryService.getApplicantsByPotId(potId);
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(applicants)); // 성공 시 ApiResponse로 감싸서 응답 반환
+        return ResponseEntity.ok(ApiResponse.onSuccess(applicants));
     }
 
 }

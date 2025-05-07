@@ -13,5 +13,10 @@ public class ErrorReasonDTO {
     private final String code;
     private final String message;
 
+
+
     public boolean getIsSuccess(){return isSuccess;}
+    public static ErrorReasonDTO of(HttpStatus status, String code, String message) {
+        return new ErrorReasonDTO(status, false, code, message);
+    }
 }
