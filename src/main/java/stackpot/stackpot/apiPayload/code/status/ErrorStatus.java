@@ -63,7 +63,7 @@ public enum ErrorStatus implements BaseErrorCode {
     BADGE_INSUFFICIENT_TOP_MEMBERS(HttpStatus.BAD_REQUEST, "BADGE4001", "팀원이 1명 이하라 뱃지 수여 조건을 만족하지 않습니다. 팀원은 최소 2명 이상이어야 합니다."),
     BADGE_INSUFFICIENT_TODO_COUNTS(HttpStatus.BAD_REQUEST, "BADGE4002", "TODO를 완료한 사람이 존재하지 않습니다."),
 
-    INVALID_SEARCH_TYPE(HttpStatus.BAD_REQUEST, "SEARCH_STATUS4000", "검색 Type 형식이 올바르지 않습니다 (POT/FEED)");
+    INVALID_SEARCH_TYPE(HttpStatus.BAD_REQUEST, "SEARCH_STATUS4000", "검색 Type 형식이 올바르지 않습니다 (pot/feed)");
 
 
     private final HttpStatus httpStatus;
