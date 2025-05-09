@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.converter.FeedConverter;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.feed.entity.Feed;
@@ -34,11 +35,12 @@ public class SearchServiceImpl implements SearchService {
     private final FeedConverter feedConverter;
     private final FeedLikeRepository feedLikeRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
-@Override
+
+    @Override
 @Transactional(readOnly = true)
 public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable) {
-
 
     Page<Pot> pots = potRepository.searchByKeyword(keyword, pageable);
 
@@ -56,7 +58,6 @@ public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable)
     @Transactional(readOnly = true)
     public Page<FeedSearchResponseDto> searchFeeds(String keyword, Pageable pageable) {
 
-
         // 현재 로그인한 사용자 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAuthenticated = authentication != null && authentication.isAuthenticated();
@@ -64,10 +65,7 @@ public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable)
         Page<Feed> feeds = feedRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(keyword, keyword, pageable);
 
 
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
-
+        User user = authService.getCurrentUser();
 
         // 좋아요를 눌렀던 피드 ID 리스트 가져오기
         List<Long> likedFeedIds = isAuthenticated && userId != null

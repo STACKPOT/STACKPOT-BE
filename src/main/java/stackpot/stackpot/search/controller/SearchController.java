@@ -12,6 +12,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
 import stackpot.stackpot.search.service.SearchService;
 
 import java.util.HashMap;
@@ -33,6 +36,9 @@ public class SearchController {
                     @Parameter(name = "page", description = "페이지 번호 (1부터 시작)", example = "1"),
                     @Parameter(name = "size", description = "페이지 크기", example = "10")
             })
+    @ApiErrorCodeExamples({
+            ErrorStatus.INVALID_SEARCH_TYPE
+    })
     public ResponseEntity<ApiResponse<Map<String, Object>>> search(
             @RequestParam String type,
             @RequestParam String keyword,
@@ -47,7 +53,7 @@ public class SearchController {
         } else if ("feed".equalsIgnoreCase(type)) {
             resultPage = searchService.searchFeeds(keyword, pageable);
         } else {
-            throw new IllegalArgumentException("Invalid search type. Use 'pot' or 'feed'.");
+            throw new PotHandler(ErrorStatus.INVALID_SEARCH_TYPE);
         }
 
         // 응답 데이터 구성
