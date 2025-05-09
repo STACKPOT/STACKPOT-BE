@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.task.dto.*;
 import stackpot.stackpot.task.entity.enums.TaskboardStatus;
-import stackpot.stackpot.task.service.TaskService;
+import stackpot.stackpot.task.service.TaskCommandService;
+import stackpot.stackpot.task.service.TaskQueryService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,7 +24,8 @@ import java.util.Map;
 @RequestMapping(value = "/tasks",produces = "application/json; charset=UTF-8")
 public class TaskController {
 
-    private final TaskService taskService;
+    private final TaskCommandService taskCommandService;
+    private final TaskQueryService taskQueryService;
 
     @PostMapping("/{pot_id}/tasks")
     @Operation(summary = "Task 생성 API",
@@ -31,7 +33,7 @@ public class TaskController {
                     "memberID는 [Pot Member Management] > [/pots/{pot_id}/members]를 통해 확인하실 수 있습니다."+
                     "ex) \"participants\": [1, 2]")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> createPotTask(@PathVariable("pot_id") Long potId, @RequestBody @Valid MyPotTaskRequestDto.create request) {
-        MyPotTaskResponseDto response = taskService.creatTask(potId, request);
+        MyPotTaskResponseDto response = taskCommandService.creatTask(potId, request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -39,7 +41,7 @@ public class TaskController {
     @GetMapping("/{pot_id}/tasks/{task_id}")
     @Operation(summary = "Task 상세 조회 API", description = "Task 상세 조회 API입니다. potId와 taskId를 통해 pot의 특정 task를 조회합니다.")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> getPotDetailTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
-        MyPotTaskResponseDto response = taskService.viewDetailTask(potId, taskId);
+        MyPotTaskResponseDto response = taskQueryService.viewDetailTask(potId, taskId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -48,7 +50,7 @@ public class TaskController {
             description = "Task 전체 조회 API입니다. potId를 통해 pot의 전체 task를 조회합니다.\n" +
                     " \"category는 참여한 멤버의 role로 자동으로 결정됩니다.\"")
     public ResponseEntity<ApiResponse<Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>>>> getPotTask(@PathVariable("pot_id") Long potId) {
-        Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> response = taskService.preViewTask(potId);
+        Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> response = taskQueryService.preViewTask(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
     @GetMapping("/{pot_id}/tasks/calendar")
@@ -58,7 +60,7 @@ public class TaskController {
                     @Parameter(name = "date", description = "yyyy-MM-dd 형식으로 작성해주세요.")
             })
     public ResponseEntity<ApiResponse<List<MyPotTaskPreViewResponseDto>>> getPotTaskByDate(@PathVariable("pot_id") Long potId, @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-        List<MyPotTaskPreViewResponseDto> response = taskService.getTasksFromDate(potId, date);
+        List<MyPotTaskPreViewResponseDto> response = taskQueryService.getTasksFromDate(potId, date);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -70,28 +72,28 @@ public class TaskController {
             @RequestParam("year") int year,
             @RequestParam("month") int month) {
 
-        List<MonthlyTaskDto> response = taskService.getMonthlyTasks(potId, year, month);
+        List<MonthlyTaskDto> response = taskQueryService.getMonthlyTasks(potId, year, month);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
     @PatchMapping("/{pot_id}/tasks/{task_id}")
     @Operation(summary = "Task 수정 API", description = "Task 수정 API입니다. 수정사항을 입력해 주세요. 만약 기존 내용을 유지하고자 한다면 Null 처리 해주세요 ")
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> modifyPotTask(@PathVariable("pot_id") Long potId,@PathVariable("task_id") Long taskId, @RequestBody MyPotTaskRequestDto.create request) {
-        MyPotTaskResponseDto response = taskService.modifyTask(potId, taskId, request);
+        MyPotTaskResponseDto response = taskCommandService.modifyTask(potId, taskId, request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
     @DeleteMapping("/{pot_id}/tasks/{task_id}")
     @Operation(summary = "Task 삭제 API", description = "Task 삭제 API입니다. potId와 taskId를 pot의 특정 task를 삭제합니다.")
     public ResponseEntity<?> deletetPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId) {
-        taskService.deleteTaskBoard(potId, taskId);
+        taskCommandService.deleteTaskBoard(potId, taskId);
         return ResponseEntity.ok(ApiResponse.onSuccess("할일이 삭제되었습니다."));
     }
 
     @PatchMapping("/{pot_id}/tasks/{task_id}/status")
     @Operation(summary = "Task 상태 변경 API", description = "taskId와 todoStatus(OPEN / IN_PROGRESS / CLOSED) 값을 전달해주시면 해당 업무가 요청한 상태로 변경됩니다.")
     public ResponseEntity<ApiResponse<MyPotTaskStatusResponseDto>> modifyPotTask(@PathVariable("pot_id") Long potId, @PathVariable("task_id") Long taskId, TaskboardStatus status) {
-        MyPotTaskStatusResponseDto response = taskService.updateTaskStatus(potId, taskId, status);
+        MyPotTaskStatusResponseDto response = taskCommandService.updateTaskStatus(potId, taskId, status);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }
