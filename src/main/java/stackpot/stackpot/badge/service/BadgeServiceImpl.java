@@ -29,6 +29,7 @@ public class BadgeServiceImpl implements BadgeService {
     private final BadgeRepository badgeRepository;
     private final UserTodoRepository userTodoRepository;
     private final PotMemberRepository potMemberRepository;
+    private final PotMemberRepository potMemberRepository;
     private final PotMemberBadgeRepository potMemberBadgeRepository;
     private final PotBadgeMemberConverter potBadgeMemberConverter;
 

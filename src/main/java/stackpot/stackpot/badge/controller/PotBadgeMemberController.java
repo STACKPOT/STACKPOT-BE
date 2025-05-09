@@ -6,8 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.badge.service.BadgeService;
 import stackpot.stackpot.badge.service.PotBadgeMemberService;
+import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
 import stackpot.stackpot.todo.dto.MyPotTodoResponseDTO;
 import stackpot.stackpot.todo.dto.MyPotTodoUpdateRequestDTO;
 import stackpot.stackpot.todo.service.UserTodoService;
@@ -35,6 +37,11 @@ public class PotBadgeMemberController {
 
     @Operation(summary = "팟에서 가장 많은 `투두를 완료한' 멤버에게 뱃지 부여")
     @PostMapping("/{potId}")
+    @ApiErrorCodeExamples({
+            ErrorStatus.BADGE_NOT_FOUND,
+            ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS,
+            ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS
+    })
     public ResponseEntity<ApiResponse<Void>> assignBadgeToTopMembers(
             @PathVariable Long potId) {
         badgeService.assignBadgeToTopMembers(potId);
