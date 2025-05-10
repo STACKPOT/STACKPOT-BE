@@ -41,13 +41,10 @@ public class TaskQueryServiceImpl implements TaskQueryService {
     public Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> preViewTask(Long potId) {
         User user = authService.getCurrentUser();
 
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
-
-        potMemberRepository.findByPotAndUser(pot, user)
+        potMemberRepository.findByPotPotIdAndUser(potId, user)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
 
-        List<Taskboard> taskboards = taskboardRepository.findByPot(pot);
+        List<Taskboard> taskboards = taskboardRepository.findByPotPotId(potId);
 
         List<MyPotTaskPreViewResponseDto> taskboardDtos = taskboards.stream()
                 .map(taskboard -> {
@@ -92,13 +89,10 @@ public class TaskQueryServiceImpl implements TaskQueryService {
     public List<MyPotTaskPreViewResponseDto> getTasksFromDate(Long potId, LocalDate date) {
         User user = authService.getCurrentUser();
 
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
-
-        potMemberRepository.findByPotAndUser(pot, user)
+        potMemberRepository.findByPotPotIdAndUser(potId, user)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
 
-        List<Taskboard> taskboards = taskboardRepository.findByPotAndDeadLine(pot,date);
+        List<Taskboard> taskboards = taskboardRepository.findByPotPotIdAndDeadLine(potId, date);
 
         return taskboards.stream()
                 .map(taskboard -> {
@@ -117,12 +111,8 @@ public class TaskQueryServiceImpl implements TaskQueryService {
     public List<MonthlyTaskDto> getMonthlyTasks(Long potId, int year, int month) {
         User user = authService.getCurrentUser();
 
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
-
-        PotMember currentPotMember = potMemberRepository.findByPotAndUser(pot, user)
+        PotMember currentPotMember = potMemberRepository.findByPotPotIdAndUser(potId, user)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
-
 
         // 해당 월의 시작일과 마지막 일 계산
         LocalDate startDate = LocalDate.of(year, month, 1);
@@ -130,7 +120,7 @@ public class TaskQueryServiceImpl implements TaskQueryService {
 
         // 해당 월의 모든 Taskboard 조회
         List<Taskboard> taskboards = taskboardRepository
-                .findByPotAndDeadLineBetweenOrderByDeadLineAsc(pot, startDate, endDate);
+                .findByPotPIdAndDeadLineBetweenOrderByDeadLineAsc(potId, startDate, endDate);
 
         return taskboards.stream()
                 .map(taskboard -> {
