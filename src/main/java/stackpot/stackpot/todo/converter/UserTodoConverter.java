@@ -3,7 +3,6 @@ package stackpot.stackpot.todo.converter;
 import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.todo.dto.MyPotTodoResponseDTO;
-import stackpot.stackpot.todo.dto.UserTodoTopMemberDto;
 
 import java.util.List;
 

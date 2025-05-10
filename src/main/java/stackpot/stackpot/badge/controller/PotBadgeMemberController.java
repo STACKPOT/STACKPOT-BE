@@ -40,7 +40,7 @@ public class PotBadgeMemberController {
     @ApiErrorCodeExamples({
             ErrorStatus.BADGE_NOT_FOUND,
             ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS,
-            ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS
+            ErrorStatus.POT_MEMBER_NOT_FOUND
     })
     public ResponseEntity<ApiResponse<Void>> assignBadgeToTopMembers(
             @PathVariable Long potId) {

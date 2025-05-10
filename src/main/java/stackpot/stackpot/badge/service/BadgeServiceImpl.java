@@ -12,12 +12,10 @@ import stackpot.stackpot.badge.repository.BadgeRepository;
 import stackpot.stackpot.badge.repository.PotMemberBadgeRepository;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
-import stackpot.stackpot.todo.dto.UserTodoTopMemberDto;
 import stackpot.stackpot.todo.entity.enums.TodoStatus;
 import stackpot.stackpot.todo.repository.UserTodoRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static stackpot.stackpot.apiPayload.code.status.ErrorStatus.BADGE_NOT_FOUND;
@@ -43,22 +41,26 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     @Override
     public void assignBadgeToTopMembers(Long potId) {
+        // 1. 완료된 Todo 개수가 0이면 예외
         long completedTodoCount = userTodoRepository.countByPot_PotIdAndStatus(potId, TodoStatus.COMPLETED);
-        List<Object[]> topUsers = userTodoRepository.findTop2UsersWithMostTodos(potId);
+        if (completedTodoCount == 0) {
+            throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS);
+        }
 
-        if (completedTodoCount == 0) throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS);
-        if (topUsers.size() < 2) throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TOP_MEMBERS);
+        // 2. Todo를 많이 완료한 상위 2명의 userId 조회
+        List<Long> topUserIds = userTodoRepository.findTop2UserIds(potId);
+        if (topUserIds.size() < 2) {
+            throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TOP_MEMBERS);
+        }
 
-        List<UserTodoTopMemberDto> topMemberDtos = potBadgeMemberConverter.toTopMemberDto(topUsers);
-
-        List<PotMember> topPotMembers = topMemberDtos.stream()
-                .map(user -> potMemberRepository.findByPot_PotIdAndUser_Id(potId, user.getUserId()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+        // 3. PotMember 조회
+        List<PotMember> topPotMembers = topUserIds.stream()
+                .map(userId -> potMemberRepository.findByPot_PotIdAndUser_Id(potId, userId)
+                        .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND)))
                 .collect(Collectors.toList());
 
+        // 4. 기본 배지 부여
         Badge badge = getDefaultBadge();
-
         for (PotMember potMember : topPotMembers) {
             PotMemberBadge potMemberBadge = PotMemberBadge.builder()
                     .badge(badge)

@@ -6,7 +6,6 @@ import stackpot.stackpot.badge.entity.Badge;
 import stackpot.stackpot.badge.entity.mapping.PotMemberBadge;
 import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
-import stackpot.stackpot.todo.dto.UserTodoTopMemberDto;
 import stackpot.stackpot.user.entity.User;
 
 import java.util.List;
@@ -30,14 +29,5 @@ public class PotBadgeMemberConverter{
                 .badgeId(badge.getBadgeId())
                 .badgeName(badge.getName())
                 .build();
-    }
-
-    public List<UserTodoTopMemberDto> toTopMemberDto(List<Object[]> userTodoData) {
-        return userTodoData.stream()
-                .map(result -> new UserTodoTopMemberDto(
-                        (Long) result[0], // userId
-                        (Long) result[1]  // todoCount
-                ))
-                .collect(Collectors.toList());
     }
 }

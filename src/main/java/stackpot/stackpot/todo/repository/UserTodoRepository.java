@@ -13,13 +13,11 @@ import java.util.List;
 @Repository
 public interface UserTodoRepository extends JpaRepository<UserTodo, Long> {
 
-    @Query("SELECT ut.user.id, COUNT(ut) as todoCount " +
-            "FROM UserTodo ut " +
-            "WHERE ut.status = 'COMPLETED' AND ut.pot.potId = :potId " +
-            "GROUP BY ut.user.id " +
-            "ORDER BY todoCount DESC " +
-            "LIMIT 2")
-    List<Object[]> findTop2UsersWithMostTodos(@Param("potId") Long potId);
+    @Query("SELECT u.id " +
+            "FROM UserTodo t JOIN t.user u " +
+            "WHERE t.pot.potId = :potId " +
+            "GROUP BY u.id ORDER BY COUNT(t) DESC")
+    List<Long> findTop2UserIds(@Param("potId") Long potId);
 
     @Modifying
     @Query("DELETE FROM UserTodo f WHERE f.user.id = :userId")
