@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface BadgeRepository extends JpaRepository<Badge, Long> {
-    Optional<Badge> findByName(String name);
+    Optional<Badge> findBadgeByBadgeId(Long badgeId);
 }
 

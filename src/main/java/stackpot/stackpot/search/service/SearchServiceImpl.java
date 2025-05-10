@@ -35,12 +35,6 @@ public class SearchServiceImpl implements SearchService {
     private final FeedLikeRepository feedLikeRepository;
     private final UserRepository userRepository;
 
-    //    @Override
-//    @Transactional(readOnly = true)
-//    public Page<PotSearchResponseDto> searchPots(String keyword, Pageable pageable) {
-//        Page<Pot> pots = potRepository.searchByKeyword(keyword, pageable);
-//        return pots.map(potConverter::toSearchDto);
-//    }
 @Override
 @Transactional(readOnly = true)
 public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable) {
@@ -93,8 +87,6 @@ public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable)
             return feedDto;
         });
     }
-
-
 
 }
 

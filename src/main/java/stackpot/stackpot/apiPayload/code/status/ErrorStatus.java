@@ -15,7 +15,6 @@ public enum ErrorStatus implements BaseErrorCode {
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
-
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4004", "등록된 사용자가 없습니다."),
 
     //유저 관련 에러
@@ -27,9 +26,6 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4011", "유효하지 않은 인증 토큰입니다."),
     EXPIRED_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4012", "accessToken아 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "refreshToken이 만료되었습니다."),
-
-
-
 
     // Pot 관련 에러
     POT_NOT_FOUND(HttpStatus.NOT_FOUND, "POT4004", "팟이 존재하지 않습니다."),
@@ -60,7 +56,14 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // Taskboard 관련 에러
     TASKBOARD_NOT_FOUND(HttpStatus.NOT_FOUND, "TASKBOARD4004", "해당 Task를 찾을 수 없습니다."),
-    TASKBOARD_POT_MISMATCH(HttpStatus.BAD_REQUEST, "TASKBOARD4005", "Task가 해당 Pot에 속하지 않습니다.");
+    TASKBOARD_POT_MISMATCH(HttpStatus.BAD_REQUEST, "TASKBOARD4005", "Task가 해당 Pot에 속하지 않습니다."),
+
+    // Badge 관련 에러
+    BADGE_NOT_FOUND(HttpStatus.NOT_FOUND, "BADGE4004", "해당 BADGE를 찾을 수 없습니다."),
+    BADGE_INSUFFICIENT_TOP_MEMBERS(HttpStatus.BAD_REQUEST, "BADGE4001", "팀원이 1명 이하라 뱃지 수여 조건을 만족하지 않습니다. 팀원은 최소 2명 이상이어야 합니다."),
+    BADGE_INSUFFICIENT_TODO_COUNTS(HttpStatus.BAD_REQUEST, "BADGE4002", "TODO를 완료한 사람이 존재하지 않습니다."),
+
+    INVALID_SEARCH_TYPE(HttpStatus.BAD_REQUEST, "SEARCH_STATUS4000", "검색 Type 형식이 올바르지 않습니다 (pot/feed)");
 
 
     private final HttpStatus httpStatus;

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.badge.service.BadgeService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.converter.MyPotConverter;
 import stackpot.stackpot.pot.converter.PotConverter;
@@ -48,6 +49,7 @@ public class PotCommandServiceImpl implements PotCommandService {
     private final PotMemberRepository potMemberRepository;
     private final UserTodoService userTodoService;
     private final AuthService authService;
+    private final BadgeService badgeService;
 
     @Override
     @Transactional
@@ -200,7 +202,7 @@ public class PotCommandServiceImpl implements PotCommandService {
                         .build())
                 .collect(Collectors.toList());
 
-        userTodoService.assignBadgeToTopMembers(potId);
+        badgeService.assignBadgeToTopMembers(potId);
 
         return potConverter.toDto(pot, recruitmentDetails);
     }

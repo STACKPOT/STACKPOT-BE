@@ -56,4 +56,6 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     int clearApplicationReferences(@Param("potId") Long potId);
 
     Optional<PotMember> findByPot_PotIdAndUser_Email(Long potId, String email);
+
+    Optional<PotMember> findByPotPotIdAndUser(Long potId, User user);
 }

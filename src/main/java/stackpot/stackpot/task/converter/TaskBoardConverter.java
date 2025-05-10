@@ -36,7 +36,7 @@ public class TaskBoardConverter {
                 .taskboardId(taskboard.getTaskboardId())
                 .title(taskboard.getTitle())
                 .creatorUserId(taskboard.getUser().getUserId())
-                .creatorNickname(taskboard.getUser().getNickname()+RoleNameMapper.mapRoleName(String.valueOf(taskboard.getUser().getRole())))
+                .creatorNickname(taskboard.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(String.valueOf(taskboard.getUser().getRole())))
                 .creatorRole(taskboard.getUser().getRole())
                 .deadLine(DateFormatter.dotFormatter(taskboard.getDeadLine()))
                 .dDay(DdayCounter.dDayCount(taskboard.getDeadLine()))
@@ -57,7 +57,7 @@ public class TaskBoardConverter {
         return MyPotTaskResponseDto.Participant.builder()
                 .potMemberId(participant.getPotMemberId())
                 .userId(participant.getUser().getId())
-                .nickName(participant.getUser().getNickname() + RoleNameMapper.mapRoleName(participant.getRoleName().toString()))
+                .nickName(participant.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(participant.getRoleName().toString()))
                 .role(participant.getRoleName())
                 .build();
     }
@@ -66,7 +66,7 @@ public class TaskBoardConverter {
         return MyPotTaskPreViewResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())
                 .title(taskboard.getTitle())
-                .creatorNickname(taskboard.getUser().getNickname()+ RoleNameMapper.mapRoleName(String.valueOf(taskboard.getUser().getRole())))
+                .creatorNickname(taskboard.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(String.valueOf(taskboard.getUser().getRole())))
                 .creatorRole(taskboard.getUser().getRole())
                 .dDay(DdayCounter.dDayCount(taskboard.getDeadLine()))
                 .description(taskboard.getDescription())
