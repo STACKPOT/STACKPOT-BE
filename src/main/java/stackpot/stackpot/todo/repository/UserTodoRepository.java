@@ -15,7 +15,7 @@ public interface UserTodoRepository extends JpaRepository<UserTodo, Long> {
 
     @Query("SELECT u.id " +
             "FROM UserTodo t JOIN t.user u " +
-            "WHERE t.pot.potId = :potId " +
+            "WHERE t.pot.potId = :potId AND t.status = stackpot.stackpot.todo.entity.enums.TodoStatus.COMPLETED " +
             "GROUP BY u.id ORDER BY COUNT(t) DESC")
     List<Long> findTop2UserIds(@Param("potId") Long potId);
 
