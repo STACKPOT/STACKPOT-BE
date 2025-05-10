@@ -48,7 +48,7 @@ public class BadgeServiceImpl implements BadgeService {
         }
 
         // 2. Todo를 많이 완료한 상위 2명의 userId 조회
-        List<Long> topUserIds = userTodoRepository.findTop2UserIds(potId);
+        List<Long> topUserIds = userTodoRepository.findTop2UserIds(potId, TodoStatus.COMPLETED);
         if (topUserIds.size() < 2) {
             throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TOP_MEMBERS);
         }
