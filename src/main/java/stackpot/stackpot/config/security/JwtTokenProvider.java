@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.TokenHandler;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.RefreshTokenRepository;
 import stackpot.stackpot.user.dto.response.TokenServiceResponse;
@@ -115,7 +117,7 @@ public class JwtTokenProvider {
         } catch (ExpiredJwtException e) {
             return 0; // 이미 만료된 경우 0 반환
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid JWT Token");
+            throw new TokenHandler(ErrorStatus.INVALID_AUTH_TOKEN);
         }
     }
 }
