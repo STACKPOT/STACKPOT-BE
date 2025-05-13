@@ -17,19 +17,19 @@ public enum ErrorStatus implements BaseErrorCode {
 
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4004", "등록된 사용자가 없습니다."),
 
-    //유저 관련 에러
+    // 유저 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER4004", "유저를 찾을 수 없습니다."),
     USER_WITHDRAWAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "USER5001", "회원 탈퇴에 실패했습니다."),
     USER_ALREADY_WITHDRAWN(HttpStatus.BAD_REQUEST, "USER4002", "이미 탈퇴한 사용자입니다."),
 
-    //인증 관련 에러
+    // 인증 관련 에러
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4010", "인증에 실패했습니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH4030", "해당 리소스에 대한 접근 권한이 없습니다."),
     INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4011", "유효하지 않은 인증 토큰입니다."),
     EXPIRED_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4012", "accessToken아 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "refreshToken이 만료되었습니다."),
 
-    //redis 관련 에러
+    // redis 관련 에러
     REDIS_CONNECTION_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS5001", "Redis 서버에 연결할 수 없습니다."),
     REDIS_BLACKLIST_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS5002", "블랙리스트 등록에 실패했습니다."),
     REDIS_AUTH_FAILURE(HttpStatus.UNAUTHORIZED, "REDIS4010", "Redis 인증에 실패했습니다."),
@@ -72,8 +72,12 @@ public enum ErrorStatus implements BaseErrorCode {
     BADGE_INSUFFICIENT_TOP_MEMBERS(HttpStatus.BAD_REQUEST, "BADGE4001", "팀원이 1명 이하라 뱃지 수여 조건을 만족하지 않습니다. 팀원은 최소 2명 이상이어야 합니다."),
     BADGE_INSUFFICIENT_TODO_COUNTS(HttpStatus.BAD_REQUEST, "BADGE4002", "TODO를 완료한 사람이 존재하지 않습니다."),
 
-    INVALID_SEARCH_TYPE(HttpStatus.BAD_REQUEST, "SEARCH_STATUS4000", "검색 Type 형식이 올바르지 않습니다 (pot/feed)");
+    // 검색 관련 에러
+    INVALID_SEARCH_TYPE(HttpStatus.BAD_REQUEST, "SEARCH_STATUS4000", "검색 Type 형식이 올바르지 않습니다 (pot/feed)"),
 
+    // feed 관연 에러
+    FEED_UNAUTHORIZED(HttpStatus.FORBIDDEN,"FEED4003", "해당 Feed에 대한 수정 권한이 없습니다."),
+    FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "FEED4004", "Feed를 찾을 수 없습니다.");
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;

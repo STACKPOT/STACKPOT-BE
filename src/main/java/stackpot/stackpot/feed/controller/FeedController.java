@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
 import stackpot.stackpot.feed.converter.FeedConverter;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
@@ -30,10 +32,11 @@ public class FeedController {
 
     @PostMapping("")
     @Operation(summary = "Feed 생성 API", description = "새로운 Feed를 작성합니다.")
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> createFeeds(@Valid @RequestBody FeedRequestDto.createDto requset) {
-        // 정상 처리
-        Feed feed = feedService.createFeed(requset);
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
+        FeedResponseDto.FeedDto response = feedService.createFeed(requset);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -45,6 +48,10 @@ public class FeedController {
                 @Parameter(name = "cursor", description = "현재 페이지의 마지막 값"),
                 @Parameter(name = "limit", description = "요청에 불러올 Feed 수", example = "10")
         })
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+            ErrorStatus.FEED_NOT_FOUND
+    })
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getPreViewFeeds(
             @RequestParam(value = "category", required = false, defaultValue = "ALL") Category category,
             @RequestParam(value = "sort", required = false, defaultValue = "new") String sort,
@@ -55,10 +62,14 @@ public class FeedController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
     @GetMapping("/{feedId}/detail")
-    @Operation(summary = "Feed 상세 조회 API", description = "요청된 FeedId의 Feed를 보여줍니다.",
+    @Operation(summary = "Feed 상세 조회 API", description = "요청된 Feed를 보여줍니다.",
         parameters = {
             @Parameter(name = "feedId", description = "상세 조회 feedId")
         })
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+            ErrorStatus.FEED_NOT_FOUND
+    })
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> getDetailFeed(@PathVariable Long feedId) {
         FeedResponseDto.FeedDto response = feedService.getFeed(feedId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
@@ -69,10 +80,12 @@ public class FeedController {
         parameters = {
             @Parameter(name = "feedId", description = "수정 feedId")
         })
+    @ApiErrorCodeExamples({
+            ErrorStatus.FEED_UNAUTHORIZED,
+            ErrorStatus.FEED_NOT_FOUND
+    })
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> modifyFeed(@PathVariable Long feedId, @Valid @RequestBody FeedRequestDto.createDto requset) {
-        // 정상 처리
-        Feed feed = feedService.modifyFeed(feedId, requset);
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feed);
+        FeedResponseDto.FeedDto response = feedService.modifyFeed(feedId, requset);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -81,8 +94,11 @@ public class FeedController {
             parameters = {
                     @Parameter(name = "feedId", description = "삭제 feedId")
             })
+    @ApiErrorCodeExamples({
+            ErrorStatus.FEED_UNAUTHORIZED,
+            ErrorStatus.FEED_NOT_FOUND
+    })
     public ResponseEntity<ApiResponse<String>> deleteFeed(@PathVariable Long feedId) {
-        // 정상 처리
         String response = feedService.deleteFeed(feedId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
@@ -92,6 +108,10 @@ public class FeedController {
             parameters = {
                     @Parameter(name = "feedId", description = "좋아요를 누를 Feed의 ID", required = true)
             })
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+            ErrorStatus.FEED_NOT_FOUND
+    })
     public ResponseEntity<ApiResponse<Map>> toggleLike(@PathVariable Long feedId) {
         boolean isLiked = feedService.toggleLike(feedId);
         return ResponseEntity.ok(ApiResponse.onSuccess(Map.of(
@@ -120,6 +140,9 @@ public class FeedController {
 
     @Operation(summary = "나의 Feed 조회 API")
     @GetMapping("/my-feeds")
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeeds(
             @RequestParam(name = "cursor", required = false) Long cursor,
             @RequestParam(name = "size", defaultValue = "10") int size) {

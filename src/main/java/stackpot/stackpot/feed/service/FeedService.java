@@ -6,7 +6,7 @@ import stackpot.stackpot.feed.dto.FeedResponseDto;
 
 public interface FeedService {
      FeedResponseDto.FeedPreviewList getPreViewFeeds(String category, String sort, Long cursor, int limit);
-     Feed createFeed(FeedRequestDto.createDto request);
+     FeedResponseDto.FeedDto createFeed(FeedRequestDto.createDto request);
 
      FeedResponseDto.FeedDto getFeed(Long feedId);
      FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, Long nextCursor, int pageSize);
@@ -14,7 +14,7 @@ public interface FeedService {
 
 
 
-     Feed modifyFeed(long feedId, FeedRequestDto.createDto request);
+     FeedResponseDto.FeedDto modifyFeed(long feedId, FeedRequestDto.createDto request);
 
      String deleteFeed(Long feedId);
 

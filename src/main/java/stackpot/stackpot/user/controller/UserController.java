@@ -211,7 +211,6 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
-
     @GetMapping("/{userId}/mypages")
     @Operation(
             summary = "사용자별 마이페이지 조회 API",
@@ -276,5 +275,4 @@ public class UserController {
         PotResponseDto responseDto = potCommandService.updateCompletedPot(potId, requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
-
 }
