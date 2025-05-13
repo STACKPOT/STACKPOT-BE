@@ -19,6 +19,8 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //유저 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER4004", "유저를 찾을 수 없습니다."),
+    USER_WITHDRAWAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "USER5001", "회원 탈퇴에 실패했습니다."),
+    USER_ALREADY_WITHDRAWN(HttpStatus.BAD_REQUEST, "USER4002", "이미 탈퇴한 사용자입니다."),
 
     //인증 관련 에러
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4010", "인증에 실패했습니다."),
@@ -26,6 +28,13 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4011", "유효하지 않은 인증 토큰입니다."),
     EXPIRED_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4012", "accessToken아 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "refreshToken이 만료되었습니다."),
+
+    //redis 관련 에러
+    REDIS_CONNECTION_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS5001", "Redis 서버에 연결할 수 없습니다."),
+    REDIS_BLACKLIST_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS5002", "블랙리스트 등록에 실패했습니다."),
+    REDIS_AUTH_FAILURE(HttpStatus.UNAUTHORIZED, "REDIS4010", "Redis 인증에 실패했습니다."),
+    REDIS_WRONG_TYPE(HttpStatus.BAD_REQUEST, "REDIS4001", "Redis 키의 타입이 올바르지 않습니다."),
+    REDIS_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, "REDIS4040", "Redis 키를 찾을 수 없습니다."),
 
     // Pot 관련 에러
     POT_NOT_FOUND(HttpStatus.NOT_FOUND, "POT4004", "팟이 존재하지 않습니다."),
@@ -64,7 +73,6 @@ public enum ErrorStatus implements BaseErrorCode {
     BADGE_INSUFFICIENT_TODO_COUNTS(HttpStatus.BAD_REQUEST, "BADGE4002", "TODO를 완료한 사람이 존재하지 않습니다."),
 
     INVALID_SEARCH_TYPE(HttpStatus.BAD_REQUEST, "SEARCH_STATUS4000", "검색 Type 형식이 올바르지 않습니다 (pot/feed)");
-
 
     private final HttpStatus httpStatus;
     private final String code;

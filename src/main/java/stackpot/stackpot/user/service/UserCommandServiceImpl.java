@@ -186,9 +186,8 @@ public class UserCommandServiceImpl implements UserCommandService {
         //탈퇴한 사용자
         if(user.getRole() == Role.UNKNOWN){
             log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
-            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
+            throw new UserHandler(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
-
         return UserConverter.toDto(user);
     }
 
@@ -203,7 +202,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         //탈퇴한 사용자
         if(user.getRole() == Role.UNKNOWN){
             log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
-            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
+            throw new UserHandler(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
 
         return getMypageByUser(user.getId(), dataType);
@@ -221,7 +220,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         if(user.getRole() == Role.UNKNOWN){
-            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
+            throw new UserHandler(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
 
         if (dataType == null || dataType.isBlank()) {
@@ -235,7 +234,6 @@ public class UserCommandServiceImpl implements UserCommandService {
             log.error("pot, feed의 요청이 잘 못 되었습니다.");
             throw new GeneralException(ErrorStatus._BAD_REQUEST);
         }
-
         return userMypageConverter.toDto(user, completedPots, feeds);
     }
 
@@ -340,20 +338,19 @@ public class UserCommandServiceImpl implements UserCommandService {
         log.info("회원 탈퇴 시작 id:{}", user.getUserId());
 
         try {
-            // 2. 토큰 블랙리스트 처리
+            // 토큰 블랙리스트 처리
             blacklistRepository.addToBlacklist(token, jwtTokenProvider.getExpiration(token));
-            log.info("토큰 ");
 
-            // 3. Feed 관련 데이터 삭제
+            // Feed 관련 데이터 삭제
             deleteFeedRelatedData(user.getId());
 
-            // 4. Todo 데이터 삭제
+            // Todo 데이터 삭제
             userTodoRepository.deleteByUserId(user.getId());
 
-            // 5. Task 및 Taskboard 관련 데이터 삭제
+            // Task 및 Taskboard 관련 데이터 삭제
             deleteTaskRelatedData(user.getId());
 
-            // 6. Pot 관련 데이터 삭제
+            // Pot 관련 데이터 삭제
             boolean isCreator = potRepository.existsByUserId(user.getId());
             if (isCreator) {
                 handleCreatorPotDeletion(user);
@@ -364,7 +361,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         } catch (Exception e) {
             log.error("회원 탈퇴 중 오류 발생: {}", e.getMessage(), e);
-            throw new RuntimeException("회원 탈퇴 처리 중 오류가 발생했습니다.", e);
+            throw new UserHandler(ErrorStatus.USER_WITHDRAWAL_FAILED);
         }
     }
 
@@ -442,40 +439,40 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
 
         try {
-            // 2. Todo 삭제
+            // Todo 삭제
             userTodoRepository.deleteByPotId(pot.getPotId());
 
-            // 3. Task 관련 데이터 삭제
+            // Task 관련 데이터 삭제
             if (!potMemberIds.isEmpty()) {
                 taskRepository.deleteByPotMemberIds(potMemberIds);
                 potMemberBadgeRepository.deleteByPotMemberIds(potMemberIds);
             }
 
-            // 4. Taskboard 삭제
+            // Taskboard 삭제
             taskboardRepository.deleteByPotId(pot.getPotId());
 
-            // 5. 각 PotMember의 application 참조 제거
+            // 각 PotMember의 application 참조 제거
             potMemberRepository.clearApplicationReferences(pot.getPotId());
             log.info("PotMember의 application 참조 제거 완료");
 
-            // 6. PotMember 삭제
+            // PotMember 삭제
             potMemberRepository.deleteByPotId(pot.getPotId());
             log.info("PotMember 삭제 완료");
 
-            // 7. PotApplication 삭제
+            // PotApplication 삭제
             potApplicationRepository.deleteByPotId(pot.getPotId());
             log.info("PotApplication 삭제 완료");
 
             potRecruitmentDetailsRepository.deleteByPot_PotId(pot.getPotId());
             log.info("PotRecruitmentDetails 삭제 완료");
 
-            // 8. Pot 삭제
+            // Pot 삭제
             potRepository.delete(pot);
             log.info("Pot {} 삭제 완료", pot.getPotId());
 
         } catch (Exception e) {
             log.error("Pot {} 삭제 중 오류 발생: {}", pot.getPotId(), e.getMessage());
-            throw new RuntimeException("Pot 및 관련 데이터 삭제 중 오류 발생", e);
+            throw new UserHandler(ErrorStatus.USER_WITHDRAWAL_FAILED);
         }
     }
 
@@ -488,8 +485,8 @@ public class UserCommandServiceImpl implements UserCommandService {
                         potMember.getUser().getNickname() + " " + Role.toVegetable(potMember.getRoleName().name())
                 );
             } catch (Exception e) {
-                log.error("이메일 발송 실패: {}", e.getMessage());
                 // 이메일 발송 실패는 전체 프로세스를 중단하지 않음
+                log.error("이메일 발송 실패: {}", e.getMessage());
             }
         });
     }
@@ -518,8 +515,11 @@ public class UserCommandServiceImpl implements UserCommandService {
         try {
             // refreshToken 삭제 (존재하지 않아도 예외를 던지지 않도록 함)
             refreshTokenRepository.deleteToken(refreshToken);
+            log.info("Refresh Token 삭제 성공 refreshToken :{}",refreshToken);
         } catch (Exception e) {
-            throw new RuntimeException("로그아웃 실패: Refresh Token 삭제 중 오류 발생", e);
+            log.info("로그아웃 실패 실패 된 유저 {}",user.getEmail());
+            log.info("refresh 삭제 중 오류 발생 {}",e.getMessage());
+            throw new TokenHandler(ErrorStatus.REDIS_KEY_NOT_FOUND);
         }
 
         long expiration = jwtTokenProvider.getExpiration(accessToken);
@@ -528,9 +528,10 @@ public class UserCommandServiceImpl implements UserCommandService {
             // 블랙리스트에 추가
             blacklistRepository.addToBlacklist(accessToken, expiration);
         } catch (Exception e) {
-            throw new RuntimeException("로그아웃 실패: 토큰 블랙리스트 등록 중 오류 발생", e);
+            log.info("로그아웃 실패 실패 된 유저 {}",user.getEmail());
+            log.info("토큰 블랙리스트 등록 중 오류 발생 {}",e.getMessage());
+            throw new TokenHandler(ErrorStatus.REDIS_BLACKLIST_SAVE_FAILED);
         }
-
         return "로그아웃이 성공적으로 완료되었습니다.";
     }
 
