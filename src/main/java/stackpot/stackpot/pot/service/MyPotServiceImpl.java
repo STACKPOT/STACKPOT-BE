@@ -7,8 +7,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.GeneralException;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.badge.dto.BadgeDto;
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.common.util.RoleNameMapper;
@@ -84,15 +86,16 @@ public class MyPotServiceImpl implements MyPotService {
 
         // 사용자 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         // 팟 조회
         Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         // 팟 상태 확인
         if (!"COMPLETED".equals(pot.getPotStatus())) {
-            throw new IllegalArgumentException("해당 팟은 COMPLETED 상태가 아닙니다.");
+            log.error("해당 팟은 COMPLETED 상태가 아닙니다.");
+            throw new GeneralException(ErrorStatus._BAD_REQUEST);
         }
 
         // 팟 멤버에서 어필 내용 가져오기
