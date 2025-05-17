@@ -95,6 +95,7 @@ public class UserController {
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
 
+        //Todo : 현재 이메일만 userInfo에 담아옴 provid,providId도 받아오도록 수정
         String email = userInfo.getKakaoAccount().getEmail();
 
         UserResponseDto.loginDto userResponse = userCommandService.isnewUser(email);

@@ -6,8 +6,10 @@ import org.hibernate.annotations.BatchSize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import stackpot.stackpot.common.BaseEntity;
+import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.entity.Pot;
+import stackpot.stackpot.user.entity.enums.UserType;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,10 +21,27 @@ import java.util.List;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(
+        name = "user",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_provider_provider_id",
+                columnNames = {"provider", "providerId"}
+        )
+)
 public class User extends BaseEntity implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Primary Key
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Provider provider;
+
+    @Column(nullable = false)
+    private String providerId;
+
+    @Column(nullable = false)
+    private UserType userType;
 
     @Column(nullable = true, length = 255)
     private String nickname; // 닉네임

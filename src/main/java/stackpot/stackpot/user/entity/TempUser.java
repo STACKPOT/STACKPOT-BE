@@ -7,8 +7,6 @@ import stackpot.stackpot.common.BaseEntity;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 
-
-
 @Entity
 @Getter
 @Setter
@@ -19,6 +17,13 @@ public class TempUser extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Primary Key
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Provider provider;
+
+    @Column(nullable = false)
+    private String providerId;
 
     @Column(nullable = true, length = 255)
     private String nickname; // 닉네임
@@ -35,12 +40,6 @@ public class TempUser extends BaseEntity{
 
     @Column(nullable = true, unique = true)
     private String kakaoId;
-
-    @Column
-    @Enumerated(EnumType.STRING)
-    private Provider provider;
-
-
 
 }
 

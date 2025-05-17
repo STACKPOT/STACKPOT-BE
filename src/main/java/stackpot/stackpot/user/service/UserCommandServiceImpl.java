@@ -108,6 +108,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public UserResponseDto.loginDto isnewUser(String email) {
         // 이메일로 기존 유저 조회
+        //Todo 이메일 말고 provid+providId로 조회
         Optional<User> existingUser = userRepository.findByEmail(email);
 
         if (existingUser.isPresent()) {
@@ -126,7 +127,6 @@ public class UserCommandServiceImpl implements UserCommandService {
                 User user = existingUser.get();
                 userRepository.delete(user);
             }
-
         }
             // 신규 유저 생성
             User newUser = User.builder()
