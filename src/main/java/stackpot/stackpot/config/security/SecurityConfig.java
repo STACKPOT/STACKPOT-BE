@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import stackpot.stackpot.repository.BlacklistRepository;
+import stackpot.stackpot.user.repository.BlacklistRepository;
 
 @EnableWebSecurity
 @Configuration
@@ -27,7 +27,6 @@ public class SecurityConfig {
                 // error endpoint를 열어줘야 함, favicon.ico 추가!
                 .requestMatchers("/error", "/favicon.ico");
     }
-
     @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider, BlacklistRepository blacklistRepository) throws Exception {
         http.formLogin(AbstractHttpConfigurer::disable)
@@ -38,7 +37,10 @@ public class SecurityConfig {
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/", "/home","/sign-up", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs/**", "/users/oauth/kakao", "/pots","/actuator/health", "/feeds","/reissue","/health").permitAll()
+                        .requestMatchers("/actuator/**","/health").permitAll() // 서버 점검
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**",  "/swagger-ui.html").permitAll() // 스웨거 관련 접근 허용
+                        .requestMatchers("/users/oauth/kakao","/reissue").permitAll() // 인증 관련 스웨거 접근 허용
+                        .requestMatchers("/home","/sign-up","/pots", "/feeds").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, blacklistRepository), UsernamePasswordAuthenticationFilter.class);
@@ -63,9 +65,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-//    @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
 }

@@ -17,18 +17,21 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.ErrorReasonDTO;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
-import stackpot.stackpot.web.controller.*;
+import stackpot.stackpot.feed.controller.FeedController;
+import stackpot.stackpot.pot.controller.MyPotController;
+import stackpot.stackpot.pot.controller.PotApplicationController;
+import stackpot.stackpot.pot.controller.PotController;
+import stackpot.stackpot.pot.controller.PotMemberController;
+import stackpot.stackpot.task.controller.TaskController;
+import stackpot.stackpot.todo.controller.UserTodoController;
+import stackpot.stackpot.user.controller.UserController;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
-import stackpot.stackpot.domain.Feed;
-import stackpot.stackpot.web.controller.*;
-
 @Slf4j
-@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {UserController.class, PotController.class, FeedController.class, MyPotController.class, PotApplicationController.class, PotMemberController.class})
+@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {UserController.class, PotController.class, FeedController.class, MyPotController.class, PotApplicationController.class, PotMemberController.class, UserTodoController.class, TaskController.class})
 public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 
 

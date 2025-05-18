@@ -43,3 +43,4 @@ certbot/conf/accounts/
 
 ### Spring Boot ###
 src/main/resources/application.yml
+certbot/

@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import stackpot.stackpot.config.AmazonConfig;
-import stackpot.stackpot.domain.Uuid;
+import stackpot.stackpot.user.entity.Uuid;
 
 import java.io.IOException;
 

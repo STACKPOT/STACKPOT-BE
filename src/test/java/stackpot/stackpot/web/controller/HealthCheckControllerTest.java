@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import stackpot.stackpot.common.controller.HealthCheckController;
 
 
 @WebMvcTest(HealthCheckController.class)
