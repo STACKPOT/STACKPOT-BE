@@ -23,10 +23,7 @@ public class TempUser extends BaseEntity{
     private Provider provider;
 
     @Column(nullable = false)
-    private String providerId;
-
-    @Column(nullable = true, length = 255)
-    private String nickname; // 닉네임
+    private Long providerId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = true, length = 255)
@@ -35,10 +32,10 @@ public class TempUser extends BaseEntity{
     @Column(nullable = true, length = 255)
     private String interest; // 관심사
 
-    @Column(nullable = true, unique = true)
+    @Column(nullable = true)
     private String email; // 이메일
 
-    @Column(nullable = true, unique = true)
+    @Column(nullable = true)
     private String kakaoId;
 
 }

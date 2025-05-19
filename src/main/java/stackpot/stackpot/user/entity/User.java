@@ -38,7 +38,7 @@ public class User extends BaseEntity implements UserDetails{
     private Provider provider;
 
     @Column(nullable = false)
-    private String providerId;
+    private Long providerId;
 
     @Column(nullable = false)
     private UserType userType;
@@ -61,10 +61,10 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = true)
     private Integer userTemperature; // 유저 온도
 
-    @Column(nullable = true, unique = true)
+    @Column(nullable = true)
     private String email; // 이메일
 
-    @Column(nullable = true, unique = true)
+    @Column(nullable = true)
     private String kakaoId;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -85,7 +85,7 @@ public class User extends BaseEntity implements UserDetails{
 
     @Override
     public String getUsername() {
-        return email; // 사용자 식별자로 이메일을 사용
+        return String.valueOf(this.id); // 사용자 식별자로 아이디을 사용
     }
     public Long getUserId() {
         return id;
