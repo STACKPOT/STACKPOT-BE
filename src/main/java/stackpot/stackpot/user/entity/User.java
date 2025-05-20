@@ -6,8 +6,10 @@ import org.hibernate.annotations.BatchSize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import stackpot.stackpot.common.BaseEntity;
+import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.entity.Pot;
+import stackpot.stackpot.user.entity.enums.UserType;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,11 +21,27 @@ import java.util.List;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-//@Where(clause = "is_deleted = false")
+@Table(
+        name = "user",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_provider_provider_id",
+                columnNames = {"provider", "providerId"}
+        )
+)
 public class User extends BaseEntity implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Primary Key
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Provider provider;
+
+    @Column(nullable = false)
+    private Long providerId;
+
+    @Column(nullable = false)
+    private UserType userType;
 
     @Column(nullable = true, length = 255)
     private String nickname; // 닉네임
@@ -43,10 +61,10 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = true)
     private Integer userTemperature; // 유저 온도
 
-    @Column(nullable = true, unique = true)
+    @Column(nullable = true)
     private String email; // 이메일
 
-    @Column(nullable = true, unique = true)
+    @Column(nullable = true)
     private String kakaoId;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -67,7 +85,7 @@ public class User extends BaseEntity implements UserDetails{
 
     @Override
     public String getUsername() {
-        return email; // 사용자 식별자로 이메일을 사용
+        return String.valueOf(this.id); // 사용자 식별자로 아이디을 사용
     }
     public Long getUserId() {
         return id;

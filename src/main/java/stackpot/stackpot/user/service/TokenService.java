@@ -41,7 +41,7 @@ public class TokenService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         refreshTokenRepository.deleteToken(refreshToken);
-        return jwtTokenProvider.createToken(user);
+        return jwtTokenProvider.createToken(user.getUserId(), user.getProvider(), user.getUserType(), user.getEmail());
     }
 
 }

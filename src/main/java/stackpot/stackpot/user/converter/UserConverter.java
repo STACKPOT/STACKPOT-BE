@@ -1,5 +1,6 @@
 package stackpot.stackpot.user.converter;
 
+import stackpot.stackpot.user.entity.TempUser;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
@@ -16,7 +17,7 @@ public class UserConverter {
                 .build();
     }
 
-    public static UserSignUpResponseDto toUserSignUpResponseDto(User user) {
+    public static UserSignUpResponseDto toUserSignUpResponseDto(TempUser user) {
         return UserSignUpResponseDto.builder()
                 .id(user.getId())
                 .role(user.getRole())

@@ -18,8 +18,4 @@ public class TokenServiceResponse {
     public static TokenServiceResponse of(final String accessToken, final String refreshToken) {
         return new TokenServiceResponse(accessToken, refreshToken);
     }
-
-//    public TokenServiceResponse withoutRefreshToken() {
-//        return new TokenServiceResponse(this.accessToken, this.refreshToken);
-//    }
 }

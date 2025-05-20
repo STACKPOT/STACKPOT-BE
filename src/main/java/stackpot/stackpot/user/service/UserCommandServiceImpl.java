@@ -6,12 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import stackpot.stackpot.apiPayload.code.BaseErrorCode;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.GeneralException;
-import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.TokenHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
+import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.task.repository.TaskRepository;
 import stackpot.stackpot.task.repository.TaskboardRepository;
@@ -24,7 +23,9 @@ import stackpot.stackpot.task.entity.Taskboard;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
+import stackpot.stackpot.user.entity.TempUser;
 import stackpot.stackpot.user.entity.User;
+import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
@@ -35,13 +36,14 @@ import stackpot.stackpot.feed.repository.FeedRepository;
 import stackpot.stackpot.pot.repository.PotApplicationRepository;
 import stackpot.stackpot.pot.repository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
+import stackpot.stackpot.user.entity.enums.UserType;
 import stackpot.stackpot.user.repository.BlacklistRepository;
 import stackpot.stackpot.user.repository.RefreshTokenRepository;
+import stackpot.stackpot.user.repository.TempUserRepository;
 import stackpot.stackpot.user.repository.UserRepository;
 import stackpot.stackpot.common.service.EmailService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -63,10 +65,12 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final PotMemberBadgeRepository potMemberBadgeRepository;
 
     private final UserMypageConverter userMypageConverter;
+    private final TempUserRepository tempUserRepository;
     private final PotSummarizationService potSummarizationService;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
+    private final AuthService authService;
 
     private final EmailService emailService;
 
@@ -74,74 +78,51 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Transactional
     public UserSignUpResponseDto joinUser(UserRequestDto.JoinDto request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        TempUser tempUserContext = (TempUser) authentication.getPrincipal();
+        TempUser tempUser = tempUserRepository.findById(tempUserContext.getId())
+                        .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        // 1. 기존 사용자 조회 또는 새로운 사용자 생성
-        User user = userRepository.findByEmail(email).orElseGet(() -> saveNewUser(email, request));
+        tempUser.setInterest(request.getInterest());
+        tempUser.setRole(request.getRole());
+        tempUser.setKakaoId(request.getKakaoId());
 
-        // 2. 기존 사용자일 경우 업데이트
-        if (user.getId() != null) {
-            updateUserData(user, request);
-            userRepository.save(user);
+        tempUserRepository.save(tempUser);
 
-        }
-
-        return UserConverter.toUserSignUpResponseDto(user);
+        return UserConverter.toUserSignUpResponseDto(tempUser);
     }
 
     @Override
-    public User saveNewUser(String email, UserRequestDto.JoinDto request) {
-        return userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    User newUser = User.builder()
-                            .email(email)
-                            .kakaoId(request.getKakaoId())
-                            .role(request.getRole())
-                            .interest(request.getInterest())
-                            .userTemperature(33)
-                            .build();
-
-                    return userRepository.save(newUser);
-                });
-    }
-
-    @Override
-    public UserResponseDto.loginDto isnewUser(String email) {
-        // 이메일로 기존 유저 조회
-        Optional<User> existingUser = userRepository.findByEmail(email);
+    public UserResponseDto.loginDto isnewUser(Provider provider, Long providerId, String email) {
+        //provider+providId로 조회
+        Optional<User> existingUser = userRepository.findByProviderAndProviderId(provider, providerId);
 
         if (existingUser.isPresent()) {
-            String checkNickname = existingUser.get().getNickname();
-            if (checkNickname != null) {
                 // 기존 유저가 있으면 isNewUser = false
                 User user = existingUser.get();
-                TokenServiceResponse token = jwtTokenProvider.createToken(user);
+                TokenServiceResponse token = jwtTokenProvider.createToken(user.getUserId(), user.getProvider(), user.getUserType(), user.getEmail());
 
                 return UserResponseDto.loginDto.builder()
                         .tokenServiceResponse(token)
                         .isNewUser(false)
                         .role(user.getRole())
                         .build();
-            } else {
-                User user = existingUser.get();
-                userRepository.delete(user);
-            }
-
         }
-            // 신규 유저 생성
-            User newUser = User.builder()
+        else {
+            TempUser newUser = TempUser.builder()
+                    .provider(provider)
+                    .providerId(providerId)
                     .email(email)
-                    .userTemperature(33)  // 기본값 설정
                     .build();
 
-            userRepository.save(newUser);
-            TokenServiceResponse token = jwtTokenProvider.createToken(newUser);
+            tempUserRepository.save(newUser);
+            TokenServiceResponse token = jwtTokenProvider.createToken(newUser.getId(), newUser.getProvider(), UserType.TEMP, newUser.getEmail());
 
             return UserResponseDto.loginDto.builder()
                     .tokenServiceResponse(token)
                     .isNewUser(true)  // 신규 유저임을 표시
                     .role(null)
                     .build();
+        }
     }
 
 
@@ -163,17 +144,11 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     public UserResponseDto.Userdto getMyUsers() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-
+        User user = authService.getCurrentUser();
         if(user.getRole() == Role.UNKNOWN){
             log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
             throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         }
-
         // User 정보를 UserResponseDto로 변환
         return UserConverter.toDto(user);
     }
@@ -193,11 +168,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
 
     public UserMyPageResponseDto getMypages(String dataType) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        User user = authService.getCurrentUser();
 
         //탈퇴한 사용자
         if(user.getRole() == Role.UNKNOWN){
@@ -241,11 +212,8 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Transactional
     public UserResponseDto.Userdto updateUserProfile(UserUpdateRequestDto requestDto) {
         // 현재 로그인한 사용자 정보 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        User user = authService.getCurrentUser();
 
         // 업데이트할 필드 적용
         if (requestDto.getRole() != null) {
@@ -270,7 +238,6 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     @Transactional
     public NicknameResponseDto createNickname(Role role) {
-
         String nickname;
 
         while (true) {
@@ -292,20 +259,32 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     @Transactional
-    public String saveNickname(String nickname) {
+    public TokenServiceResponse saveNickname(String nickname) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        TempUser tempUser = (TempUser) authentication.getPrincipal();
+        log.info("tempUser {} ",tempUser.getId());
 
         nickname = trimNickname(nickname);
 
-        user.setNickname(nickname); // 유저 객체에 닉네임 저장
-        user.setUserIntroduction(user.getRole() + "에 관심있는 " + nickname + " " + Role.toVegetable(String.valueOf(user.getRole())) + "입니다.");
-        userRepository.save(user); // DB에 저장
+        User user = User.builder()
+                .email(tempUser.getEmail())
+                .nickname(nickname)
+                .userType(UserType.USER)
+                .interest(tempUser.getInterest())
+                .userIntroduction(tempUser.getRole() + "에 관심있는 " + nickname + " " + Role.toVegetable(String.valueOf(tempUser.getRole())) + "입니다.")
+                .userTemperature(33)
+                .kakaoId(tempUser.getKakaoId())
+                .provider(tempUser.getProvider())
+                .providerId(tempUser.getProviderId())
+                .role(tempUser.getRole())
+                .build();
 
-        return nickname + " " + Role.toVegetable(user.getRole().toString());
+        userRepository.save(user); // DB에 저장
+        tempUserRepository.delete(tempUser);
+
+        TokenServiceResponse tokenServiceResponse = jwtTokenProvider.createToken(user.getUserId(), user.getProvider(), user.getUserType(), user.getEmail());
+
+        return tokenServiceResponse;
     }
 
     private String trimNickname(String nickname) {
@@ -327,13 +306,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         return nickname; // 기본적으로 원래 닉네임 반환
     }
 
+    //todo 재개발 필요
     @Transactional
     public String deleteUser(String accessToken) {
         // 1. 토큰 검증 및 사용자 조회
         String token = accessToken.replace("Bearer ", "");
-        String email = jwtTokenProvider.getEmailFromToken(token);
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        User user = authService.getCurrentUser();
 
         log.info("회원 탈퇴 시작 id:{}", user.getUserId());
 
@@ -423,10 +401,10 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Transactional
-    private void deletePotAndRelatedData(Pot pot) {
+    public void deletePotAndRelatedData(Pot pot) {
         log.info("Pot {} 삭제 시작", pot.getPotId());
 
-        // 1. PotMember 조회 및 ID 추출
+        // PotMember 조회 및 ID 추출
         List<PotMember> potMembers = potMemberRepository.findByPotId(pot.getPotId());
         List<Long> potMemberIds = potMembers.stream()
                 .map(PotMember::getPotMemberId)
@@ -500,24 +478,14 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public String logout(String aToken, String refreshToken) {
         String accessToken = aToken.replace("Bearer ", "");
-        String email;
-        try {
-            email = jwtTokenProvider.getEmailFromToken(accessToken);
-        } catch (Exception e) {
-            log.info("로그아웃 실패 {}",e);
-            throw new TokenHandler(ErrorStatus.INVALID_AUTH_TOKEN);
-
-        }
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        User user = authService.getCurrentUser();
 
         try {
             // refreshToken 삭제 (존재하지 않아도 예외를 던지지 않도록 함)
             refreshTokenRepository.deleteToken(refreshToken);
             log.info("Refresh Token 삭제 성공 refreshToken :{}",refreshToken);
         } catch (Exception e) {
-            log.info("로그아웃 실패 실패 된 유저 {}",user.getEmail());
+            log.info("로그아웃 실패 실패 된 유저 id:{}",user.getUserId());
             log.info("refresh 삭제 중 오류 발생 {}",e.getMessage());
             throw new TokenHandler(ErrorStatus.REDIS_KEY_NOT_FOUND);
         }
@@ -528,7 +496,7 @@ public class UserCommandServiceImpl implements UserCommandService {
             // 블랙리스트에 추가
             blacklistRepository.addToBlacklist(accessToken, expiration);
         } catch (Exception e) {
-            log.info("로그아웃 실패 실패 된 유저 {}",user.getEmail());
+            log.info("로그아웃 실패 실패 된 유저 id{}",user.getUserId());
             log.info("토큰 블랙리스트 등록 중 오류 발생 {}",e.getMessage());
             throw new TokenHandler(ErrorStatus.REDIS_BLACKLIST_SAVE_FAILED);
         }
