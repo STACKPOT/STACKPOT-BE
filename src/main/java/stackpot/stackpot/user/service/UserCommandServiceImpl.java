@@ -6,10 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import stackpot.stackpot.apiPayload.code.BaseErrorCode;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.GeneralException;
-import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.TokenHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.common.util.AuthService;
@@ -46,7 +44,6 @@ import stackpot.stackpot.user.repository.UserRepository;
 import stackpot.stackpot.common.service.EmailService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -92,24 +89,6 @@ public class UserCommandServiceImpl implements UserCommandService {
         tempUserRepository.save(tempUser);
 
         return UserConverter.toUserSignUpResponseDto(tempUser);
-    }
-
-
-    // todo :: 이거 왜 있는거냐 수민아
-    @Override
-    public User saveNewUser(String email, UserRequestDto.JoinDto request) {
-        return userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    User newUser = User.builder()
-                            .email(email)
-                            .kakaoId(request.getKakaoId())
-                            .role(request.getRole())
-                            .interest(request.getInterest())
-                            .userTemperature(33)
-                            .build();
-
-                    return userRepository.save(newUser);
-                });
     }
 
     @Override
@@ -170,7 +149,6 @@ public class UserCommandServiceImpl implements UserCommandService {
             log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
             throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         }
-
         // User 정보를 UserResponseDto로 변환
         return UserConverter.toDto(user);
     }
