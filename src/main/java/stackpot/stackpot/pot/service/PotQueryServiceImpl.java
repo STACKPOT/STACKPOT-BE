@@ -20,14 +20,13 @@ import stackpot.stackpot.pot.entity.mapping.PotApplication;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
+import stackpot.stackpot.pot.repository.PotSaveRepository;
 import stackpot.stackpot.search.dto.CursorPageResponse;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.user.repository.UserRepository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +41,7 @@ public class PotQueryServiceImpl implements PotQueryService {
     private final PotDetailConverter potDetailConverter;
     private final AuthService authService;
     private final MyPotConverter myPotConverter;
+    private final PotSaveRepository potSaveRepository;
 
     @Override
     public CursorPageResponse<CompletedPotResponseDto> getMyCompletedPots(Long cursor, int size) {
@@ -72,23 +72,6 @@ public class PotQueryServiceImpl implements PotQueryService {
                 .collect(Collectors.toList());
 
         return new CursorPageResponse<>(content, nextCursor, pots.size() > size);
-    }
-
-    @Override
-    public List<PotPreviewResponseDto> getAllPots(Role role, Integer page, Integer size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Pot> potPage = (role == null)
-                ? potRepository.findAllOrderByApplicantsCountDesc(pageable)
-                : potRepository.findByRecruitmentRoleOrderByApplicantsCountDesc(role, pageable);
-
-        return potPage.getContent().stream()
-                .map(pot -> {
-                    List<String> roles = pot.getRecruitmentDetails().stream()
-                            .map(recruitmentDetails -> String.valueOf(recruitmentDetails.getRecruitmentRole()))
-                            .collect(Collectors.toList());
-                    return potConverter.toPrviewDto(pot.getUser(), pot, roles);
-                })
-                .collect(Collectors.toList());
     }
 
     @Override
@@ -129,14 +112,43 @@ public class PotQueryServiceImpl implements PotQueryService {
                 .collect(Collectors.toList());
     }
     @Override
-    public List<RecruitingPotResponseDto> getRecruitingPots() {
+    public Map<String, Object> getMyRecruitingPotsWithPaging(Integer page, Integer size) {
         User user = authService.getCurrentUser();
 
-        List<Pot> myRecruitingPots = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING");
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Pot> potPage = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING", pageable);
 
-        return myRecruitingPots.stream()
-                .map(pot -> myPotConverter.convertToRecruitingPotResponseDto(pot, user.getId()))
+        List<Pot> pots = potPage.getContent();
+
+        List<Long> potIds = pots.stream()
+                .map(Pot::getPotId)
                 .collect(Collectors.toList());
+
+        // 저장 수와 유저의 저장 여부를 한 번에 조회
+        Map<Long, Integer> potSaveCountMap = potSaveRepository.countSavesByPotIds(potIds);
+        Set<Long> savedPotIds = potSaveRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds);
+
+        List<PotPreviewResponseDto> content = pots.stream()
+                .map(pot -> {
+                    List<String> roles = pot.getRecruitmentDetails().stream()
+                            .map(rd -> String.valueOf(rd.getRecruitmentRole()))
+                            .collect(Collectors.toList());
+
+                    boolean isSaved = savedPotIds.contains(pot.getPotId());
+                    int saveCount = potSaveCountMap.getOrDefault(pot.getPotId(), 0);
+
+                    return potConverter.toPrviewDto(user, pot, roles, isSaved, saveCount);
+                })
+                .collect(Collectors.toList());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("pots", content);
+        result.put("currentPage", potPage.getNumber() + 1);
+        result.put("totalPages", potPage.getTotalPages());
+        result.put("totalElements", potPage.getTotalElements());
+        result.put("size", potPage.getSize());
+
+        return result;
     }
     @Override
     public List<AppliedPotResponseDto> getAppliedPots() {
@@ -232,30 +244,53 @@ public class PotQueryServiceImpl implements PotQueryService {
         return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
     }
     @Override
-    public Map<String, Object> getAllPotsWithPaging(Role role, int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Pot> potPage = (role == null)
-                ? potRepository.findAllOrderByApplicantsCountDesc(pageable)
-                : potRepository.findByRecruitmentRoleOrderByApplicantsCountDesc(role, pageable);
+    public Map<String, Object> getAllPotsWithPaging(Role role, int page, int size, Boolean onlyMine) {
+        User user = null;
+        if (onlyMine != null && onlyMine) {
+            user = authService.getCurrentUser(); // 로그인 필수
+        }
 
-        List<PotPreviewResponseDto> pots = potPage.getContent().stream()
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Pot> potPage;
+
+        if (onlyMine != null && onlyMine) {
+            potPage = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING", pageable);
+        } else {
+            potPage = (role == null)
+                    ? potRepository.findAllOrderByApplicantsCountDesc(pageable)
+                    : potRepository.findByRecruitmentRoleOrderByApplicantsCountDesc(role, pageable);
+        }
+
+        List<Pot> pots = potPage.getContent();
+        List<Long> potIds = pots.stream().map(Pot::getPotId).collect(Collectors.toList());
+
+        // 저장 수 및 저장 여부 일괄 조회
+        Map<Long, Integer> potSaveCountMap = potSaveRepository.countSavesByPotIds(potIds);
+        Set<Long> savedPotIds = (user != null)
+                ? potSaveRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
+                : Collections.emptySet();
+
+        List<PotPreviewResponseDto> content = pots.stream()
                 .map(pot -> {
                     List<String> roles = pot.getRecruitmentDetails().stream()
                             .map(rd -> String.valueOf(rd.getRecruitmentRole()))
                             .collect(Collectors.toList());
-                    return potConverter.toPrviewDto(pot.getUser(), pot, roles);
+
+                    boolean isSaved = savedPotIds.contains(pot.getPotId());
+                    int saveCount = potSaveCountMap.getOrDefault(pot.getPotId(), 0);
+
+                    return potConverter.toPrviewDto(pot.getUser(), pot, roles, isSaved, saveCount);
                 })
                 .collect(Collectors.toList());
 
         Map<String, Object> response = new HashMap<>();
-        response.put("pots", pots);
-        response.put("totalPages", potPage.getTotalPages());
+        response.put("pots", content);
         response.put("currentPage", potPage.getNumber() + 1);
+        response.put("totalPages", potPage.getTotalPages());
         response.put("totalElements", potPage.getTotalElements());
+        response.put("size", potPage.getSize());
 
         return response;
     }
-
-
 }
 
