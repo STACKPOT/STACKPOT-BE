@@ -27,7 +27,7 @@ import java.util.Map;
 public class FeedController {
 
     private final FeedService feedService;
-    private final FeedConverter feedConverter;
+
 
 
     @PostMapping("")
