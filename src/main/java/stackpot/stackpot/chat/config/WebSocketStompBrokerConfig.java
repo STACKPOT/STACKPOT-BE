@@ -19,7 +19,6 @@ public class WebSocketStompBrokerConfig implements WebSocketMessageBrokerConfigu
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-connect")
-                .addInterceptors(new CustomHandShakeInterceptor())
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
