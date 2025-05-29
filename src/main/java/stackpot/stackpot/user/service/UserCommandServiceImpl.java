@@ -375,7 +375,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     private void deleteTaskRelatedData(Long userId) {
         // PotMember 관련 데이터 조회
-        List<PotMember> potMembers = potMemberRepository.findByuserId(userId);
+        List<PotMember> potMembers = potMemberRepository.findByUserId(userId);
         List<Long> potMemberIds = potMembers.stream()
                 .map(PotMember::getPotMemberId)
                 .collect(Collectors.toList());
