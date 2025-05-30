@@ -12,7 +12,7 @@ import java.util.TimeZone;
 @SpringBootApplication
 @EnableScheduling
 @EnableJpaAuditing
-@EnableMongoRepositories
+@EnableMongoRepositories(basePackages = "stackpot.mongo")
 @EnableMongoAuditing
 public class StackpotApplication {
 

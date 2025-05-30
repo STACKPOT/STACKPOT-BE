@@ -1,6 +1,8 @@
 package stackpot.stackpot.user.repository;
 
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Provider;
 
@@ -12,4 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByProviderAndProviderId(Provider provider, Long providerId);
 
     boolean existsByNickname(String nickname);
+
+    @Query("select u.nickname from User u where u.id = :userId")
+    Optional<String> findNameByUserId(@Param("userId") Long userId);
 }

@@ -13,17 +13,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.TokenHandler;
+import stackpot.stackpot.user.dto.response.TokenServiceResponse;
 import stackpot.stackpot.user.entity.TempUser;
-import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.UserType;
 import stackpot.stackpot.user.repository.RefreshTokenRepository;
-import stackpot.stackpot.user.dto.response.TokenServiceResponse;
 import stackpot.stackpot.user.repository.TempUserRepository;
 
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -32,7 +30,7 @@ public class JwtTokenProvider {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final TempUserRepository tempUserRepository;
-    
+
     @Value("${spring.jwt.secret}")
     private String secretKey;
 
@@ -40,18 +38,18 @@ public class JwtTokenProvider {
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14일
     private static final long TEMP_TOKEN_EXPIRE_TIME = 1000 * 60 * 20;  // 20분
 
-    private final UserDetailsService  userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     // JWT 생성
     public TokenServiceResponse createToken(Long userId, Provider provider, UserType userType, String email) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
-        claims.put("provider",provider);
-        claims.put("userType",userType);
-        claims.put("email",email);
+        claims.put("provider", provider);
+        claims.put("userType", userType);
+        claims.put("email", email);
 
         Date now = new Date();
 
-        if(userType == UserType.TEMP){
+        if (userType == UserType.TEMP) {
             String accessToken = Jwts.builder()
                     .setClaims(claims)
                     .setIssuedAt(now)
@@ -60,24 +58,24 @@ public class JwtTokenProvider {
                     .compact();
             return TokenServiceResponse.of(accessToken, null);
         }
-            String accessToken = Jwts.builder()
-                    .setClaims(claims)
-                    .setIssuedAt(now)
-                    .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
-                    .signWith(SignatureAlgorithm.HS256, secretKey)
-                    .compact();
+        String accessToken = Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
 
-            String refreshToken = Jwts.builder()
-                    .setSubject(String.valueOf(userId))
-                    .setIssuedAt(now)
-                    .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
-                    .signWith(SignatureAlgorithm.HS256, secretKey)
-                    .compact();
+        String refreshToken = Jwts.builder()
+                .setSubject(String.valueOf(userId))
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
 
-            long expiration = getExpiration(refreshToken);
-            refreshTokenRepository.saveToken(userId, refreshToken, expiration);
+        long expiration = getExpiration(refreshToken);
+        refreshTokenRepository.saveToken(userId, refreshToken, expiration);
 
-            return TokenServiceResponse.of(accessToken, refreshToken);
+        return TokenServiceResponse.of(accessToken, refreshToken);
     }
 
     public boolean validateToken(String token) {
@@ -140,5 +138,14 @@ public class JwtTokenProvider {
         } catch (Exception e) {
             throw new TokenHandler(ErrorStatus.INVALID_AUTH_TOKEN);
         }
+    }
+
+    public Long extractUserIdFromJwt(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return Long.parseLong(claims.getSubject());
     }
 }

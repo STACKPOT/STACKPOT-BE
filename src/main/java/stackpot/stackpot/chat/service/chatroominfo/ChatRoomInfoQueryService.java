@@ -1,17 +1,27 @@
 package stackpot.stackpot.chat.service.chatroominfo;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.context.request.async.DeferredResult;
-import stackpot.stackpot.apiPayload.ApiResponse;
-import stackpot.stackpot.chat.dto.response.ChatRoomResponseDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.chat.entity.ChatRoomInfo;
+import stackpot.stackpot.chat.repository.ChatRoomInfoRepository;
 
-import java.util.List;
+@Service
+@RequiredArgsConstructor
+public class ChatRoomInfoQueryService {
 
-public interface ChatRoomInfoQueryService {
+    private final ChatRoomInfoRepository chatRoomInfoRepository;
 
-    void registerPolling(DeferredResult<ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>>> deferredResult);
+    public String selectLastReadChatIdByPotMemberIdAndChatRoomId(Long potMemberId, Long chatRoomId) {
+        return chatRoomInfoRepository.selectLastReadChatIdByPotMemberIdAndChatRoomId(potMemberId, chatRoomId).orElse(null);
+    }
 
-    String selectLastReadChatIdByPotMemberIdAndChatRoomId(Long potMemberId, Long chatRoomId);
+    public ChatRoomInfo selectChatRoomInfoByPotMemberIdAndChatRoomId(Long potMemberId, Long chatRoomId) {
+        return chatRoomInfoRepository.selectChatRoomInfoByPotMemberIdAndChatRoomId(potMemberId, chatRoomId).orElseThrow(() -> new PotHandler(ErrorStatus.CHATROOM_NOT_FOUND));
+    }
 
-    List<ChatRoomResponseDto.ChatRoomListDto> selectChatRoomList();
+    public String selectThumbnailUrlByPotMemberIdAndChatRoomId(Long potMemberId, Long chatRoomId) {
+        return chatRoomInfoRepository.selectThumbnailUrlByPotMemberIdAndChatRoomId(potMemberId, chatRoomId).orElse(null);
+    }
 }

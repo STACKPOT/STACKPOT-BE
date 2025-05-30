@@ -1,15 +1,38 @@
 package stackpot.stackpot.chat.service.chatroominfo;
 
-import stackpot.stackpot.chat.dto.request.ChatRoomRequestDto;
-import stackpot.stackpot.chat.dto.response.ChatRoomResponseDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import stackpot.stackpot.chat.entity.ChatRoomInfo;
+import stackpot.stackpot.chat.repository.ChatRoomInfoBatchRepository;
+import stackpot.stackpot.chat.repository.ChatRoomInfoRepository;
 
 import java.util.List;
 
-public interface ChatRoomInfoCommandService {
+@Service
+@RequiredArgsConstructor
+public class ChatRoomInfoCommandService {
 
-    void updateLastReadChatId(Long userId, Long chatRoomId, String chatId);
+    private final ChatRoomInfoQueryService chatRoomInfoQueryService;
+    private final ChatRoomInfoBatchRepository chatRoomInfoBatchRepository;
+    private final ChatRoomInfoRepository chatRoomInfoRepository;
 
-    void joinChatRoom(ChatRoomRequestDto.ChatRoomJoinDto chatRoomJoinDto);
+    public void createChatRoomInfo(List<Long> potMembers, Long chatRoomId) {
+        chatRoomInfoBatchRepository.chatRoomInfoBatchInsert(potMembers, chatRoomId);
+    }
 
-    void updateThumbnail(ChatRoomRequestDto.ChatRoomThumbNailDto chatRoomThumbNailDto);
+    public void joinChatRoom(Long potMemberId, Long chatRoomId, String latestChatId) {
+        ChatRoomInfo chatRoomInfo = chatRoomInfoQueryService.selectChatRoomInfoByPotMemberIdAndChatRoomId(potMemberId, chatRoomId);
+        chatRoomInfo.updateLastReadChatId(latestChatId);
+        chatRoomInfoRepository.save(chatRoomInfo);
+    }
+
+    public void updateLastReadChatId(List<Long> potMemberIds, Long chatRoomId, String chatId) {
+        chatRoomInfoBatchRepository.lastReadChatIdBatchUpdate(potMemberIds, chatRoomId, chatId);
+    }
+
+    public void updateThumbnail(Long potMemberId, Long chatRoomId, String imageUrl) {
+        ChatRoomInfo chatRoomInfo = chatRoomInfoQueryService.selectChatRoomInfoByPotMemberIdAndChatRoomId(potMemberId, chatRoomId);
+        chatRoomInfo.updateThumbnail(imageUrl);
+        chatRoomInfoRepository.save(chatRoomInfo);
+    }
 }

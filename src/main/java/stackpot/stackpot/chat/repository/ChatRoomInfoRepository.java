@@ -14,4 +14,7 @@ public interface ChatRoomInfoRepository extends JpaRepository<ChatRoomInfo, Long
 
     @Query("select cri.imageUrl from ChatRoomInfo cri where cri.potMember.potMemberId = :potMemberId and cri.chatRoom.id = :chatRoomId")
     Optional<String> selectThumbnailUrlByPotMemberIdAndChatRoomId(@Param("potMemberId") Long potMemberId, @Param("chatRoomId") Long chatRoomId);
+
+    @Query("select cri from ChatRoomInfo cri where cri.potMember.potMemberId = :potMemberId and cri.chatRoom.id = :chatRoomId")
+    Optional<ChatRoomInfo> selectChatRoomInfoByPotMemberIdAndChatRoomId(@Param("potMemberId") Long potMemberId, @Param("chatRoomId") Long chatRoomId);
 }

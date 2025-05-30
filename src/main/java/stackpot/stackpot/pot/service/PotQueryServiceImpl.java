@@ -128,6 +128,7 @@ public class PotQueryServiceImpl implements PotQueryService {
                         .build())
                 .collect(Collectors.toList());
     }
+
     @Override
     public List<RecruitingPotResponseDto> getRecruitingPots() {
         User user = authService.getCurrentUser();
@@ -138,6 +139,7 @@ public class PotQueryServiceImpl implements PotQueryService {
                 .map(pot -> myPotConverter.convertToRecruitingPotResponseDto(pot, user.getId()))
                 .collect(Collectors.toList());
     }
+
     @Override
     public List<AppliedPotResponseDto> getAppliedPots() {
         User user = authService.getCurrentUser();
@@ -231,6 +233,7 @@ public class PotQueryServiceImpl implements PotQueryService {
 
         return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
     }
+
     @Override
     public Map<String, Object> getAllPotsWithPaging(Role role, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
@@ -256,6 +259,9 @@ public class PotQueryServiceImpl implements PotQueryService {
         return response;
     }
 
-
+    @Override
+    public Pot getPotByPotId(Long potId) {
+        return potRepository.findById(potId).orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+    }
 }
 

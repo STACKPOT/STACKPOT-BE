@@ -81,4 +81,12 @@ public class PotMemberQueryServiceImpl implements PotMemberQueryService {
             throw new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND);
         return dtos;
     }
+
+    @Override
+    public List<PotMember> selectPotMembersByPotMemberIds(List<Long> potMemberIds) {
+        List<PotMember> potMembers = potMemberRepository.selectPotMembersByPotMemberIds(potMemberIds);
+        if (potMemberIds.isEmpty())
+            throw new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND);
+        return potMembers;
+    }
 }

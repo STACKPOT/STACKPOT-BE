@@ -1,9 +1,32 @@
 package stackpot.stackpot.chat.service.chatroom;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.ChatHandler;
 import stackpot.stackpot.chat.dto.ChatRoomDto;
+import stackpot.stackpot.chat.entity.ChatRoom;
+import stackpot.stackpot.chat.repository.ChatRoomRepository;
 
-public interface ChatRoomQueryService {
+@Service
+@RequiredArgsConstructor
+public class ChatRoomQueryService {
 
-    Long selectPotIdByChatRoomId(Long chatRoomId);
-    ChatRoomDto.ChatRoomNameDto selectChatRoomIdByPotId(Long potId);
+    private final ChatRoomRepository chatRoomRepository;
+
+    public Long selectPotIdByChatRoomId(Long chatRoomId) {
+        return chatRoomRepository.findPotIdByChatRoomId(chatRoomId).orElseThrow(() -> new ChatHandler(ErrorStatus.CHATROOM_NOT_FOUND));
+    }
+
+    public ChatRoomDto.ChatRoomNameDto selectChatRoomNameDtoIdByPotId(Long potId) {
+        return chatRoomRepository.findChatRoomIdByPotId(potId).orElseThrow(() -> new ChatHandler(ErrorStatus.CHATROOM_NOT_FOUND));
+    }
+
+    public Long selectChatRoomIdByPotId(Long potId) {
+        return chatRoomRepository.selectChatRoomIdByPotId(potId).orElseThrow(() -> new ChatHandler(ErrorStatus.CHATROOM_NOT_FOUND));
+    }
+
+    public ChatRoom selectChatRoomByPotId(Long potId) {
+        return chatRoomRepository.selectChatRoomByPotId(potId).orElseThrow(() -> new ChatHandler(ErrorStatus.CHATROOM_NOT_FOUND));
+    }
 }

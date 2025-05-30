@@ -2,6 +2,7 @@ package stackpot.stackpot.pot.service;
 
 import stackpot.stackpot.pot.dto.PotMemberInfoResponseDto;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;
+import stackpot.stackpot.pot.entity.mapping.PotMember;
 
 import java.util.List;
 
@@ -11,4 +12,5 @@ public interface PotMemberQueryService {
     List<Long> selectPotMembersIdsByUserIdsAndPotId(List<Long> userIds, Long potId);
     List<Long> selectUserIdsAboutPotMembersByPotId(Long potId);
     List<UserMemberIdDto> selectPotMemberIdsByUserId(Long userId);
+    List<PotMember> selectPotMembersByPotMemberIds(List<Long> potMemberIds);
 }

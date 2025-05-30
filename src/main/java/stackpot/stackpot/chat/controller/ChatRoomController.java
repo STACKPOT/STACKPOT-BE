@@ -9,8 +9,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.chat.dto.request.ChatRoomRequestDto;
 import stackpot.stackpot.chat.dto.response.ChatRoomResponseDto;
-import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
-import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
+import stackpot.stackpot.chat.facade.ChatRoomFacade;
 
 import java.util.List;
 
@@ -20,14 +19,29 @@ import java.util.List;
 @RequestMapping("/chat-rooms")
 public class ChatRoomController {
 
-    private final ChatRoomInfoCommandService chatRoomInfoCommandService;
-    private final ChatRoomInfoQueryService chatRoomInfoQueryService;
+    private final ChatRoomFacade chatRoomFacade;
+
+    @Operation(summary = "채팅방 생성하기",
+            description = "팟에 대한 채팅방을 생성하는 API 입니다.")
+    @PostMapping("")
+    public ResponseEntity<ApiResponse<Void>> createChatRoom(@RequestBody ChatRoomRequestDto.CreateChatRoomDto createChatRoomDto) {
+        chatRoomFacade.createChatRoom(createChatRoomDto);
+        return ResponseEntity.ok(ApiResponse.onSuccess(null));
+    }
+
+    @Operation(summary = "채팅방 정보 생성하기",
+            description = "팟 멤버와 채팅방 사이를 연결하는 채팅방 정보를 생성하는 API 입니다.")
+    @PostMapping("/info")
+    public ResponseEntity<ApiResponse<Void>> createChatRoomInfo(@RequestBody ChatRoomRequestDto.CreateChatRoomInfoDto createChatRoomInfoDto) {
+        chatRoomFacade.createChatRoomInfo(createChatRoomInfoDto);
+        return ResponseEntity.ok(ApiResponse.onSuccess(null));
+    }
 
     @Operation(summary = "채팅방 리스트 가져오기",
             description = "사용자가 속한 모든 채팅방 목록을 가져오는 API 입니다.")
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>> getChatRooms() {
-        List<ChatRoomResponseDto.ChatRoomListDto> dtos = chatRoomInfoQueryService.selectChatRoomList();
+        List<ChatRoomResponseDto.ChatRoomListDto> dtos = chatRoomFacade.selectChatRoomList();
         return ResponseEntity.ok(ApiResponse.onSuccess(dtos));
     }
 
@@ -36,7 +50,7 @@ public class ChatRoomController {
     @GetMapping("/refresh")
     public DeferredResult<ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>>> chatRoomPolling() {
         DeferredResult<ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>>> deferredResult = new DeferredResult<>(30000L); // 타임아웃 30초
-        chatRoomInfoQueryService.registerPolling(deferredResult);
+        chatRoomFacade.registerPolling(deferredResult);
         return deferredResult;
     }
 
@@ -44,7 +58,7 @@ public class ChatRoomController {
             description = "채팅방에 접속해서 읽지 않은 새로운 채팅을 읽는 API 입니다.")
     @PatchMapping("/join")
     public ResponseEntity<ApiResponse<Void>> joinChatRoom(@RequestBody ChatRoomRequestDto.ChatRoomJoinDto chatRoomJoinDto) {
-        chatRoomInfoCommandService.joinChatRoom(chatRoomJoinDto);
+        chatRoomFacade.joinChatRoom(chatRoomJoinDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
@@ -52,7 +66,7 @@ public class ChatRoomController {
             description = "사용자가 채팅방 썸네일 이미지를 변경하는 API 입니다.")
     @PatchMapping("/thumbnails")
     public ResponseEntity<ApiResponse<Void>> updateChatRoomThumbnail(@RequestBody ChatRoomRequestDto.ChatRoomThumbNailDto chatRoomThumbNailDto) {
-        chatRoomInfoCommandService.updateThumbnail(chatRoomThumbNailDto);
+        chatRoomFacade.updateThumbnail(chatRoomThumbNailDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 }

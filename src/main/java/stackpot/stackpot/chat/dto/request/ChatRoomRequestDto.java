@@ -6,9 +6,26 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 public class ChatRoomRequestDto {
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateChatRoomDto {
+        private Long potId;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateChatRoomInfoDto {
+        List<Long> potMemberIds;
+        Long potId;
+    }
 
     @Builder
     @Getter

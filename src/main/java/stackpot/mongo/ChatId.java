@@ -1,4 +1,4 @@
-package stackpot.stackpot.chat.dto.mongo;
+package stackpot.mongo;
 
 public interface ChatId {
     String getId();

@@ -1,6 +1,7 @@
 package stackpot.stackpot.pot.service;
 
 import stackpot.stackpot.pot.dto.*;
+import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.search.dto.CursorPageResponse;
 import stackpot.stackpot.user.entity.enums.Role;
 
@@ -18,5 +19,5 @@ public interface PotQueryService {
     CompletedPotDetailResponseDto getCompletedPotDetail(Long potId, Long userId);
     List<RecruitingPotResponseDto> getRecruitingPots();
     Map<String, Object> getAllPotsWithPaging(Role roleEnum, int page, int size);
-
+    Pot getPotByPotId(Long potId);
 }

@@ -7,7 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.badge.service.BadgeService;
+import stackpot.stackpot.chat.entity.ChatRoom;
+import stackpot.stackpot.chat.entity.ChatRoomInfo;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomCommandService;
+import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
@@ -44,7 +47,6 @@ public class PotCommandServiceImpl implements PotCommandService {
     private final UserTodoService userTodoService;
     private final AuthService authService;
     private final BadgeService badgeService;
-    private final ChatRoomCommandService chatRoomCommandService;
 
     @Override
     @Transactional
@@ -71,8 +73,6 @@ public class PotCommandServiceImpl implements PotCommandService {
                 .collect(Collectors.toList());
 
         recruitmentDetailsRepository.saveAll(recruitmentDetails);
-
-        chatRoomCommandService.createChatRoom(requestDto.getPotName(), pot);
 
         return potConverter.toDto(savedPot, recruitmentDetails);
     }

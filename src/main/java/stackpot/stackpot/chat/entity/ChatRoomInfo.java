@@ -27,4 +27,13 @@ public class ChatRoomInfo extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pot_member_id")
     private PotMember potMember;
+
+    public void updateLastReadChatId(String lastReadChatId) {
+        this.lastReadChatId = lastReadChatId;
+    }
+
+    public void updateThumbnail(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }
+
