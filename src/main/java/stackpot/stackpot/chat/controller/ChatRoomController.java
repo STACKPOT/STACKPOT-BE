@@ -27,7 +27,7 @@ public class ChatRoomController {
             description = "사용자가 속한 모든 채팅방 목록을 가져오는 API 입니다.")
     @GetMapping("/")
     public ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>> getChatRooms() {
-        List<ChatRoomResponseDto.ChatRoomListDto> dtos = chatRoomInfoCommandService.selectChatRoomList();
+        List<ChatRoomResponseDto.ChatRoomListDto> dtos = chatRoomInfoQueryService.selectChatRoomList();
         return ResponseEntity.ok(ApiResponse.onSuccess(dtos));
     }
 

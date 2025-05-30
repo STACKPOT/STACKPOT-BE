@@ -50,6 +50,20 @@ public class ChatRoomInfoQueryServiceImpl implements ChatRoomInfoQueryService {
         return chatRoomInfoRepository.selectLastReadChatIdByPotMemberIdAndChatRoomId(potMemberId, chatRoomId).orElse(null);
     }
 
+    @Override
+    public List<ChatRoomResponseDto.ChatRoomListDto> selectChatRoomList() {
+        List<ChatRoomResponseDto.ChatRoomListDto> result = new ArrayList<>();
+
+        Long userId = 1L;
+        List<UserMemberIdDto> potMemberIds = potMemberQueryService.selectPotMemberIdsByUserId(userId);
+        for (UserMemberIdDto ids : potMemberIds) {
+            ChatRoomResponseDto.ChatRoomListDto dto = createChatRoomListDto(ids);
+            result.add(dto);
+        }
+
+        return result;
+    }
+
     @EventListener
     public void handlePollingEvent(NewChatEvent event) {
         Long chatRoomId = event.getChatRoomId();
@@ -95,6 +109,7 @@ public class ChatRoomInfoQueryServiceImpl implements ChatRoomInfoQueryService {
 
         ChatDto.LastChatDto lastChatDto = chatQueryService.selectLastChatInChatRoom(chatRoomId);
 
+        String thumbnailUrl = chatRoomInfoRepository.selectThumbnailUrlByPotMemberIdAndChatRoomId(potMemberId, chatRoomId).orElse(null);
         String chatRoomName = chatRoomNameDto.getChatRoomName();
         String lastChat = lastChatDto.getLastChat();
         LocalDateTime lastChatTime = lastChatDto.getLastChatTime();
@@ -102,9 +117,12 @@ public class ChatRoomInfoQueryServiceImpl implements ChatRoomInfoQueryService {
 
         return ChatRoomResponseDto.ChatRoomListDto.builder()
                 .chatRoomName(chatRoomName)
+                .thumbnailUrl(thumbnailUrl)
                 .lastChatTime(lastChatTime)
                 .lastChat(lastChat)
                 .unReadMessageCount(unReadMessageCount)
                 .build();
     }
+
+
 }

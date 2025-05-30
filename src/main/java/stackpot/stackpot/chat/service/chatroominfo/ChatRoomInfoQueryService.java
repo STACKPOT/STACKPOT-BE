@@ -12,4 +12,6 @@ public interface ChatRoomInfoQueryService {
     void registerPolling(DeferredResult<ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>>> deferredResult);
 
     String selectLastReadChatIdByPotMemberIdAndChatRoomId(Long potMemberId, Long chatRoomId);
+
+    List<ChatRoomResponseDto.ChatRoomListDto> selectChatRoomList();
 }

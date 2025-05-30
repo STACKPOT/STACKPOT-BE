@@ -12,6 +12,4 @@ public interface ChatRoomInfoCommandService {
     void joinChatRoom(ChatRoomRequestDto.ChatRoomJoinDto chatRoomJoinDto);
 
     void updateThumbnail(ChatRoomRequestDto.ChatRoomThumbNailDto chatRoomThumbNailDto);
-
-    List<ChatRoomResponseDto.ChatRoomListDto> selectChatRoomList();
 }

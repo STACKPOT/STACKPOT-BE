@@ -15,6 +15,7 @@ public class ChatRoomResponseDto {
     @AllArgsConstructor
     public static class ChatRoomListDto {
         private String chatRoomName;
+        private String thumbnailUrl;
         private LocalDateTime lastChatTime;
         private String lastChat;
         private int unReadMessageCount;

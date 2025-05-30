@@ -66,9 +66,4 @@ public class ChatRoomInfoCommandServiceImpl implements ChatRoomInfoCommandServic
         // potMemberId, chatRoomId로 chatRoomInfo의 imageUrl 업데이트
 
     }
-
-    @Override
-    public List<ChatRoomResponseDto.ChatRoomListDto> selectChatRoomList() {
-        // TODO JWT에서 userId 가져오기, user -> potMember -> pot -> chatRoom, potMember랑 chatRoom으로 chatRoomInfo에서 imageUrl(썸네일) 가져와야 함.
-    }
 }
