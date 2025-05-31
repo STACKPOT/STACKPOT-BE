@@ -128,7 +128,7 @@ public class PotController {
 
     @Operation(summary = "내가 지원한 팟 조회 API")
     @GetMapping("/apply")
-    public ResponseEntity<ApiResponse<List<AppliedPotResponseDto>>> getAppliedPots() {
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getAppliedPots() {
         return ResponseEntity.ok(ApiResponse.onSuccess(potQueryService.getAppliedPots()));
     }
 
