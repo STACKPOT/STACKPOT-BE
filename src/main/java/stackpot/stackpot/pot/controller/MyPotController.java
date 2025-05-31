@@ -73,4 +73,11 @@ public class MyPotController {
         boolean isOwner = myPotService.isOwner(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(isOwner));
     }
+
+    @GetMapping("/all")
+    @Operation(summary = "나의 모든 팟 조회 API", description = "나의 모든 팟(모집중 / 진행중 / 완료)을 조회합니다. status = all / recruiting / ongoing / completed")
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyAllInvolvedPots( @RequestParam(name = "potStatus", required = false) String dataType) {
+        List<OngoingPotResponseDto> pots = myPotService.getMyAllInvolvedPots(dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(pots));
+    }
 }
