@@ -1,4 +1,4 @@
-package stackpot.stackpot.chat.entity;
+package stackpot.mongo;
 
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 import stackpot.stackpot.common.BaseEntity;
+import stackpot.stackpot.user.entity.enums.Role;
 
 @Document(collection = "chat")
 @Getter
@@ -22,5 +23,6 @@ public class Chat extends BaseEntity {
     private String fileUrl;
     private Long userId;
     private String userName;
+    private Role role;
     private Long chatRoomId;
 }

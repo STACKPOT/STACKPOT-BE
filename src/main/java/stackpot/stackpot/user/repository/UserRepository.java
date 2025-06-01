@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Provider;
+import stackpot.stackpot.user.entity.enums.Role;
 
 import java.util.Optional;
 

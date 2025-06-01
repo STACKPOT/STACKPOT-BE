@@ -11,7 +11,6 @@ import stackpot.stackpot.chat.dto.ChatDto;
 import stackpot.stackpot.chat.dto.ChatRoomDto;
 import stackpot.stackpot.chat.dto.request.ChatRoomRequestDto;
 import stackpot.stackpot.chat.dto.response.ChatRoomResponseDto;
-import stackpot.stackpot.chat.entity.ChatRoom;
 import stackpot.stackpot.chat.event.NewChatEvent;
 import stackpot.stackpot.chat.service.chat.ChatQueryService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomCommandService;
@@ -22,12 +21,14 @@ import stackpot.stackpot.chat.session.ChatSessionManager;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;
 import stackpot.stackpot.pot.entity.Pot;
-import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.service.PotMemberQueryService;
 import stackpot.stackpot.pot.service.PotQueryService;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -42,7 +43,6 @@ public class ChatRoomFacade {
     private final PotMemberQueryService potMemberQueryService;
     private final PotQueryService potQueryService;
     private final AuthService authService;
-    private final ChatSessionManager chatSessionManager;
     private final AmazonS3Manager amazonS3Manager;
 
     private final Map<Long, List<DeferredResult<ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>>>>> waitingQueue = new ConcurrentHashMap<>();
@@ -56,7 +56,6 @@ public class ChatRoomFacade {
 
     public void createChatRoomInfo(ChatRoomRequestDto.CreateChatRoomInfoDto createChatRoomInfoDto) {
         List<Long> potMemberIds = createChatRoomInfoDto.getPotMemberIds();
-        List<PotMember> potMembers = potMemberQueryService.selectPotMembersByPotMemberIds(potMemberIds);
         Long potId = createChatRoomInfoDto.getPotId();
         Long chatRoomId = chatRoomQueryService.selectChatRoomIdByPotId(potId);
         chatRoomInfoCommandService.createChatRoomInfo(potMemberIds, chatRoomId);
@@ -111,11 +110,9 @@ public class ChatRoomFacade {
     public void handlePollingEvent(NewChatEvent event) {
         Long chatRoomId = event.getChatRoomId();
         Long potId = chatRoomQueryService.selectPotIdByChatRoomId(chatRoomId);
-        List<Long> allUserIds = potMemberQueryService.selectUserIdsAboutPotMembersByPotId(potId);
-        List<Long> onlineUserIds = chatSessionManager.getOnlineUserIds(chatRoomId);
-        List<Long> offlineUserIds = getOfflineUserIds(allUserIds, onlineUserIds);
+        List<Long> allUserIds = potMemberQueryService.selectUserIdsAboutPotMembersByPotId(potId); // 채팅방에 있는 모든 사용자 userId
 
-        for (Long userId : offlineUserIds) {
+        for (Long userId : allUserIds) {
             List<DeferredResult<ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>>>> deferredResults = waitingQueue.get(userId);
             if (deferredResults == null || deferredResults.isEmpty())
                 continue;
@@ -123,6 +120,7 @@ public class ChatRoomFacade {
             List<UserMemberIdDto> potMemberIds = potMemberQueryService.selectPotMemberIdsByUserId(userId);
             List<ChatRoomResponseDto.ChatRoomListDto> results = new ArrayList<>();
 
+            // 사용자 1명이 속한 모든 채팅방(팟)에 대해 채팅방 정보를 가져온다.
             for (UserMemberIdDto ids : potMemberIds) {
                 results.add(createChatRoomListDto(ids));
             }
@@ -152,18 +150,12 @@ public class ChatRoomFacade {
         int unReadMessageCount = chatQueryService.getUnReadMessageCount(chatRoomId, lastReadChatId);
 
         return ChatRoomResponseDto.ChatRoomListDto.builder()
+                .chatRoomId(chatRoomId)
                 .chatRoomName(chatRoomName)
                 .thumbnailUrl(thumbnailUrl)
                 .lastChatTime(lastChatTime)
                 .lastChat(lastChat)
                 .unReadMessageCount(unReadMessageCount)
                 .build();
-    }
-
-    private List<Long> getOfflineUserIds(List<Long> allUserIds, List<Long> onlineUserIds) {
-        Set<Long> allSet = new HashSet<>(allUserIds);
-        Set<Long> onlineSet = new HashSet<>(onlineUserIds);
-        allSet.removeAll(onlineSet);
-        return new ArrayList<>(allSet);
     }
 }

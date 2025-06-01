@@ -13,6 +13,7 @@ import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.repository.PotApplicationRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
+import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.user.repository.UserRepository;
 
 import java.util.List;
@@ -88,5 +89,10 @@ public class PotMemberQueryServiceImpl implements PotMemberQueryService {
         if (potMemberIds.isEmpty())
             throw new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND);
         return potMembers;
+    }
+
+    @Override
+    public Role selectRoleByUserIdAndPotId(Long userId, Long potId) {
+        return potMemberRepository.selectRoleByUserIdAndPotId(userId, potId).orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
     }
 }

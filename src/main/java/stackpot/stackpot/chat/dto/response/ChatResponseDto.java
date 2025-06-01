@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +26,7 @@ public class ChatResponseDto {
     public static class ChatDto {
         private String chatId;
         private String userName;
+        private Role role;
         private String message;
         private String fileUrl;
         private LocalDateTime createdAt;

@@ -1,8 +1,9 @@
 package stackpot.stackpot.chat.converter;
 
 import org.springframework.stereotype.Component;
+import stackpot.mongo.Chat;
 import stackpot.stackpot.chat.dto.response.ChatResponseDto;
-import stackpot.stackpot.chat.entity.Chat;
+import stackpot.stackpot.user.entity.enums.Role;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class ChatConverter {
         return ChatResponseDto.ChatDto.builder()
                 .chatId(chat.getId())
                 .userName(chat.getUserName())
+                .role(chat.getRole())
                 .message(chat.getMessage())
                 .fileUrl(chat.getFileUrl())
                 .createdAt(chat.getCreatedAt())

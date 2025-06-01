@@ -12,7 +12,6 @@ public class ChatRequestDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatMessageDto {
-        private Long roomId;
         private String message;
         private String fileUrl;
     }

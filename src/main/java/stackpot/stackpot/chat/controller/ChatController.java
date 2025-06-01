@@ -34,18 +34,17 @@ public class ChatController {
     ) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
-
         chatFacade.chat(chatMessageDto, userId, chatRoomId);
     }
 
     @Operation(summary = "채팅방의 모든 채팅 가져오기",
             description = "특정 채팅방에서 발생한 모든 채팅 기록을 가져오는 API 입니다.\n")
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<ApiResponse<ChatResponseDto.AllChatDto>> getAllChatsInChatRoom(
             @RequestParam(name = "chatRoomId") Long chatRoomId,
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(name = "direction") String direction) {
+            @RequestParam(name = "direction", required = false) String direction) {
         ChatResponseDto.AllChatDto allChatDto = chatFacade.selectAllChatsInChatRoom(chatRoomId, cursor, size, direction);
         return ResponseEntity.ok(ApiResponse.onSuccess(allChatDto));
     }

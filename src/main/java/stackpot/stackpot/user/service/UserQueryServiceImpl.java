@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
+import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.user.repository.UserRepository;
 
 @Service

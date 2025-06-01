@@ -19,10 +19,10 @@ public class StompHandler implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-        // js에서 {token: ~~ , chatRoomId : ~ } 이렇게 헤더 만들어서 보내면 됨
+        // {Authorization: ~~ , ChatRoomId : ~ } 이렇게 헤더 만들어서 보내면 됨
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            String chatRoomId = accessor.getFirstNativeHeader("chatRoomId");
-            String accessToken = accessor.getFirstNativeHeader("token");
+            String chatRoomId = accessor.getFirstNativeHeader("ChatRoomId");
+            String accessToken = accessor.getFirstNativeHeader("Authorization");
             Long userId = jwtTokenProvider.extractUserIdFromJwt(accessToken);
 
             accessor.getSessionAttributes().put("chatRoomId", chatRoomId);

@@ -14,6 +14,7 @@ public class ChatRoomResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatRoomListDto {
+        private Long chatRoomId;
         private String chatRoomName;
         private String thumbnailUrl;
         private LocalDateTime lastChatTime;

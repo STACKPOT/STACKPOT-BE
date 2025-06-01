@@ -5,8 +5,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.chat.converter.ChatConverter;
-import stackpot.stackpot.chat.entity.Chat;
+import stackpot.mongo.Chat;
 import stackpot.stackpot.chat.event.NewChatEvent;
+import stackpot.stackpot.user.entity.enums.Role;
 
 @RequiredArgsConstructor
 @Service
@@ -19,7 +20,7 @@ public class ChatSendService {
     private final ChatConverter chatConverter;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void sendMessage(final Chat chat, final Long chatRoomId) {
+    public void sendMessage(Chat chat, Long chatRoomId) {
         messagingTemplate.convertAndSend(CHAT_SUB_URL + chatRoomId, chatConverter.toChatDto(chat));
         eventPublisher.publishEvent(new NewChatEvent(chatRoomId));
     }
