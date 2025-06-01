@@ -37,18 +37,21 @@ public class ChatQueryService {
         return chats;
     }
 
-
     public String selectLatestChatId(Long chatRoomId) {
-        ChatId chatId = chatRepository.findChatIdFirstByChatRoomIdOrderByIdDesc(chatRoomId);
+        ChatId chatId = chatRepository.findFirstChatIdByChatRoomIdOrderByIdDesc(chatRoomId).orElse(null);
         if (chatId == null)
-            throw new ChatHandler(ErrorStatus.CHAT_NOT_FOUND);
+            return null;
         return chatId.getId();
     }
 
     public ChatDto.LastChatDto selectLastChatInChatRoom(Long chatRoomId) {
-        Chat chat = chatRepository.findChatFirstByChatRoomIdOrderByIdDesc(chatRoomId);
-        if (chat == null)
-            throw new ChatHandler(ErrorStatus.CHAT_NOT_FOUND);
+        Chat chat = chatRepository.findFirstByChatRoomIdOrderByIdDesc(chatRoomId).orElse(null);
+        if (chat == null){
+            return ChatDto.LastChatDto.builder()
+                    .lastChat("")
+                    .lastChatTime(null)
+                    .build();
+        }
         return ChatDto.LastChatDto.builder()
                 .lastChat(chat.getMessage())
                 .lastChatTime(chat.getCreatedAt())

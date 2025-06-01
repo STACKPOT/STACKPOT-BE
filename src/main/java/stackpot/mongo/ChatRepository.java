@@ -5,13 +5,14 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ChatRepository extends MongoRepository<Chat, String> {
 
-    ChatId findChatIdFirstByChatRoomIdOrderByIdDesc(Long chatRoomId);
+    Optional<ChatId> findFirstChatIdByChatRoomIdOrderByIdDesc(Long chatRoomId);
 
-    Chat findChatFirstByChatRoomIdOrderByIdDesc(Long chatRoomId);
+    Optional<Chat> findFirstByChatRoomIdOrderByIdDesc(Long chatRoomId);
 
     List<Chat> findByChatRoomIdAndIdGreaterThanOrderByIdAsc(Long chatRoomId, String id, Pageable pageable);
 

@@ -1,11 +1,15 @@
 package stackpot.stackpot.chat.facade;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.async.DeferredResult;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.aws.s3.AmazonS3Manager;
 import stackpot.stackpot.chat.dto.ChatDto;
 import stackpot.stackpot.chat.dto.ChatRoomDto;
@@ -17,7 +21,6 @@ import stackpot.stackpot.chat.service.chatroom.ChatRoomCommandService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
-import stackpot.stackpot.chat.session.ChatSessionManager;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;
 import stackpot.stackpot.pot.entity.Pot;
@@ -33,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ChatRoomFacade {
 
     private final ChatRoomInfoCommandService chatRoomInfoCommandService;
@@ -48,12 +52,14 @@ public class ChatRoomFacade {
     private final Map<Long, List<DeferredResult<ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>>>>> waitingQueue = new ConcurrentHashMap<>();
 
     // OSIV 끄면 pot 준영속이라서 안 됨
+    // 채팅방 생성
     public void createChatRoom(ChatRoomRequestDto.CreateChatRoomDto createChatRoomDto) {
         Long potId = createChatRoomDto.getPotId();
         Pot pot = potQueryService.getPotByPotId(potId);
         chatRoomCommandService.createChatRoom(pot.getPotName(), pot);
     }
 
+    // 채팅방 정보 생성
     public void createChatRoomInfo(ChatRoomRequestDto.CreateChatRoomInfoDto createChatRoomInfoDto) {
         List<Long> potMemberIds = createChatRoomInfoDto.getPotMemberIds();
         Long potId = createChatRoomInfoDto.getPotId();
@@ -61,6 +67,7 @@ public class ChatRoomFacade {
         chatRoomInfoCommandService.createChatRoomInfo(potMemberIds, chatRoomId);
     }
 
+    // 채팅방 목록 조회
     public List<ChatRoomResponseDto.ChatRoomListDto> selectChatRoomList() {
         List<ChatRoomResponseDto.ChatRoomListDto> result = new ArrayList<>();
 
@@ -79,7 +86,7 @@ public class ChatRoomFacade {
         waitingQueue.computeIfAbsent(userId, k -> new ArrayList<>()).add(deferredResult);
         deferredResult.onTimeout(() -> {
             waitingQueue.get(userId).remove(deferredResult);
-            deferredResult.setResult(ResponseEntity.ok(ApiResponse.onSuccess(null)));
+            deferredResult.setResult(ResponseEntity.ok(ApiResponse.of(ErrorStatus.CHATROOM_NOT_CHANGE, null)));
         });
         deferredResult.onCompletion(() -> waitingQueue.get(userId).remove(deferredResult));
     }

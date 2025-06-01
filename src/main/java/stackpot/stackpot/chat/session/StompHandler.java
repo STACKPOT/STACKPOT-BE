@@ -1,6 +1,7 @@
 package stackpot.stackpot.chat.session;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -11,6 +12,7 @@ import stackpot.stackpot.config.security.JwtTokenProvider;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class StompHandler implements ChannelInterceptor {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -19,7 +21,6 @@ public class StompHandler implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-        // {Authorization: ~~ , ChatRoomId : ~ } 이렇게 헤더 만들어서 보내면 됨
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String chatRoomId = accessor.getFirstNativeHeader("ChatRoomId");
             String accessToken = accessor.getFirstNativeHeader("Authorization");

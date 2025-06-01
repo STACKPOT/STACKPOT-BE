@@ -3,6 +3,7 @@ package stackpot.stackpot.chat.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -14,6 +15,8 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.chat.dto.request.ChatRequestDto;
 import stackpot.stackpot.chat.dto.response.ChatResponseDto;
 import stackpot.stackpot.chat.facade.ChatFacade;
+
+import javax.print.attribute.standard.Media;
 
 @RestController
 @RequiredArgsConstructor
@@ -52,7 +55,7 @@ public class ChatController {
     @Operation(summary = "채팅칠 때 파일/이미지 전송 API",
             description = "채팅칠 때 파일이나 이미지를 전송하는 API입니다.\n" +
                     "파일을 전송하면 S3에 저장하고 URL을 반환합니다.")
-    @PostMapping("/files")
+    @PostMapping(value = "/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ChatResponseDto.ChatFileDto>> sendFileWhenChat(@RequestPart("file") MultipartFile file) {
         ChatResponseDto.ChatFileDto chatFileDto = chatFacade.saveFileInS3(file);
         return ResponseEntity.ok(ApiResponse.onSuccess(chatFileDto));
