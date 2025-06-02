@@ -13,6 +13,7 @@ import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.converter.MyPotConverter;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.pot.converter.PotDetailConverter;
+import stackpot.stackpot.pot.converter.PotMemberConverter;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
 import stackpot.stackpot.pot.dto.PotRequestDto;
 import stackpot.stackpot.pot.dto.PotResponseDto;
@@ -48,6 +49,7 @@ public class PotCommandServiceImpl implements PotCommandService {
     private final PotMemberRepository potMemberRepository;
     private final UserTodoService userTodoService;
     private final AuthService authService;
+    private final PotMemberConverter potMemberConverter;
 
     @Override
     @Transactional
@@ -64,6 +66,9 @@ public class PotCommandServiceImpl implements PotCommandService {
         Pot pot = potConverter.toEntity(requestDto, user);
         pot.setPotStatus("RECRUITING");
         Pot savedPot = potRepository.save(pot);
+
+        PotMember creator = potMemberConverter.toCreatorEntity(user, pot, requestDto.getPotRole());
+        potMemberRepository.save(creator);
 
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(dto -> PotRecruitmentDetails.builder()
@@ -135,7 +140,7 @@ public class PotCommandServiceImpl implements PotCommandService {
         recruitmentDetailsRepository.deleteByPot_PotId(potId);
         potRepository.delete(pot);
     }
-    // 특정 팟 지원자의 좋아요 상태 변경
+
     @Override
     public void patchLikes(Long potId, Long applicationId, Boolean liked) {
         // 현재 로그인한 사용자 조회

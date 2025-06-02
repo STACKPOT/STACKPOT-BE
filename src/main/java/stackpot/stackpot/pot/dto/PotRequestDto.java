@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,6 +20,7 @@ public class PotRequestDto {
     private LocalDate potStartDate;
 
 //    private LocalDate potEndDate;
+    private Role potRole;
 
     @NotBlank(message = "예상 기간은 필수입니다.")
     private String potDuration;

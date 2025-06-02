@@ -13,6 +13,7 @@ import stackpot.stackpot.user.entity.enums.Role;
 
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -34,13 +35,18 @@ public class PotApplicationConverter {
     }
 
     public PotApplicationResponseDto toDto(PotApplication entity) {
-        String appliedRole = RoleNameMapper.mapRoleName(entity.getPotRole().name());
+        String roleName = entity.getPotRole().name();
+
+        Map<String, String> roleInfo = new HashMap<>();
+        roleInfo.put("name", roleName);
+        roleInfo.put("koreanName", Role.toKoreanName(roleName));
 
         return PotApplicationResponseDto.builder()
                 .applicationId(entity.getApplicationId())
-                .potRole(entity.getPotRole().name())
+                .potRole(roleInfo)
                 .userId(entity.getUser().getId())
-                .userNickname(entity.getUser().getNickname() + appliedRole)
+                .userNickname(entity.getUser().getNickname() + Role.toVegetable(roleName))
                 .build();
+
     }
 }

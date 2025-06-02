@@ -8,6 +8,7 @@ import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.dto.PotMemberAppealResponseDto;
 import stackpot.stackpot.pot.dto.PotMemberInfoResponseDto;
 import org.springframework.stereotype.Component;
+import stackpot.stackpot.user.entity.enums.Role;
 
 
 import java.util.Map;
@@ -22,6 +23,16 @@ public class PotMemberConverter{
                 .potApplication(application)
                 .roleName(application != null ? application.getPotRole() : user.getRole()) // PotRole Enum 그대로 사용
                 .owner(isOwner)
+                .appealContent(null)
+                .build();
+    }
+    public PotMember toCreatorEntity(User user, Pot pot, Role role) {
+        return PotMember.builder()
+                .user(user)
+                .pot(pot)
+                .potApplication(null)
+                .roleName(role)
+                .owner(true)
                 .appealContent(null)
                 .build();
     }
