@@ -6,14 +6,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.TokenHandler;
+import stackpot.stackpot.user.entity.TempUser;
 import stackpot.stackpot.user.entity.User;
+import stackpot.stackpot.user.entity.enums.Provider;
+import stackpot.stackpot.user.entity.enums.UserType;
 import stackpot.stackpot.user.repository.RefreshTokenRepository;
 import stackpot.stackpot.user.dto.response.TokenServiceResponse;
+import stackpot.stackpot.user.repository.TempUserRepository;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -22,40 +31,53 @@ import java.util.UUID;
 public class JwtTokenProvider {
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final TempUserRepository tempUserRepository;
     
     @Value("${spring.jwt.secret}")
     private String secretKey;
 
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;
-    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24; // 1일
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24; //1일
+    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14일
+    private static final long TEMP_TOKEN_EXPIRE_TIME = 1000 * 60 * 20;  // 20분
+
     private final UserDetailsService  userDetailsService;
 
-    // JWT 생성 (이메일 포함)
-    public TokenServiceResponse createToken(User user) {
-        Claims claims = Jwts.claims().setSubject(user.getEmail());
+    // JWT 생성
+    public TokenServiceResponse createToken(Long userId, Provider provider, UserType userType, String email) {
+        Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
+        claims.put("provider",provider);
+        claims.put("userType",userType);
+        claims.put("email",email);
 
         Date now = new Date();
 
-        String accessToken = Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
-                .compact();
+        if(userType == UserType.TEMP){
+            String accessToken = Jwts.builder()
+                    .setClaims(claims)
+                    .setIssuedAt(now)
+                    .setExpiration(new Date(now.getTime() + TEMP_TOKEN_EXPIRE_TIME))
+                    .signWith(SignatureAlgorithm.HS256, secretKey)
+                    .compact();
+            return TokenServiceResponse.of(accessToken, null);
+        }
+            String accessToken = Jwts.builder()
+                    .setClaims(claims)
+                    .setIssuedAt(now)
+                    .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
+                    .signWith(SignatureAlgorithm.HS256, secretKey)
+                    .compact();
 
-        String refreshToken = Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
-                .claim("random", UUID.randomUUID().toString())
-                .signWith(SignatureAlgorithm.HS256, secretKey)
-                .compact();
+            String refreshToken = Jwts.builder()
+                    .setSubject(String.valueOf(userId))
+                    .setIssuedAt(now)
+                    .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
+                    .signWith(SignatureAlgorithm.HS256, secretKey)
+                    .compact();
 
+            long expiration = getExpiration(refreshToken);
+            refreshTokenRepository.saveToken(userId, refreshToken, expiration);
 
-        long expiration = getExpiration(refreshToken);
-        refreshTokenRepository.saveToken(user.getId(), refreshToken, expiration);
-
-        return TokenServiceResponse.of(accessToken, refreshToken);
+            return TokenServiceResponse.of(accessToken, refreshToken);
     }
 
     public boolean validateToken(String token) {
@@ -76,32 +98,33 @@ public class JwtTokenProvider {
         return false;
     }
 
-    public boolean isTokenExpired(String token) {
-        try {
-            Date expiration = Jwts.parser()
-                    .setSigningKey(secretKey)
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getExpiration();
-            return expiration.before(new Date()); // 현재 시간보다 이전이면 만료됨
-        } catch (ExpiredJwtException e) {
-            return true; // 이미 만료된 토큰
-        }
-    }
-
-    public String getEmailFromToken(String token) {
-        return Jwts.parserBuilder()
+    public Authentication getAuthentication(String token) {
+        Claims claims = Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
-    }
+                .getBody();
 
-    public Authentication getAuthentication(String token) {
-        String email = getEmailFromToken(token);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email); // 이메일로 사용자 로드
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        String userType = (String) claims.get("userType"); // "TEMP" | "USER" | "ADMIN"
+        Long tempUserId = Long.valueOf(claims.getSubject());
+
+        // TEMP 사용자
+        if ("TEMP".equals(userType)) {
+            TempUser tempUser = tempUserRepository.findById(tempUserId)
+                    .orElseThrow(() -> new RuntimeException("TempUser not found"));
+
+            List<GrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_TEMP")
+            );
+            return new UsernamePasswordAuthenticationToken(tempUser, null, authorities);
+        }
+
+        // USER, ADMIN 사용자
+        UserDetails userDetails = userDetailsService.loadUserByUsername(String.valueOf(tempUserId));
+        List<GrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority("ROLE_" + userType)
+        );
+        return new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
     }
 
     public long getExpiration(String token) {
@@ -115,7 +138,7 @@ public class JwtTokenProvider {
         } catch (ExpiredJwtException e) {
             return 0; // 이미 만료된 경우 0 반환
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid JWT Token");
+            throw new TokenHandler(ErrorStatus.INVALID_AUTH_TOKEN);
         }
     }
 }

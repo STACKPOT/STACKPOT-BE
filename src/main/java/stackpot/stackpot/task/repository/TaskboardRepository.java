@@ -16,6 +16,8 @@ import java.util.Optional;
 public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
         List<Taskboard> findByPot(Pot pot);
 
+        List<Taskboard> findByPotPotId(Long potId);
+
         List<Taskboard> findByUserId(Long userId);
 
         Optional<Taskboard> findByPotAndTaskboardId(Pot pot, Long taskboardId);
@@ -27,16 +29,16 @@ public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
         @Query("DELETE FROM Taskboard f WHERE f.pot.potId = :potId")
         void deleteByPotId(@Param("potId") Long potId);
 
-        @Query("SELECT t FROM Taskboard t WHERE t.pot = :pot AND t.deadLine BETWEEN :startDate AND :endDate ORDER BY t.deadLine ASC")
-        List<Taskboard> findByPotAndDeadLineBetweenOrderByDeadLineAsc(
-                @Param("pot") Pot pot,
+        @Query("SELECT t FROM Taskboard t WHERE t.pot.potId = :potId AND t.deadLine BETWEEN :startDate AND :endDate ORDER BY t.deadLine ASC")
+        List<Taskboard> findByPotPIdAndDeadLineBetweenOrderByDeadLineAsc(
+                @Param("potId") Long potId,
                 @Param("startDate") LocalDate startDate,
                 @Param("endDate") LocalDate endDate
         );
 
-        @Query("SELECT t FROM Taskboard t WHERE t.pot = :pot AND t.deadLine = :date")
-        List<Taskboard> findByPotAndDeadLine(
-                @Param("pot") Pot pot,
+        @Query("SELECT t FROM Taskboard t WHERE t.pot.potId = :potId AND t.deadLine = :date")
+        List<Taskboard> findByPotPotIdAndDeadLine(
+                @Param("potId") Long potId,
                 @Param("date") LocalDate date
         );
 

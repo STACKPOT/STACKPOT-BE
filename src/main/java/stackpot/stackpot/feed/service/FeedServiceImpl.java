@@ -11,7 +11,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
+import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
+import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.converter.FeedConverter;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.user.entity.User;
@@ -37,25 +40,20 @@ public class FeedServiceImpl implements FeedService {
     private final FeedConverter feedConverter;
     private final UserRepository userRepository;
     private final FeedLikeRepository feedLikeRepository;
-
+    private final AuthService authService;
 
     @Override
     public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, Long cursor, int limit) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        System.out.println("🚀 getPreViewFeeds() 실행됨");
-//        System.out.println("🔍 현재 SecurityContext의 인증 객체: " + authentication);
-//        System.out.println("🔍 인증 객체 타입: " + (authentication != null ? authentication.getClass().getSimpleName() : "null"));
-//        System.out.println("🔍 인증 객체 권한: " + (authentication != null ? authentication.getAuthorities() : "null"));
-
         boolean isAuthenticated = authentication != null
                 && !(authentication instanceof AnonymousAuthenticationToken)
                 && authentication.isAuthenticated();
 
-        System.out.println("✅ 최종 isAuthenticated 값: " + isAuthenticated);
+        log.info("isAuthenticated :{}",isAuthenticated);
 
         final User user = isAuthenticated
                 ? userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."))
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND))
                 : null;
 
         final Long userId = (user != null) ? user.getId() : null;
@@ -63,14 +61,13 @@ public class FeedServiceImpl implements FeedService {
                 ? feedLikeRepository.findFeedIdsByUserId(userId)
                 : List.of(); // 비로그인 사용자는 빈 리스트
 
-
         Long lastFeedId = Long.MAX_VALUE;  // 기본적으로 가장 큰 ID부터 조회
         Long lastFeedLike = 0L;
 
         if ( cursor != null ) {
             lastFeedId = cursor;
             Feed lastdFeed = feedRepository.findById(lastFeedId)
-                    .orElseThrow(()-> new IllegalArgumentException("feed를 찾을 수 없습니다."));
+                    .orElseThrow(()-> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
             lastFeedLike = lastdFeed.getLikeCount();
         }
@@ -94,14 +91,6 @@ public class FeedServiceImpl implements FeedService {
         }
         Pageable pageable = PageRequest.ofSize(limit);
 
-        //  7초 동안 응답을 지연
-//        try {
-//            Thread.sleep(7000);  // 7초 대기
-//        } catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//        }
-
-
         List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastFeedId, lastFeedLike, pageable);
 
         List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
@@ -119,8 +108,6 @@ public class FeedServiceImpl implements FeedService {
                 .collect(Collectors.toList());
 
         Long nextCursor = null;
-        System.out.println("feedsize" + feedResults.size());
-        System.out.println("limit" + limit);
 
         if (!feedResults.isEmpty() && feedResults.size() == limit) {
             Feed lastFeed = feedResults.get(feedResults.size() - 1);
@@ -135,31 +122,21 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
-    public Feed createFeed(FeedRequestDto.createDto request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
+    public FeedResponseDto.FeedDto createFeed(FeedRequestDto.createDto request) {
         Feed feed = feedConverter.toFeed(request);
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User user = authService.getCurrentUser();
 
         feed.setUser(user);
-        return feedRepository.save(feed);
-
+        FeedResponseDto.FeedDto response = feedConverter.feedDto(feedRepository.save(feed));
+        return response;
     }
 
     @Override
     public FeedResponseDto.FeedDto getFeed(Long feedId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
 
+        User user = authService.getCurrentUser();
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(()->new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
-
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(()-> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
         boolean isOwner = Objects.equals(user.getId(), feed.getUser().getUserId());
 
@@ -199,11 +176,7 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public FeedResponseDto.FeedPreviewList getFeeds(Long nextCursor, int pageSize) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+        User user = authService.getCurrentUser();
 
         // 피드 조회 (페이징 처리 추가)
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
@@ -234,15 +207,14 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
-    public Feed modifyFeed(long feedId, FeedRequestDto.createDto request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+    public FeedResponseDto.FeedDto modifyFeed(long feedId, FeedRequestDto.createDto request) {
+        User user = authService.getCurrentUser();
 
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
+                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
-        if(!feed.getUser().getEmail().equals(email)){
-            throw new SecurityException("해당 피드를 수정할 권한이 없습니다.");
+        if(!feed.getUser().getEmail().equals(user.getEmail())){
+            throw new FeedHandler(ErrorStatus.FEED_UNAUTHORIZED);
         }
 
         if(request.getTitle() != null){
@@ -254,19 +226,19 @@ public class FeedServiceImpl implements FeedService {
         if(request.getCategory() != null){
             feed.setCategory(request.getCategory());
         }
-        return feedRepository.save(feed);
+        FeedResponseDto.FeedDto response = feedConverter.feedDto(feedRepository.save(feed));
+        return response;
     }
 
     @Override
     public String deleteFeed(Long feedId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        User user = authService.getCurrentUser();
 
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
+                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
-        if(!feed.getUser().getEmail().equals(email)){
-            throw new SecurityException("해당 피드를 삭제할 권한이 없습니다.");
+        if(!feed.getUser().getEmail().equals(user.getEmail())){
+            throw new FeedHandler(ErrorStatus.FEED_UNAUTHORIZED);
         }
 
         feedRepository.delete(feed);
@@ -276,15 +248,10 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public boolean toggleLike(Long feedId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
+        User user = authService.getCurrentUser();
 
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
-
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
+                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
         Optional<FeedLike> existingLike = feedLikeRepository.findByFeedAndUser(feed, user);
 
         if (existingLike.isPresent()) {
@@ -310,7 +277,7 @@ public class FeedServiceImpl implements FeedService {
     @Override
     public Long getLikeCount(Long feedId) {
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
         return feedLikeRepository.countByFeed(feed);
     }
 }
