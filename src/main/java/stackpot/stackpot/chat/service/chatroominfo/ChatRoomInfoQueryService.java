@@ -13,7 +13,7 @@ public class ChatRoomInfoQueryService {
 
     private final ChatRoomInfoRepository chatRoomInfoRepository;
 
-    public String selectLastReadChatIdByPotMemberIdAndChatRoomId(Long potMemberId, Long chatRoomId) {
+    public Long selectLastReadChatIdByPotMemberIdAndChatRoomId(Long potMemberId, Long chatRoomId) {
         return chatRoomInfoRepository.selectLastReadChatIdByPotMemberIdAndChatRoomId(potMemberId, chatRoomId).orElse(null);
     }
 

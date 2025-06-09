@@ -1,6 +1,7 @@
 package stackpot.mongo;
 
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,8 +17,11 @@ import stackpot.stackpot.user.entity.enums.Role;
 @Builder
 public class Chat extends BaseEntity {
 
+    @Transient
+    public static final String SEQUENCE_NAME = "chat_sequence";
+
     @Id
-    private String id;
+    private Long id;
 
     private String message;
     private String fileUrl;

@@ -14,9 +14,15 @@ public interface ChatRepository extends MongoRepository<Chat, String> {
 
     Optional<Chat> findFirstByChatRoomIdOrderByIdDesc(Long chatRoomId);
 
-    List<Chat> findByChatRoomIdAndIdGreaterThanOrderByIdAsc(Long chatRoomId, String id, Pageable pageable);
+    List<Chat> findByChatRoomIdOrderByIdAsc(Long chatRoomId, Pageable pageable);
 
-    List<Chat> findByChatRoomIdAndIdLessThanOrderByIdDesc(Long chatRoomId, String id, Pageable pageable);
+    List<Chat> findByChatRoomIdAndIdGreaterThanOrderByIdAsc(Long chatRoomId, Long id, Pageable pageable);
 
-    int countByChatRoomIdAndIdGreaterThan(Long chatRoomId, String lastReadChatId);
+    List<Chat> findByChatRoomIdAndIdLessThanOrderByIdDesc(Long chatRoomId, Long id, Pageable pageable);
+
+    List<Chat> findByChatRoomIdAndIdLessThanEqualOrderByIdDesc(Long chatRoomId, Long id, Pageable pageable);
+
+    int countByChatRoomId(Long chatRoomId);
+
+    int countByChatRoomIdAndIdGreaterThan(Long chatRoomId, Long lastReadChatId);
 }

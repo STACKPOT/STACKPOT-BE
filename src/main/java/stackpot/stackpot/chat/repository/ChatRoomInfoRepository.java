@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface ChatRoomInfoRepository extends JpaRepository<ChatRoomInfo, Long> {
 
     @Query("select cri.lastReadChatId from ChatRoomInfo cri where cri.potMember.potMemberId = :potMemberId and cri.chatRoom.id = :chatRoomId")
-    Optional<String> selectLastReadChatIdByPotMemberIdAndChatRoomId(@Param("potMemberId") Long potMemberId, @Param("chatRoomId") Long chatRoomId);
+    Optional<Long> selectLastReadChatIdByPotMemberIdAndChatRoomId(@Param("potMemberId") Long potMemberId, @Param("chatRoomId") Long chatRoomId);
 
     @Query("select cri.imageUrl from ChatRoomInfo cri where cri.potMember.potMemberId = :potMemberId and cri.chatRoom.id = :chatRoomId")
     Optional<String> selectThumbnailUrlByPotMemberIdAndChatRoomId(@Param("potMemberId") Long potMemberId, @Param("chatRoomId") Long chatRoomId);

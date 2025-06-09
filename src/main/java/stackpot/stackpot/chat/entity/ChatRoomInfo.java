@@ -5,6 +5,8 @@ import lombok.*;
 import stackpot.stackpot.common.BaseEntity;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Builder
@@ -14,11 +16,11 @@ public class ChatRoomInfo extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "chat_room_image_id")
+    @Column(name = "chat_room_info_id")
     private Long id;
 
     private String imageUrl; // 채팅방 썸네일
-    private String lastReadChatId; // 마지막으로 읽은 채팅 id
+    private Long lastReadChatId; // 마지막으로 읽은 채팅 id
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id")
@@ -28,7 +30,7 @@ public class ChatRoomInfo extends BaseEntity {
     @JoinColumn(name = "pot_member_id")
     private PotMember potMember;
 
-    public void updateLastReadChatId(String lastReadChatId) {
+    public void updateLastReadChatId(Long lastReadChatId) {
         this.lastReadChatId = lastReadChatId;
     }
 

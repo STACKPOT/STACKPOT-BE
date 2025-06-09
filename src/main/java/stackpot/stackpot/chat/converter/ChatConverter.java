@@ -27,7 +27,7 @@ public class ChatConverter {
                 .build();
     }
 
-    public ChatResponseDto.AllChatDto toAllChatDto(String prevCursor, String nextCursor, List<Chat> chats) {
+    public ChatResponseDto.AllChatDto toAllChatDto(Long prevCursor, Long nextCursor, List<Chat> chats) {
         List<ChatResponseDto.ChatDto> dtos = chats.stream()
                 .map(this::toChatDto)
                 .toList();

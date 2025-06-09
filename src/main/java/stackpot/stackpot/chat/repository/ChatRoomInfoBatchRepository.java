@@ -31,16 +31,19 @@ public class ChatRoomInfoBatchRepository {
     }
 
     @Transactional
-    public void lastReadChatIdBatchUpdate(List<Long> potMemberIds, Long chatRoomId, String chatId) {
-        String sql = "UPDATE chat_room_info SET last_read_chat_id = GREATEST(last_read_chat_id, ?) WHERE pot_member_id = ? AND chat_room_id = ?";
+    public void lastReadChatIdBatchUpdate(List<Long> potMemberIds, Long chatRoomId, Long chatId) {
+        String sql = "UPDATE chat_room_info " +
+                "SET last_read_chat_id = GREATEST(COALESCE(last_read_chat_id, 0), ?) " +
+                "WHERE pot_member_id = ? AND chat_room_id = ?";
+
         jdbcTemplate.batchUpdate(
                 sql,
                 potMemberIds,
                 potMemberIds.size(),
                 (PreparedStatement ps, Long potMemberId) -> {
-                    ps.setString(1, chatId);
-                    ps.setLong(2, potMemberId); // WHERE 절
-                    ps.setLong(3, chatRoomId); // WHERE 절
+                    ps.setLong(1, chatId); // for CASE THEN
+                    ps.setLong(2, potMemberId); // WHERE
+                    ps.setLong(3, chatRoomId); // WHERE
                 });
     }
 }

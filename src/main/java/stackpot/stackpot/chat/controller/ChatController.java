@@ -45,7 +45,7 @@ public class ChatController {
     @GetMapping("")
     public ResponseEntity<ApiResponse<ChatResponseDto.AllChatDto>> getAllChatsInChatRoom(
             @RequestParam(name = "chatRoomId") Long chatRoomId,
-            @RequestParam(name = "cursor", required = false) String cursor,
+            @RequestParam(name = "cursor", required = false) Long cursor,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(name = "direction", required = false) String direction) {
         ChatResponseDto.AllChatDto allChatDto = chatFacade.selectAllChatsInChatRoom(chatRoomId, cursor, size, direction);

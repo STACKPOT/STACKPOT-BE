@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import stackpot.mongo.Chat;
 import stackpot.mongo.ChatRepository;
+import stackpot.stackpot.chat.util.SequenceGenerator;
 import stackpot.stackpot.chat.dto.request.ChatRequestDto;
 import stackpot.stackpot.user.entity.enums.Role;
 
@@ -12,9 +13,11 @@ import stackpot.stackpot.user.entity.enums.Role;
 public class ChatCommandService {
 
     private final ChatRepository chatRepository;
+    private final SequenceGenerator sequenceGenerator;
 
     public Chat saveChatMessage(ChatRequestDto.ChatMessageDto chatMessageDto, Long userId, String userName, Long chatRoomId, Role role) {
         Chat chat = Chat.builder()
+                .id(sequenceGenerator.generateSequence("chat_sequence"))
                 .userId(userId)
                 .userName(userName)
                 .role(role)

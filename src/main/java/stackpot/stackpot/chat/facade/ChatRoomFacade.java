@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.multipart.MultipartFile;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.aws.s3.AmazonS3Manager;
@@ -96,19 +97,18 @@ public class ChatRoomFacade {
         Long chatRoomId = chatRoomJoinDto.getChatRoomId();
         Long potId = chatRoomQueryService.selectPotIdByChatRoomId(chatRoomId);
         Long potMemberId = potMemberQueryService.selectPotMemberIdByUserIdAndPotId(userId, potId);
-        String latestChatId = chatQueryService.selectLatestChatId(chatRoomId);
+        Long latestChatId = chatQueryService.selectLatestChatId(chatRoomId);
 
         chatRoomInfoCommandService.joinChatRoom(potMemberId, chatRoomId, latestChatId);
     }
 
-    public void updateThumbnail(ChatRoomRequestDto.ChatRoomThumbNailDto chatRoomThumbNailDto) {
-        Long chatRoomId = chatRoomThumbNailDto.getChatRoomId();
+    public void updateThumbnail(Long chatRoomId, MultipartFile file) {
         Long potId = chatRoomQueryService.selectPotIdByChatRoomId(chatRoomId);
         Long userId = authService.getCurrentUserId();
         Long potMemberId = potMemberQueryService.selectPotMemberIdByUserIdAndPotId(userId, potId);
 
         String keyName = "chat-room/" + UUID.randomUUID();
-        String imageUrl = amazonS3Manager.uploadFile(keyName, chatRoomThumbNailDto.getFile());
+        String imageUrl = amazonS3Manager.uploadFile(keyName, file);
 
         chatRoomInfoCommandService.updateThumbnail(potMemberId, chatRoomId, imageUrl);
     }
@@ -146,7 +146,7 @@ public class ChatRoomFacade {
         ChatRoomDto.ChatRoomNameDto chatRoomNameDto = chatRoomQueryService.selectChatRoomNameDtoIdByPotId(potId);
         Long chatRoomId = chatRoomNameDto.getChatRoomId();
 
-        String lastReadChatId = chatRoomInfoQueryService.selectLastReadChatIdByPotMemberIdAndChatRoomId(potMemberId, chatRoomId);
+        Long lastReadChatId = chatRoomInfoQueryService.selectLastReadChatIdByPotMemberIdAndChatRoomId(potMemberId, chatRoomId);
 
         ChatDto.LastChatDto lastChatDto = chatQueryService.selectLastChatInChatRoom(chatRoomId);
 

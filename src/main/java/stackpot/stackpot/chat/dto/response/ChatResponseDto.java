@@ -24,7 +24,7 @@ public class ChatResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatDto {
-        private String chatId;
+        private Long chatId;
         private String userName;
         private Role role;
         private String message;
@@ -37,8 +37,8 @@ public class ChatResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AllChatDto {
-        private String prevCursor;
-        private String nextCursor;
+        private Long prevCursor;
+        private Long nextCursor;
         List<ChatDto> chats;
     }
 }

@@ -6,6 +6,7 @@ import stackpot.stackpot.chat.entity.ChatRoomInfo;
 import stackpot.stackpot.chat.repository.ChatRoomInfoBatchRepository;
 import stackpot.stackpot.chat.repository.ChatRoomInfoRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -20,13 +21,13 @@ public class ChatRoomInfoCommandService {
         chatRoomInfoBatchRepository.chatRoomInfoBatchInsert(potMembers, chatRoomId);
     }
 
-    public void joinChatRoom(Long potMemberId, Long chatRoomId, String latestChatId) {
+    public void joinChatRoom(Long potMemberId, Long chatRoomId, Long latestChatId) {
         ChatRoomInfo chatRoomInfo = chatRoomInfoQueryService.selectChatRoomInfoByPotMemberIdAndChatRoomId(potMemberId, chatRoomId);
         chatRoomInfo.updateLastReadChatId(latestChatId);
         chatRoomInfoRepository.save(chatRoomInfo);
     }
 
-    public void updateLastReadChatId(List<Long> potMemberIds, Long chatRoomId, String chatId) {
+    public void updateLastReadChatId(List<Long> potMemberIds, Long chatRoomId, Long chatId) {
         chatRoomInfoBatchRepository.lastReadChatIdBatchUpdate(potMemberIds, chatRoomId, chatId);
     }
 

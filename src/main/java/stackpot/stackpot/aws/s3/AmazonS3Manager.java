@@ -1,6 +1,7 @@
 package stackpot.stackpot.aws.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,7 @@ public class AmazonS3Manager {
         } catch (IOException e) {
             log.error("error at AmazonS3Manager uploadFile : {}", (Object) e.getStackTrace());
         }
-
         String url = amazonS3.getUrl(amazonConfig.getBucket(), keyName).toString();
-//        return CompletableFuture.completedFuture(url);
         return url;
     }
 

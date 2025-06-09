@@ -3,9 +3,11 @@ package stackpot.stackpot.chat.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.multipart.MultipartFile;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.chat.dto.request.ChatRoomRequestDto;
 import stackpot.stackpot.chat.dto.response.ChatRoomResponseDto;
@@ -64,9 +66,10 @@ public class ChatRoomController {
 
     @Operation(summary = "채팅방 썸네일 이미지 변경하기",
             description = "사용자가 채팅방 썸네일 이미지를 변경하는 API 입니다.")
-    @PatchMapping("/thumbnails")
-    public ResponseEntity<ApiResponse<Void>> updateChatRoomThumbnail(@RequestBody ChatRoomRequestDto.ChatRoomThumbNailDto chatRoomThumbNailDto) {
-        chatRoomFacade.updateThumbnail(chatRoomThumbNailDto);
+    @PatchMapping(value = "/{chatRoomId}/thumbnails", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Void>> updateChatRoomThumbnail(@PathVariable("chatRoomId") Long chatRoomId,
+                                                                     @RequestPart("file") MultipartFile file) {
+        chatRoomFacade.updateThumbnail(chatRoomId, file);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 }
