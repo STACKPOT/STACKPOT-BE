@@ -41,9 +41,9 @@ public class ChatRoomInfoBatchRepository {
                 potMemberIds,
                 potMemberIds.size(),
                 (PreparedStatement ps, Long potMemberId) -> {
-                    ps.setLong(1, chatId); // for CASE THEN
-                    ps.setLong(2, potMemberId); // WHERE
-                    ps.setLong(3, chatRoomId); // WHERE
+                    ps.setLong(1, chatId);
+                    ps.setLong(2, potMemberId);
+                    ps.setLong(3, chatRoomId);
                 });
     }
 }
