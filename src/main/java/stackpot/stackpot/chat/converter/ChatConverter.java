@@ -23,7 +23,7 @@ public class ChatConverter {
                 .role(chat.getRole())
                 .message(chat.getMessage())
                 .fileUrl(chat.getFileUrl())
-                .createdAt(chat.getCreatedAt())
+                .createdAt(chat.getUpdatedAt())
                 .build();
     }
 

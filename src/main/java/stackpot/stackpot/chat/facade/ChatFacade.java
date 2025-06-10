@@ -2,7 +2,6 @@ package stackpot.stackpot.chat.facade;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import stackpot.mongo.Chat;
@@ -11,7 +10,6 @@ import stackpot.stackpot.apiPayload.exception.handler.ChatHandler;
 import stackpot.stackpot.chat.converter.ChatConverter;
 import stackpot.stackpot.chat.dto.request.ChatRequestDto;
 import stackpot.stackpot.chat.dto.response.ChatResponseDto;
-import stackpot.stackpot.chat.event.NewChatEvent;
 import stackpot.stackpot.chat.service.chat.ChatCommandService;
 import stackpot.stackpot.chat.service.chat.ChatFileService;
 import stackpot.stackpot.chat.service.chat.ChatQueryService;
@@ -19,6 +17,7 @@ import stackpot.stackpot.chat.service.chat.ChatSendService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
+import stackpot.stackpot.chat.service.event.SseService;
 import stackpot.stackpot.chat.session.ChatSessionManager;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.service.PotMemberQueryService;
@@ -40,11 +39,11 @@ public class ChatFacade {
     private final PotMemberQueryService potMemberQueryService;
     private final UserQueryService userQueryService;
     private final AuthService authService;
+    private final SseService sseService;
     private final ChatSendService chatSendService;
     private final ChatFileService chatFileService;
     private final ChatSessionManager chatSessionManager;
     private final ChatConverter chatConverter;
-    private final ApplicationEventPublisher eventPublisher;
 
 
     public void chat(ChatRequestDto.ChatMessageDto chatMessageDto, Long userId, Long chatRoomId) {
@@ -60,7 +59,7 @@ public class ChatFacade {
 
         chatRoomInfoCommandService.updateLastReadChatId(potMemberIds, chatRoomId, chat.getId()); // 3. 채팅방에 접속한 사용자들의 마지막으로 읽은 채팅 메시지 Id 업데이트
 
-        eventPublisher.publishEvent(new NewChatEvent(chatRoomId)); // 4. polling 이벤트 발행
+        sseService.sendChatRoomList(chatRoomId); // 4. 채팅방 리스트 SSE 전송
     }
 
     public ChatResponseDto.AllChatDto selectAllChatsInChatRoom(Long chatRoomId, Long cursor, int size, String direction) {

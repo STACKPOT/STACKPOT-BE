@@ -5,7 +5,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import stackpot.mongo.Chat;
 import stackpot.stackpot.chat.converter.ChatConverter;
-import stackpot.stackpot.chat.event.NewChatEvent;
 
 @RequiredArgsConstructor
 @Service

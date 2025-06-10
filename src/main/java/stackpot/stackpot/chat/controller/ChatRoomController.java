@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.multipart.MultipartFile;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.chat.dto.request.ChatRoomRequestDto;
@@ -45,15 +44,6 @@ public class ChatRoomController {
     public ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>> getChatRooms() {
         List<ChatRoomResponseDto.ChatRoomListDto> dtos = chatRoomFacade.selectChatRoomList();
         return ResponseEntity.ok(ApiResponse.onSuccess(dtos));
-    }
-
-    @Operation(summary = "채팅방 미확인 메시지 개수 및 최신 채팅 Long Polling",
-            description = "채팅방 리스트의 미확인 메시지 개수 및 최신 채팅 메시지를 Long Polling 기법으로 가져오는 API 입니다.")
-    @GetMapping("/refresh")
-    public DeferredResult<ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>>> chatRoomPolling() {
-        DeferredResult<ResponseEntity<ApiResponse<List<ChatRoomResponseDto.ChatRoomListDto>>>> deferredResult = new DeferredResult<>(30000L); // 타임아웃 30초
-        chatRoomFacade.registerPolling(deferredResult);
-        return deferredResult;
     }
 
     @Operation(summary = "채팅방 접속하기",

@@ -61,7 +61,7 @@ public class ChatQueryService {
         }
         return ChatDto.LastChatDto.builder()
                 .lastChat(chat.getMessage())
-                .lastChatTime(chat.getCreatedAt())
+                .lastChatTime(chat.getUpdatedAt())
                 .build();
     }
 
