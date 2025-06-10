@@ -7,10 +7,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.converter.FeedConverter;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.pot.entity.Pot;
+import stackpot.stackpot.pot.repository.PotSaveRepository;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
@@ -19,9 +21,7 @@ import stackpot.stackpot.user.repository.UserRepository;
 import stackpot.stackpot.feed.dto.FeedSearchResponseDto;
 import stackpot.stackpot.pot.dto.PotPreviewResponseDto;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,8 +34,10 @@ public class SearchServiceImpl implements SearchService {
     private final FeedConverter feedConverter;
     private final FeedLikeRepository feedLikeRepository;
     private final UserRepository userRepository;
+    private final PotSaveRepository potSaveRepository;
+    private final AuthService authService;
 
-@Override
+/*@Override
 @Transactional(readOnly = true)
 public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable) {
 
@@ -50,7 +52,46 @@ public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable)
 
         return potConverter.toPrviewDto(user, pot, recruitmentRoles);
     });
-}
+}*/
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable) {
+        Page<Pot> pots = potRepository.searchByKeyword(keyword, pageable);
+
+        // Pot ID 리스트 추출
+        List<Pot> potList = pots.getContent();
+        List<Long> potIds = potList.stream()
+                .map(Pot::getPotId)
+                .collect(Collectors.toList());
+
+        // 현재 로그인 사용자 가져오기 (비로그인 허용 시 예외 처리 필요)
+        User user = null;
+        try {
+            user = authService.getCurrentUser();
+        } catch (Exception e) {
+            user = null; // 비로그인 사용자
+        }
+
+        // 저장 수 및 유저의 저장 여부 일괄 조회
+        Map<Long, Integer> potSaveCountMap = potSaveRepository.countSavesByPotIds(potIds);
+        Set<Long> savedPotIds = (user != null)
+                ? potSaveRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
+                : Collections.emptySet();
+
+        // 변환
+        return pots.map(pot -> {
+            User owner = pot.getUser();
+            List<String> recruitmentRoles = pot.getRecruitmentDetails().stream()
+                    .map(rd -> rd.getRecruitmentRole().name())
+                    .collect(Collectors.toList());
+
+            boolean isSaved = savedPotIds.contains(pot.getPotId());
+            int saveCount = potSaveCountMap.getOrDefault(pot.getPotId(), 0);
+
+            return potConverter.toPrviewDto(owner, pot, recruitmentRoles, isSaved, saveCount);
+        });
+    }
 
     @Override
     @Transactional(readOnly = true)

@@ -28,6 +28,8 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
 
     List<Pot> findByUserIdAndPotStatus(Long userId, String status);
 
+    Page<Pot> findByUserIdAndPotStatus(Long userId, String potStatus, Pageable pageable);
+
     @Query("SELECT p FROM Pot p " +
             "WHERE LOWER(p.potName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR LOWER(p.potContent) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
@@ -71,4 +73,6 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
             "GROUP BY p " +
             "ORDER BY COUNT(pa.applicationId) DESC, p.createdAt DESC")
     Page<Pot> findByRecruitmentRoleOrderByApplicantsCountDesc(@Param("recruitmentRole") Role recruitmentRole, Pageable pageable);
+
+    List<Pot> findByPotMembers_UserIdOrderByCreatedAtDesc(Long userId);
 }

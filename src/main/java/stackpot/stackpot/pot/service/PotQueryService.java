@@ -9,14 +9,12 @@ import java.util.Map;
 
 public interface PotQueryService {
     CursorPageResponse<CompletedPotResponseDto> getMyCompletedPots(Long cursor, int size);
-    List<PotPreviewResponseDto> getAllPots(Role role, Integer page, Integer size);
     PotDetailResponseDto getPotDetails(Long potId);
     List<LikedApplicantResponseDTO> getLikedApplicants(Long potId);
-    List<AppliedPotResponseDto> getAppliedPots();
+    List<OngoingPotResponseDto> getAppliedPots();
     PotSummaryResponseDTO getPotSummary(Long potId);
     CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size);
     CompletedPotDetailResponseDto getCompletedPotDetail(Long potId, Long userId);
-    List<RecruitingPotResponseDto> getRecruitingPots();
-    Map<String, Object> getAllPotsWithPaging(Role roleEnum, int page, int size);
-
+    Map<String, Object> getAllPotsWithPaging(Role role, int page, int size, Boolean onlyMine);
+    Map<String, Object> getMyRecruitingPotsWithPaging(Integer page, Integer size);
 }

@@ -75,11 +75,11 @@ public class UserTodoServiceImpl implements UserTodoService {
         List<UserTodo> todos = myPotRepository.findByPotAndUsers(pot, pagedUsers);
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime todayAt3AM = LocalDateTime.of(now.toLocalDate(), LocalTime.of(3, 00));
-        LocalDateTime yesterdayAt3AM = todayAt3AM.minusDays(1);
+        LocalDateTime todayAt5AM = LocalDateTime.of(now.toLocalDate(), LocalTime.of(5, 0));
+        LocalDateTime yesterdayAt5AM = todayAt5AM.minusDays(1);
 
         List<UserTodo> filteredTodos = todos.stream()
-                .filter(todo -> todo.getCreatedAt().isAfter(yesterdayAt3AM))
+                .filter(todo -> todo.getCreatedAt().isAfter(yesterdayAt5AM))
                 .collect(Collectors.toList());
 
         Map<User, List<UserTodo>> groupedByUser = filteredTodos.stream()

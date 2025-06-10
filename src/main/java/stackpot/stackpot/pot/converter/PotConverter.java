@@ -62,7 +62,7 @@ public class PotConverter{
                 .build();
     }
 
-    public PotPreviewResponseDto toPrviewDto(User user, Pot pot, List<String> recruitmentRoles) {
+    public PotPreviewResponseDto toPrviewDto(User user, Pot pot, List<String> recruitmentRoles, boolean isSaved, int potSaveCount) {
         String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
 
         List<String> koreanRoles = recruitmentRoles.stream()
@@ -71,13 +71,15 @@ public class PotConverter{
 
         return PotPreviewResponseDto.builder()
                 .userId(user.getId())
-                .userRole(String.valueOf(user.getRole()))
+                .userRole(user.getRole().name())
                 .userNickname(user.getNickname() + RoleNameMapper.mapRoleName(user.getRole().name()))
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potContent(pot.getPotContent())
                 .recruitmentRoles(koreanRoles)
                 .dDay(dDay)
+                .isSaved(isSaved)
+                .potSaveCount(potSaveCount)
                 .build();
     }
 
