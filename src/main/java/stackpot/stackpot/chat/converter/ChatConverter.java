@@ -18,6 +18,7 @@ public class ChatConverter {
 
     public ChatResponseDto.ChatDto toChatDto(Chat chat) {
         return ChatResponseDto.ChatDto.builder()
+                .userId(chat.getUserId())
                 .chatId(chat.getId())
                 .userName(chat.getUserName())
                 .role(chat.getRole())

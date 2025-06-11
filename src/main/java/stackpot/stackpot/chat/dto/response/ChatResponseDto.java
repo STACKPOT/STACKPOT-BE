@@ -24,6 +24,7 @@ public class ChatResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatDto {
+        private Long userId;
         private Long chatId;
         private String userName;
         private Role role;
