@@ -82,12 +82,14 @@ public class PotController {
             description = """
     - Role: FRONTEND / BACKEND / DESIGN / PLANNING / (NULL)
     만약 null인 경우 모든 role에 대해서 조회합니다.
-"""
+    - onlyMine: true인 경우 로그인한 사용자가 만든 팟 중 모집 중(RECRUITING)인 팟만 조회합니다.
+      false 또는 null인 경우 전체 팟 목록에서 조건에 맞는 팟을 조회합니다."""
     )
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
             @RequestParam(required = false) String recruitmentRole,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) Boolean onlyMine) {
 
         if (page < 1) {
             throw new EnumHandler(ErrorStatus.INVALID_PAGE);
@@ -98,7 +100,7 @@ public class PotController {
             roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
         }
 
-        Map<String, Object> response = potQueryService.getAllPotsWithPaging(roleEnum, page, size);
+        Map<String, Object> response = potQueryService.getAllPotsWithPaging(roleEnum, page, size, onlyMine);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -126,7 +128,7 @@ public class PotController {
 
     @Operation(summary = "내가 지원한 팟 조회 API")
     @GetMapping("/apply")
-    public ResponseEntity<ApiResponse<List<AppliedPotResponseDto>>> getAppliedPots() {
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getAppliedPots() {
         return ResponseEntity.ok(ApiResponse.onSuccess(potQueryService.getAppliedPots()));
     }
 
@@ -150,7 +152,17 @@ public class PotController {
 
     @Operation(summary = "내가 만든 팟 - 모집 중인 팟 조회 API")
     @GetMapping("/recruiting")
-    public ResponseEntity<ApiResponse<List<RecruitingPotResponseDto>>> getRecruitingPots() {
-        return ResponseEntity.ok(ApiResponse.onSuccess(potQueryService.getRecruitingPots()));
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getMyRecruitingPots(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+
+        if (page < 1) {
+            throw new EnumHandler(ErrorStatus.INVALID_PAGE);
+        }
+
+        Map<String, Object> response = potQueryService.getMyRecruitingPotsWithPaging(page, size);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
+
 }
