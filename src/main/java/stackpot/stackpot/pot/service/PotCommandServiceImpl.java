@@ -2,27 +2,24 @@ package stackpot.stackpot.pot.service;
 
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
-import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.badge.service.BadgeService;
+import stackpot.stackpot.chat.entity.ChatRoom;
+import stackpot.stackpot.chat.entity.ChatRoomInfo;
+import stackpot.stackpot.chat.service.chatroom.ChatRoomCommandService;
+import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.common.util.AuthService;
-import stackpot.stackpot.pot.converter.MyPotConverter;
 import stackpot.stackpot.pot.converter.PotConverter;
-import stackpot.stackpot.pot.converter.PotDetailConverter;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
 import stackpot.stackpot.pot.dto.PotRequestDto;
 import stackpot.stackpot.pot.dto.PotResponseDto;
-import stackpot.stackpot.pot.dto.RecruitingPotResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.pot.entity.mapping.PotApplication;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
-import stackpot.stackpot.pot.repository.PotApplicationRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
@@ -137,6 +134,7 @@ public class PotCommandServiceImpl implements PotCommandService {
         recruitmentDetailsRepository.deleteByPot_PotId(potId);
         potRepository.delete(pot);
     }
+
     // 특정 팟 지원자의 좋아요 상태 변경
     @Override
     public void patchLikes(Long potId, Long applicationId, Boolean liked) {
@@ -161,7 +159,6 @@ public class PotCommandServiceImpl implements PotCommandService {
         application.setLiked(liked);
         potRepository.save(pot);
     }
-
 
 
     @Override
@@ -224,7 +221,6 @@ public class PotCommandServiceImpl implements PotCommandService {
             return "팟 멤버가 성공적으로 삭제되었습니다.";
         }
     }
-
 
 
     @Override

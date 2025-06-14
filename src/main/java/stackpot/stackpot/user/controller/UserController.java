@@ -20,6 +20,7 @@ import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
 import stackpot.stackpot.pot.service.PotCommandService;
+import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
@@ -70,7 +71,7 @@ public class UserController {
     @GetMapping("/oauth/kakao")
     @Operation(
             summary = "로그인 및 토큰발급 API",
-            description = "\"code\" 와 함께 요청시 기존/신규 유저 구분 및 Accesstoken을 발급합니다. isNewUser : false( DB 조회 확인 기존 유저 ), ture ( DB에 없음 신규 유저 )",
+            description = "\"code\" 와 함께 요청시 기존/신규 유저 구분 및 accessToken을 발급합니다. 이떄 발급된 AccessToken은 회원가입 관련 엔드포인트만 접급 가능합니다.\nisNewUser : false( DB 조회 확인 기존 유저 ), ture ( DB에 없음 신규 유저 )",
             responses = {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "200",
@@ -87,7 +88,7 @@ public class UserController {
                             description = "Internal Server Error",
                             content = @Content(mediaType = "application/json")
                     )
-        }
+            }
     )
     public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
 
@@ -95,9 +96,10 @@ public class UserController {
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
 
+        Long providerId = userInfo.getId();
         String email = userInfo.getKakaoAccount().getEmail();
 
-        UserResponseDto.loginDto userResponse = userCommandService.isnewUser(email);
+        UserResponseDto.loginDto userResponse = userCommandService.isnewUser(Provider.KAKAO, providerId, email);
         return ResponseEntity.ok(ApiResponse.onSuccess(userResponse));
     }
 
@@ -123,15 +125,15 @@ public class UserController {
 
     @PostMapping("/nickname/save")
     @Operation(
-            summary = "닉네임 저장 API",
-            description = "사용자의 닉네임을 저장하고 회원가입을 완료합니다."
+            summary = "닉네임 저장 및 회원가입 완료 API",
+            description = "사용자의 닉네임을 저장하고 회원가입을 완료합니다. accessToken과 refreshToken도 함께 반환합니다."
     )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND
     })
-    public ResponseEntity<ApiResponse<String>> saveNickname(@RequestParam("nickname") String nickname) {
-        String savedNickname = userCommandService.saveNickname(nickname);
-        return ResponseEntity.ok(ApiResponse.onSuccess(savedNickname));
+    public ResponseEntity<ApiResponse<TokenServiceResponse>> saveNickname(@RequestParam("nickname") String nickname) {
+        TokenServiceResponse tokenServiceResponse = userCommandService.saveNickname(nickname);
+        return ResponseEntity.ok(ApiResponse.onSuccess(tokenServiceResponse));
     }
 
     @PostMapping("/logout")
@@ -154,8 +156,8 @@ public class UserController {
     @Operation(
             summary = "회원 탈퇴 API",
             description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 "+
-            "-pot 생성자인 경우 softDelet\n"+
-            "-pot 생성자가 아닌 경우 hardDelet"
+                    "-pot 생성자인 경우 softDelet\n"+
+                    "-pot 생성자가 아닌 경우 hardDelet"
     )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND,
@@ -232,7 +234,7 @@ public class UserController {
     @Operation(
             summary = "나의 프로필 수정 API",
             description = "사용자의 역할, 관심사, 한 줄 소개, 카카오 아이디를 수정합니다."
-            )
+    )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND
     })
@@ -275,4 +277,18 @@ public class UserController {
         PotResponseDto responseDto = potCommandService.updateCompletedPot(potId, requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
+    /*@GetMapping("/pots")
+    @Operation(
+            summary = "나의 마이페이지의 '모든 팟' 조회 API",
+            description = "토큰을 통해 자신의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)"
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+            ErrorStatus.USER_ALREADY_WITHDRAWN,
+    })
+    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> usersMypages(
+            @RequestParam(name = "dataType", required = false) String dataType){
+        UserMyPageResponseDto userDetails = userCommandService.getMypages(dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }*/
 }

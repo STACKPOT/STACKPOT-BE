@@ -6,6 +6,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
+import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
 
@@ -19,17 +20,22 @@ public class AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || authentication.getName() == null) {
-            throw new MemberHandler(ErrorStatus.AUTHENTICATION_FAILED);
+            throw new UserHandler(ErrorStatus.AUTHENTICATION_FAILED);
         }
+        Long userId = Long.valueOf(authentication.getName());
 
-        String email = authentication.getName();
-
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
     }
 
     public Long getCurrentUserId() {
-        return getCurrentUser().getId();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getName() == null) {
+            throw new UserHandler(ErrorStatus.AUTHENTICATION_FAILED);
+        }
+
+        return Long.valueOf(authentication.getName());
     }
 
     public String getCurrentUserEmail() {
@@ -40,4 +46,3 @@ public class AuthService {
         return authentication.getName();
     }
 }
-

@@ -29,18 +29,13 @@ public class PotMemberController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<PotMemberInfoResponseDto>>> getPotMembers(
             @PathVariable("pot_id") Long potId) {
-
-
         List<PotMemberInfoResponseDto> response = potMemberQueryService.getPotMembers(potId);
-
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-
 
     @Operation(
             summary = "팟 시작 API",
             description = "지원자 ID 리스트를 받아 팟 멤버를 추가합니다."
-
     )
     @PostMapping
     public ResponseEntity<ApiResponse<List<PotMemberAppealResponseDto>>> addPotMembers(
@@ -49,11 +44,11 @@ public class PotMemberController {
         List<PotMemberAppealResponseDto> response = potMemberCommandService.addMembersToPot(potId, requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
     @Operation(summary = "팟 어필 API")
     @PatchMapping("/appeal")
     public ResponseEntity<ApiResponse<String>> updateAppealContent(
             @PathVariable("pot_id") Long potId,
-
             @RequestBody @Valid UpdateAppealRequestDto requestDto) {
         potMemberCommandService.updateAppealContent(potId, requestDto.getAppealContent());
         return ResponseEntity.ok(ApiResponse.onSuccess("어필 내용이 성공적으로 업데이트되었습니다."));

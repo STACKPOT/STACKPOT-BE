@@ -18,4 +18,6 @@ public class PotPreviewResponseDto {
     private String potContent;
     private List<String> recruitmentRoles;
     private String dDay;
+    private Boolean isSaved;
+    private int potSaveCount;
 }

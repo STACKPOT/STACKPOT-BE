@@ -16,6 +16,5 @@ public interface MyPotService {
     List<CompletedPotBadgeResponseDto> getUserCompletedPotsWithBadges(Long userId);
     List<OngoingPotResponseDto> getMyOngoingPots();
     boolean isOwner(Long potId);
-
-
+    List<OngoingPotResponseDto> getMyAllInvolvedPots(String dataType);
 }
