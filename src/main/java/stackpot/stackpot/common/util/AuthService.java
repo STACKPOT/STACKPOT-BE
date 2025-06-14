@@ -22,14 +22,20 @@ public class AuthService {
         if (authentication == null || authentication.getName() == null) {
             throw new UserHandler(ErrorStatus.AUTHENTICATION_FAILED);
         }
-        Long userId  = Long.valueOf(authentication.getName());
+        Long userId = Long.valueOf(authentication.getName());
 
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
     }
 
     public Long getCurrentUserId() {
-        return getCurrentUser().getId();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getName() == null) {
+            throw new UserHandler(ErrorStatus.AUTHENTICATION_FAILED);
+        }
+
+        return Long.valueOf(authentication.getName());
     }
 
     public String getCurrentUserEmail() {

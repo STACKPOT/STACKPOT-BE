@@ -11,6 +11,8 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.DelegatingSecurityContextRepository;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -27,9 +29,15 @@ public class SecurityConfig {
                 // error endpoint를 열어줘야 함, favicon.ico 추가!
                 .requestMatchers("/error", "/favicon.ico");
     }
+
     @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider, BlacklistRepository blacklistRepository) throws Exception {
-        http.formLogin(AbstractHttpConfigurer::disable)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider, BlacklistRepository blacklistRepository) throws Exception {
+        http.securityContext(securityContext ->
+                        securityContext.securityContextRepository(new DelegatingSecurityContextRepository(
+                                new RequestAttributeSecurityContextRepository()
+                        ))
+                )
+                .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -37,21 +45,24 @@ public class SecurityConfig {
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/actuator/**","/health").permitAll() // 서버 점검
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**",  "/swagger-ui.html").permitAll() // 스웨거 관련 접근 허용
-                        .requestMatchers("/users/oauth/kakao","/reissue").permitAll() // 인증 관련 스웨거 접근 허용
-                        .requestMatchers("/home","/sign-up","/pots", "/feeds").permitAll()
+                                .requestMatchers("/actuator/**", "/health").permitAll() // 서버 점검
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll() // 스웨거 관련 접근 허용
+                                .requestMatchers("/users/oauth/kakao", "/reissue").permitAll() // 인증 관련 스웨거 접근 허용
+                                .requestMatchers("/home", "/sign-up", "/pots", "/feeds").permitAll()
+                                .requestMatchers("/ws-connect/**").permitAll()
 //                        .requestMatchers("").hasAnyRole("TEMP","ADMIN") // Test를 위해 모든 접근
 //                        .requestMatchers("").hasAnyRole("USER","ADMIN")
 //                        .requestMatchers("").hasRole("ADMIN")// 관리자 권한은 아직 생성하지 않았습니다.
-                        .anyRequest().authenticated()
+                                .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, blacklistRepository), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("http://localhost:5173");
         configuration.addAllowedOrigin("http://localhost:8080");
         configuration.addAllowedOrigin("http://localhost:8081");

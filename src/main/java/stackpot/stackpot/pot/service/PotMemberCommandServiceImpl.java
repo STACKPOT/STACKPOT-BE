@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.chat.entity.ChatRoom;
+import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.converter.PotMemberConverter;
 import stackpot.stackpot.pot.dto.PotMemberAppealResponseDto;
@@ -29,8 +31,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PotMemberCommandServiceImpl implements PotMemberCommandService {
-
-
 
     private final PotRepository potRepository;
     private final UserRepository userRepository;
