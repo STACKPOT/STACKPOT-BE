@@ -1,4 +1,4 @@
-package stackpot.stackpot.pot.service;
+package stackpot.stackpot.pot.service.pot;
 
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;

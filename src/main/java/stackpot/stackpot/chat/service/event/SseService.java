@@ -13,7 +13,7 @@ import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;
-import stackpot.stackpot.pot.service.PotMemberQueryService;
+import stackpot.stackpot.pot.service.potMember.PotMemberQueryService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
