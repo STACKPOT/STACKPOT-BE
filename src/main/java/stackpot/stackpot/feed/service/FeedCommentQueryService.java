@@ -3,6 +3,8 @@ package stackpot.stackpot.feed.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.FeedCommentHandler;
 import stackpot.stackpot.feed.converter.FeedCommentConverter;
 import stackpot.stackpot.feed.dto.FeedCommentDto;
 import stackpot.stackpot.feed.dto.FeedCommentResponseDto;
@@ -20,7 +22,7 @@ public class FeedCommentQueryService {
     private final FeedCommentConverter feedCommentConverter;
 
     public FeedComment selectFeedCommentByCommentId(Long commentId) {
-        return feedCommentRepository.findByCommentId(commentId).orElse(null);
+        return feedCommentRepository.findByCommentId(commentId).orElseThrow(() -> new FeedCommentHandler(ErrorStatus.FEED_COMMENT_NOT_FOUND));
     }
 
     public List<FeedCommentResponseDto.AllFeedCommentDto> selectAllFeedComments(Long feedId) {

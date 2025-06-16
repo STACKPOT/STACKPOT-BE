@@ -3,6 +3,8 @@ package stackpot.stackpot.pot.service.potComment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.PotCommentHandler;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.converter.PotCommentConverter;
 import stackpot.stackpot.pot.dto.PotCommentDto;
@@ -22,7 +24,7 @@ public class PotCommentQueryService {
     private final AuthService authService;
 
     public PotComment selectPotCommentByCommentId(Long commentId) {
-        return potCommentRepository.findByCommentId(commentId).orElse(null);
+        return potCommentRepository.findByCommentId(commentId).orElseThrow(() -> new PotCommentHandler(ErrorStatus.POT_COMMENT_NOT_FOUND));
     }
 
     public List<PotCommentResponseDto.AllPotCommentDto> selectAllPotComments(Long potId) {
