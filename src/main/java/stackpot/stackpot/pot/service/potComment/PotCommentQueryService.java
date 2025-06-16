@@ -10,8 +10,7 @@ import stackpot.stackpot.pot.dto.PotCommentResponseDto;
 import stackpot.stackpot.pot.entity.mapping.PotComment;
 import stackpot.stackpot.pot.repository.PotCommentRepository;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +26,39 @@ public class PotCommentQueryService {
     }
 
     public List<PotCommentResponseDto.AllPotCommentDto> selectAllPotComments(Long potId) {
-        List<PotCommentResponseDto.AllPotCommentDto> result = new ArrayList<>();
         List<PotCommentDto.PotCommentInfoDto> dtos = potCommentRepository.findAllCommentInfoDtoByPotId(potId);
-        dtos.forEach(dto -> result.add(potCommentConverter.toAllPotCommentDto(dto)));
+        dtos.sort(Comparator.comparing(PotCommentDto.PotCommentInfoDto::getCommentId));
+
+        Map<Long, PotCommentResponseDto.AllPotCommentDto> map = new HashMap<>();
+        List<PotCommentResponseDto.AllPotCommentDto> result = new ArrayList<>();
+
+        // 계층구조로 변환하기
+        for (PotCommentDto.PotCommentInfoDto dto : dtos) {
+            map.put(dto.getCommentId(), potCommentConverter.toAllPotCommentDto(dto));
+        }
+        for (PotCommentDto.PotCommentInfoDto dto : dtos) {
+            PotCommentResponseDto.AllPotCommentDto current = map.get(dto.getCommentId());
+            Long parentId = dto.getParentCommentId();
+
+            if (parentId == null) {
+                result.add(current);
+                continue;
+            }
+
+            PotCommentResponseDto.AllPotCommentDto parent = map.get(parentId);
+            if (parent != null) {
+                parent.getChildren().add(current);
+            }
+        }
+
+        sortChildrenRecursively(result);
         return result;
+    }
+
+    private void sortChildrenRecursively(List<PotCommentResponseDto.AllPotCommentDto> comments) {
+        for (PotCommentResponseDto.AllPotCommentDto comment : comments) {
+            comment.getChildren().sort(Comparator.comparing(PotCommentResponseDto.AllPotCommentDto::getCommentId));
+            sortChildrenRecursively(comment.getChildren());
+        }
     }
 }

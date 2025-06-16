@@ -35,8 +35,8 @@ public class PotCommentController {
     }
 
     @Operation(summary = "팟 대댓글 달기 API")
-    @PostMapping("/{commentId}/replies")
-    public ResponseEntity<ApiResponse<PotCommentResponseDto.PotReplyCommentCreateDto>> createPotReplyComment(@PathVariable("commentId") Long commentId,
+    @PostMapping("/{parentCommentId}/replies")
+    public ResponseEntity<ApiResponse<PotCommentResponseDto.PotReplyCommentCreateDto>> createPotReplyComment(@PathVariable("parentCommentId") Long commentId,
                                                                                                              @RequestBody PotCommentRequestDto.PotCommentCreateDto potCommentCreateDto) {
         PotCommentResponseDto.PotReplyCommentCreateDto result = potCommentCommandService.createPotReplyComment(commentId, potCommentCreateDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(result));

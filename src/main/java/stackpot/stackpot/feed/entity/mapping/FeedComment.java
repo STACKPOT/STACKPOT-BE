@@ -36,4 +36,8 @@ public class FeedComment extends BaseEntity {
     @JoinColumn(name = "parent_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private FeedComment parent;
+
+    public void updateComment(String newComment){
+        this.comment = newComment;
+    }
 }

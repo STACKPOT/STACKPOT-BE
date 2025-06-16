@@ -1,4 +1,4 @@
-package stackpot.stackpot.pot.dto;
+package stackpot.stackpot.feed.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,13 +9,13 @@ import stackpot.stackpot.user.entity.enums.Role;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class PotCommentResponseDto {
+public class FeedCommentResponseDto {
 
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class AllPotCommentDto {
+    public static class AllFeedCommentDto {
         private Long userId;
         private String userName;
         private Role role;
@@ -24,14 +24,14 @@ public class PotCommentResponseDto {
         private String comment;
         private Long parentCommentId;
         private LocalDateTime createdAt;
-        private List<AllPotCommentDto> children;
+        private List<AllFeedCommentDto> children;
     }
 
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class PotCommentCreateDto {
+    public static class FeedCommentCreateDto {
         private Long userId;
         private String userName;
         private Role role;
@@ -45,7 +45,7 @@ public class PotCommentResponseDto {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class PotReplyCommentCreateDto {
+    public static class FeedReplyCommentCreateDto {
         private Long userId;
         private String userName;
         private Role role;
@@ -60,7 +60,7 @@ public class PotCommentResponseDto {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class PotCommentUpdateDto {
+    public static class FeedCommentUpdateDto {
         private String comment;
     }
 }

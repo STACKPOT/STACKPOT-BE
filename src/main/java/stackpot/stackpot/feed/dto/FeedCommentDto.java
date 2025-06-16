@@ -1,4 +1,4 @@
-package stackpot.stackpot.pot.dto;
+package stackpot.stackpot.feed.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,17 +8,17 @@ import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDateTime;
 
-public class PotCommentDto {
+public class FeedCommentDto {
 
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class PotCommentInfoDto {
+    public static class FeedCommentInfoDto {
         private Long userId;
         private String userName;
         private Role role;
-        private Long writerId; // Pot 작성자
+        private Long writerId; // Feed 작성자
         private Long commentId;
         private String comment;
         private Long parentCommentId;

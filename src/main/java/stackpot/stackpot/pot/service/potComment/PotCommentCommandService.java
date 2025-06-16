@@ -41,17 +41,17 @@ public class PotCommentCommandService {
                 .parent(null)
                 .build());
         Boolean isWriter = Objects.equals(user.getId(), pot.getUser().getUserId());
-        return potCommentConverter.toPotCommentCreateDto(user.getNickname(), user.getRole(), isWriter,
+        return potCommentConverter.toPotCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
                 potComment.getId(), comment, potComment.getCreatedAt());
     }
 
     @Transactional
-    public PotCommentResponseDto.PotReplyCommentCreateDto createPotReplyComment(Long parentId, PotCommentRequestDto.PotCommentCreateDto potCommentCreateDto) {
+    public PotCommentResponseDto.PotReplyCommentCreateDto createPotReplyComment(Long parentCommentId, PotCommentRequestDto.PotCommentCreateDto potCommentCreateDto) {
         User user = authService.getCurrentUser();
         Long potId = potCommentCreateDto.getPotId();
         Pot pot = potQueryService.getPotByPotId(potId);
         String comment = potCommentCreateDto.getComment();
-        PotComment parent = potCommentQueryService.selectPotCommentByCommentId(parentId);
+        PotComment parent = potCommentQueryService.selectPotCommentByCommentId(parentCommentId);
 
         PotComment potComment = potCommentRepository.save(PotComment.builder()
                 .comment(comment)
@@ -60,7 +60,7 @@ public class PotCommentCommandService {
                 .parent(parent)
                 .build());
         Boolean isWriter = Objects.equals(user.getId(), pot.getUser().getUserId());
-        return potCommentConverter.toPotReplyCommentCreateDto(user.getNickname(), user.getRole(), isWriter,
+        return potCommentConverter.toPotReplyCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
                 potComment.getId(), comment, parent.getId(), potComment.getCreatedAt());
     }
 
