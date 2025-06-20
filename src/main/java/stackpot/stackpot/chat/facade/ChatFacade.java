@@ -20,7 +20,7 @@ import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
 import stackpot.stackpot.chat.service.event.SseService;
 import stackpot.stackpot.chat.session.ChatSessionManager;
 import stackpot.stackpot.common.util.AuthService;
-import stackpot.stackpot.pot.service.PotMemberQueryService;
+import stackpot.stackpot.pot.service.potMember.PotMemberQueryService;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.user.service.UserQueryService;
 

@@ -1,4 +1,4 @@
-package stackpot.stackpot.pot.service;
+package stackpot.stackpot.pot.service.potApplication;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

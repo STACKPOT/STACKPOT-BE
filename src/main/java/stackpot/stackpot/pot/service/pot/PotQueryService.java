@@ -1,4 +1,4 @@
-package stackpot.stackpot.pot.service;
+package stackpot.stackpot.pot.service.pot;
 
 import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.pot.entity.Pot;

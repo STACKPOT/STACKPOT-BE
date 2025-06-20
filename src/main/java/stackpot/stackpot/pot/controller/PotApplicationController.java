@@ -8,12 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
-import stackpot.stackpot.common.swagger.ApiErrorCodeExample;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
 import stackpot.stackpot.pot.dto.PotApplicationRequestDto;
 import stackpot.stackpot.pot.dto.PotApplicationResponseDto;
-import stackpot.stackpot.pot.service.PotApplicationCommandService;
-import stackpot.stackpot.pot.service.PotApplicationQueryService;
+import stackpot.stackpot.pot.service.potApplication.PotApplicationCommandService;
+import stackpot.stackpot.pot.service.potApplication.PotApplicationQueryService;
 
 import java.util.List;
 

@@ -19,14 +19,14 @@ import stackpot.stackpot.user.dto.request.TokenRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
-import stackpot.stackpot.pot.service.PotCommandService;
+import stackpot.stackpot.pot.service.pot.PotCommandService;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
 import stackpot.stackpot.pot.dto.PotResponseDto;
 import stackpot.stackpot.user.service.KakaoService;
-import stackpot.stackpot.pot.service.MyPotService;
+import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.user.service.UserCommandService;
 
 import java.io.IOException;

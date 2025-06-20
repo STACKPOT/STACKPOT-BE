@@ -7,12 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
-import stackpot.stackpot.pot.service.PotMemberCommandService;
+import stackpot.stackpot.pot.service.potMember.PotMemberCommandService;
 import stackpot.stackpot.pot.dto.PotMemberAppealResponseDto;
 import stackpot.stackpot.pot.dto.PotMemberInfoResponseDto;
 import stackpot.stackpot.pot.dto.PotMemberRequestDto;
 import stackpot.stackpot.pot.dto.UpdateAppealRequestDto;
-import stackpot.stackpot.pot.service.PotMemberQueryService;
+import stackpot.stackpot.pot.service.potMember.PotMemberQueryService;
 
 import java.util.List;
 

@@ -1,15 +1,10 @@
-package stackpot.stackpot.pot.service;
+package stackpot.stackpot.pot.service.potMember;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
-import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
-import stackpot.stackpot.chat.entity.ChatRoom;
-import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.converter.PotMemberConverter;
 import stackpot.stackpot.pot.dto.PotMemberAppealResponseDto;
