@@ -1,4 +1,4 @@
-package stackpot.stackpot.pot.service;
+package stackpot.stackpot.pot.service.pot;
 
 
 import lombok.RequiredArgsConstructor;
@@ -7,10 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.badge.service.BadgeService;
-import stackpot.stackpot.chat.entity.ChatRoom;
-import stackpot.stackpot.chat.entity.ChatRoomInfo;
-import stackpot.stackpot.chat.service.chatroom.ChatRoomCommandService;
-import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;

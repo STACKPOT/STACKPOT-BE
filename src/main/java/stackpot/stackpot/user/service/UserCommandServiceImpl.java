@@ -29,7 +29,7 @@ import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
-import stackpot.stackpot.pot.service.PotSummarizationService;
+import stackpot.stackpot.pot.service.pot.PotSummarizationService;
 import stackpot.stackpot.badge.repository.PotMemberBadgeRepository;
 import stackpot.stackpot.todo.repository.UserTodoRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;

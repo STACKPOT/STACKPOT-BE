@@ -12,19 +12,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
-import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.converter.FeedConverter;
+import stackpot.stackpot.feed.dto.FeedRequestDto;
+import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.feed.entity.Feed;
-import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.feed.entity.enums.Category;
 import stackpot.stackpot.feed.entity.mapping.FeedLike;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
+import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
-import stackpot.stackpot.feed.dto.FeedRequestDto;
-import stackpot.stackpot.feed.dto.FeedResponseDto;
 
 import java.util.List;
 import java.util.Objects;
@@ -49,7 +48,7 @@ public class FeedServiceImpl implements FeedService {
                 && !(authentication instanceof AnonymousAuthenticationToken)
                 && authentication.isAuthenticated();
 
-        log.info("isAuthenticated :{}",isAuthenticated);
+        log.info("isAuthenticated :{}", isAuthenticated);
 
         final User user = isAuthenticated
                 ? userRepository.findByEmail(authentication.getName())
@@ -64,14 +63,13 @@ public class FeedServiceImpl implements FeedService {
         Long lastFeedId = Long.MAX_VALUE;  // 기본적으로 가장 큰 ID부터 조회
         Long lastFeedLike = 0L;
 
-        if ( cursor != null ) {
+        if (cursor != null) {
             lastFeedId = cursor;
             Feed lastdFeed = feedRepository.findById(lastFeedId)
-                    .orElseThrow(()-> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
+                    .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
             lastFeedLike = lastdFeed.getLikeCount();
-        }
-        else if (sort.equals("old")) {
+        } else if (sort.equals("old")) {
             lastFeedId = 0L;
         } else if (sort.equals("popular")) {
             lastFeedLike = Long.MAX_VALUE;
@@ -114,7 +112,7 @@ public class FeedServiceImpl implements FeedService {
             nextCursor = lastFeed.getFeedId();
             List<Feed> nextfeedResults = feedRepository.findFeeds(category, sort, nextCursor, lastFeedLike, pageable);
 
-            if(nextfeedResults.size() == 0){
+            if (nextfeedResults.size() == 0) {
                 nextCursor = null;
             }
         }
@@ -136,7 +134,7 @@ public class FeedServiceImpl implements FeedService {
 
         User user = authService.getCurrentUser();
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(()-> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
+                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
         boolean isOwner = Objects.equals(user.getId(), feed.getUser().getUserId());
 
@@ -166,11 +164,11 @@ public class FeedServiceImpl implements FeedService {
                 .collect(Collectors.toList());
 
         // 다음 커서 설정 (마지막 피드의 createdAt)
-        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null ;
+        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null;
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
-                .nextCursor( nextCursorResult )
+                .nextCursor(nextCursorResult)
                 .build();
     }
 
@@ -198,7 +196,7 @@ public class FeedServiceImpl implements FeedService {
                 .collect(Collectors.toList());
 
         // 다음 커서 설정 (마지막 피드의 createdAt)
-        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null ;
+        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null;
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
@@ -213,17 +211,17 @@ public class FeedServiceImpl implements FeedService {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
-        if(!feed.getUser().getEmail().equals(user.getEmail())){
+        if (!feed.getUser().getEmail().equals(user.getEmail())) {
             throw new FeedHandler(ErrorStatus.FEED_UNAUTHORIZED);
         }
 
-        if(request.getTitle() != null){
+        if (request.getTitle() != null) {
             feed.setTitle(request.getTitle());
         }
-        if(request.getContent() != null){
+        if (request.getContent() != null) {
             feed.setContent(request.getContent());
         }
-        if(request.getCategory() != null){
+        if (request.getCategory() != null) {
             feed.setCategory(request.getCategory());
         }
         FeedResponseDto.FeedDto response = feedConverter.feedDto(feedRepository.save(feed));
@@ -237,7 +235,7 @@ public class FeedServiceImpl implements FeedService {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
-        if(!feed.getUser().getEmail().equals(user.getEmail())){
+        if (!feed.getUser().getEmail().equals(user.getEmail())) {
             throw new FeedHandler(ErrorStatus.FEED_UNAUTHORIZED);
         }
 
@@ -257,7 +255,7 @@ public class FeedServiceImpl implements FeedService {
         if (existingLike.isPresent()) {
             // 이미 좋아요가 있다면 삭제 (좋아요 취소)
             feedLikeRepository.delete(existingLike.get());
-            feed.setLikeCount(feed.getLikeCount()-1);
+            feed.setLikeCount(feed.getLikeCount() - 1);
             feedRepository.save(feed);
 
             return false; // 좋아요 취소
@@ -268,7 +266,7 @@ public class FeedServiceImpl implements FeedService {
                     .user(user)
                     .build();
             feedLikeRepository.save(feedLike);
-            feed.setLikeCount(feed.getLikeCount()+1);
+            feed.setLikeCount(feed.getLikeCount() + 1);
             feedRepository.save(feed);
             return true; // 좋아요 성공
         }
@@ -279,5 +277,11 @@ public class FeedServiceImpl implements FeedService {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
         return feedLikeRepository.countByFeed(feed);
+    }
+
+    @Override
+    public Feed getFeedByFeedId(Long feedId) {
+        return feedRepository.findById(feedId)
+                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
     }
 }

@@ -9,8 +9,8 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
-import stackpot.stackpot.pot.service.MyPotService;
-import stackpot.stackpot.pot.service.PotCommandService;
+import stackpot.stackpot.pot.service.pot.MyPotService;
+import stackpot.stackpot.pot.service.pot.PotCommandService;
 import java.util.List;
 
 @RestController

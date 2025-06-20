@@ -1,4 +1,4 @@
-package stackpot.stackpot.pot.service;
+package stackpot.stackpot.pot.service.potMember;
 
 import stackpot.stackpot.pot.dto.PotMemberInfoResponseDto;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;

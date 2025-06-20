@@ -1,4 +1,4 @@
-package stackpot.stackpot.pot.service;
+package stackpot.stackpot.pot.service.potMember;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

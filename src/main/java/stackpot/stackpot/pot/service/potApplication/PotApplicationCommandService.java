@@ -1,4 +1,4 @@
-package stackpot.stackpot.pot.service;
+package stackpot.stackpot.pot.service.potApplication;
 
 import stackpot.stackpot.pot.dto.PotApplicationRequestDto;
 import stackpot.stackpot.pot.dto.PotApplicationResponseDto;

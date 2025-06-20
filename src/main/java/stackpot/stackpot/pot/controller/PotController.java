@@ -5,8 +5,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
@@ -14,15 +12,13 @@ import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.EnumHandler;
 import stackpot.stackpot.pot.dto.LikedApplicantResponseDTO;
 import stackpot.stackpot.pot.dto.*;
-import stackpot.stackpot.pot.entity.Pot;
-import stackpot.stackpot.pot.service.PotApplicationQueryService;
-import stackpot.stackpot.pot.service.PotCommandService;
-import stackpot.stackpot.pot.service.PotQueryService;
+import stackpot.stackpot.pot.service.potApplication.PotApplicationQueryService;
+import stackpot.stackpot.pot.service.pot.PotCommandService;
+import stackpot.stackpot.pot.service.pot.PotQueryService;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.repository.PotRepository;
 import stackpot.stackpot.search.dto.CursorPageResponse;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

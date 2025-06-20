@@ -40,6 +40,9 @@ public enum ErrorStatus implements BaseErrorCode {
     POT_NOT_FOUND(HttpStatus.NOT_FOUND, "POT4004", "팟이 존재하지 않습니다."),
     POT_FORBIDDEN(HttpStatus.FORBIDDEN, "POT4003", "팟 생성자가 아닙니다."),
 
+    // Pot Comment 관련 에러
+    POT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POTCOMMENT4001", "Pot Comment를 찾을 수 없습니다"),
+
     // Pot 멤버 관련 에러
     POT_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "POT_MEMBER4004", "해당 팟의 멤버가 아닙니다."),
 
@@ -78,6 +81,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // feed 관연 에러
     FEED_UNAUTHORIZED(HttpStatus.FORBIDDEN, "FEED4003", "해당 Feed에 대한 수정 권한이 없습니다."),
     FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "FEED4004", "Feed를 찾을 수 없습니다."),
+
+    // feed comment 관련 에러
+    FEED_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDCOMMENT4001", "Feed Comment를 찾을 수 없습니다"),
 
     // ChatRoom 관련 에러
     CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHATROOM4001", "팟의 채팅방이 없습니다"),
