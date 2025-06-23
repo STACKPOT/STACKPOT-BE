@@ -249,19 +249,28 @@ public class MyPotServiceImpl implements MyPotService {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-
-        // 1. 기존 오너 PotMember의 owner = false
+        // 기존 Owner PotMember 찾기
         PotMember prevOwner = potMemberRepository.findByPot_PotIdAndOwnerTrue(potId);
+        if (!prevOwner.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN); // 권한 없음
+        }
+
+        // 기존 Owner PotMember의 owner = false
         prevOwner.updateOwner(false);
 
-        // 2. 새로운 오너 PotMember의 owner = true
+        // 새로운 Owner PotMember의 owner = true
         PotMember newOwner = potMemberRepository.findByPotIdAndUserId(potId, memberId);
+        if (newOwner == null) {
+            throw new PotHandler(ErrorStatus.MEMBER_NOT_FOUND); // 존재하지 않는 멤버
+        }
+
+        // 새로운 오너 PotMember의 owner = true
         newOwner.updateOwner(true);
 
-        // 3. Pot의 user 외래키 수정
+        // Pot의 user 외래키 수정
         pot.setUser(newOwner.getUser());
 
-        // 4. 저장
+        // 저장
         potMemberRepository.save(prevOwner);
         potMemberRepository.save(newOwner);
         potRepository.save(pot);
