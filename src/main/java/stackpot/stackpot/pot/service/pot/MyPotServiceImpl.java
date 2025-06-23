@@ -261,7 +261,7 @@ public class MyPotServiceImpl implements MyPotService {
         // 새로운 Owner PotMember의 owner = true
         PotMember newOwner = potMemberRepository.findByPotIdAndUserId(potId, memberId);
         if (newOwner == null) {
-            throw new PotHandler(ErrorStatus.MEMBER_NOT_FOUND); // 존재하지 않는 멤버
+            throw new PotHandler(ErrorStatus.INVALID_MEMBER); // 존재하지 않는 멤버
         }
 
         // 새로운 오너 PotMember의 owner = true
