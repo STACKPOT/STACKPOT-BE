@@ -1,6 +1,7 @@
 package stackpot.stackpot.pot.service.potApplication;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
@@ -8,6 +9,8 @@ import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.common.service.EmailService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.common.util.RoleNameMapper;
+import stackpot.stackpot.notification.event.PotApplicationEvent;
+import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.pot.converter.PotApplicationConverter;
 import stackpot.stackpot.pot.dto.PotApplicationRequestDto;
 import stackpot.stackpot.pot.dto.PotApplicationResponseDto;
@@ -27,12 +30,14 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class PotApplicationCommandServiceImpl implements PotApplicationCommandService {
 
+    private final NotificationCommandService notificationCommandService;
     private final PotApplicationRepository potApplicationRepository;
     private final PotRepository potRepository;
     private final UserRepository userRepository;
     private final PotApplicationConverter potApplicationConverter;
     private final EmailService emailService;
     private final AuthService authService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     @Override
@@ -52,6 +57,10 @@ public class PotApplicationCommandServiceImpl implements PotApplicationCommandSe
         PotApplication savedApplication = potApplicationRepository.save(application);
 
         sendSupportEmailAsync(user, pot, savedApplication);
+
+        notificationCommandService.createPotApplicationNotification(savedApplication.getApplicationId(), user.getId());
+
+        applicationEventPublisher.publishEvent(new PotApplicationEvent());
 
         return potApplicationConverter.toDto(savedApplication);
     }
@@ -81,8 +90,6 @@ public class PotApplicationCommandServiceImpl implements PotApplicationCommandSe
                 Optional.ofNullable(user.getUserIntroduction()).orElse("없음")
         ));
     }
-
-
 
 
 }

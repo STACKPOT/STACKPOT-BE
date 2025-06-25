@@ -13,6 +13,7 @@ import stackpot.stackpot.pot.dto.PotApplicationResponseDto;
 import stackpot.stackpot.pot.dto.PotDetailResponseDto;
 import stackpot.stackpot.pot.dto.PotDetailWithApplicantsResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
+import stackpot.stackpot.pot.entity.mapping.PotApplication;
 import stackpot.stackpot.pot.repository.PotApplicationRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
 import stackpot.stackpot.user.entity.User;
@@ -82,5 +83,10 @@ public class PotApplicationQueryServiceImpl implements PotApplicationQueryServic
     private Pot getPotById(Long potId) {
         return potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+    }
+
+    public PotApplication getPotApplicationById(Long applicationId) {
+        return potApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.APPLICATION_NOT_FOUND));
     }
 }

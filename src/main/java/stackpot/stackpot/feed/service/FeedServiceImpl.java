@@ -3,6 +3,7 @@ package stackpot.stackpot.feed.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,6 +23,8 @@ import stackpot.stackpot.feed.entity.enums.Category;
 import stackpot.stackpot.feed.entity.mapping.FeedLike;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
+import stackpot.stackpot.notification.event.FeedLikeEvent;
+import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
 
@@ -35,11 +38,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FeedServiceImpl implements FeedService {
 
+    private final NotificationCommandService notificationCommandService;
     private final FeedRepository feedRepository;
     private final FeedConverter feedConverter;
     private final UserRepository userRepository;
     private final FeedLikeRepository feedLikeRepository;
     private final AuthService authService;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, Long cursor, int limit) {
@@ -51,8 +57,7 @@ public class FeedServiceImpl implements FeedService {
         log.info("isAuthenticated :{}", isAuthenticated);
 
         final User user = isAuthenticated
-                ? userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND))
+                ? userRepository.findByUserId(authService.getCurrentUserId()).orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND))
                 : null;
 
         final Long userId = (user != null) ? user.getId() : null;
@@ -244,6 +249,7 @@ public class FeedServiceImpl implements FeedService {
         return "피드를 삭제했습니다.";
     }
 
+    @Transactional
     @Override
     public boolean toggleLike(Long feedId) {
         User user = authService.getCurrentUser();
@@ -265,7 +271,12 @@ public class FeedServiceImpl implements FeedService {
                     .feed(feed)
                     .user(user)
                     .build();
-            feedLikeRepository.save(feedLike);
+            FeedLike savedFeedLike = feedLikeRepository.save(feedLike);
+
+            notificationCommandService.createFeedLikeNotification(savedFeedLike.getLikeId(), user.getId());
+
+            applicationEventPublisher.publishEvent(new FeedLikeEvent());
+
             feed.setLikeCount(feed.getLikeCount() + 1);
             feedRepository.save(feed);
             return true; // 좋아요 성공
