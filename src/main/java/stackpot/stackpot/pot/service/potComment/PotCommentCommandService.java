@@ -2,9 +2,12 @@ package stackpot.stackpot.pot.service.potComment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.common.util.AuthService;
+import stackpot.stackpot.notification.event.PotCommentEvent;
+import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.pot.converter.PotCommentConverter;
 import stackpot.stackpot.pot.dto.PotCommentRequestDto;
 import stackpot.stackpot.pot.dto.PotCommentResponseDto;
@@ -21,11 +24,13 @@ import java.util.Objects;
 @Slf4j
 public class PotCommentCommandService {
 
+    private final NotificationCommandService notificationCommandService;
     private final PotQueryService potQueryService;
     private final PotCommentQueryService potCommentQueryService;
     private final PotCommentRepository potCommentRepository;
     private final PotCommentConverter potCommentConverter;
     private final AuthService authService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public PotCommentResponseDto.PotCommentCreateDto createPotComment(PotCommentRequestDto.PotCommentCreateDto potCommentCreateDto) {
@@ -41,6 +46,11 @@ public class PotCommentCommandService {
                 .parent(null)
                 .build());
         Boolean isWriter = Objects.equals(user.getId(), pot.getUser().getUserId());
+
+        notificationCommandService.createPotCommentNotification(potComment.getId(), user.getId());
+
+        applicationEventPublisher.publishEvent(new PotCommentEvent());
+
         return potCommentConverter.toPotCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
                 potComment.getId(), comment, potComment.getCreatedAt());
     }

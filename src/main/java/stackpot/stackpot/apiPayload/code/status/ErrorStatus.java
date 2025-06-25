@@ -82,6 +82,9 @@ public enum ErrorStatus implements BaseErrorCode {
     FEED_UNAUTHORIZED(HttpStatus.FORBIDDEN, "FEED4003", "해당 Feed에 대한 수정 권한이 없습니다."),
     FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "FEED4004", "Feed를 찾을 수 없습니다."),
 
+    // feed like 관련 에러
+    FEED_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDLIKE4001", "Feed Like를 찾을 수 없습니다."),
+
     // feed comment 관련 에러
     FEED_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDCOMMENT4001", "Feed Comment를 찾을 수 없습니다"),
 
@@ -92,6 +95,10 @@ public enum ErrorStatus implements BaseErrorCode {
     // Chat 관련 에러
     CHAT_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT4001", "채팅이 없습니다"),
     CHAT_BAD_REQUEST(HttpStatus.BAD_REQUEST, "CHAT4002", "채팅 조회 파라미터 오류입니다"),
+
+    // Notification 관련 에러
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "알림을 찾을 수 없습니다."),
+    INVALID_NOTIFICATION_TYPE(HttpStatus.BAD_REQUEST, "NOTIFICATION4002", "알림 타입이 올바르지 않습니다."),
 
     // AWS 관련 에러
     S3_BAD_REQUEST(HttpStatus.BAD_REQUEST, "AWS4001", "S3 저장 에러 발생");
