@@ -9,6 +9,7 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
+import stackpot.stackpot.pot.dto.PotSummaryResponseDTO;
 import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.pot.service.pot.PotCommandService;
 import java.util.List;
@@ -79,5 +80,12 @@ public class MyPotController {
     public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyAllInvolvedPots( @RequestParam(name = "potStatus", required = false) String dataType) {
         List<OngoingPotResponseDto> pots = myPotService.getMyAllInvolvedPots(dataType);
         return ResponseEntity.ok(ApiResponse.onSuccess(pots));
+    }
+
+    @PatchMapping("/{pot_id}/delegate/{member_id}")
+    @Operation(summary = "팀장 권한 위임 API", description = "본인이 팀장인 경우, 팀장 권한을 특정 팀원에게 위임하는 기능입니다.")
+    public ResponseEntity<ApiResponse<String>> patchDelegate(@PathVariable("pot_id") Long potId, @PathVariable("member_id") Long memberId) {
+        String responseMessage = myPotService.patchDelegate(potId, memberId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseMessage));
     }
 }

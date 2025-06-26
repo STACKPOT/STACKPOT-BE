@@ -44,6 +44,10 @@ public class PotMember extends BaseEntity {
     @Column(nullable = true)
     private String appealContent;
 
+    public void updateOwner(boolean newOwnerStatus) {
+        this.owner = newOwnerStatus;
+    }
+
     public void deletePotMember() {
         this.roleName = Role.UNKNOWN;
     }
