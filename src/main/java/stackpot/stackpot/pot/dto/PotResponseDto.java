@@ -3,6 +3,7 @@ package stackpot.stackpot.pot.dto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDate;
 import java.util.List;
