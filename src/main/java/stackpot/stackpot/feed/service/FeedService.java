@@ -12,8 +12,6 @@ public interface FeedService {
      FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, Long nextCursor, int pageSize);
      FeedResponseDto.FeedPreviewList getFeeds(Long nextCursor, int pageSize);
 
-
-
      FeedResponseDto.FeedDto modifyFeed(long feedId, FeedRequestDto.createDto request);
 
      String deleteFeed(Long feedId);
@@ -21,4 +19,6 @@ public interface FeedService {
      boolean toggleLike(Long feedId);
 
      Long getLikeCount(Long feedId);
+
+     Feed getFeedByFeedId(Long feedId);
 }

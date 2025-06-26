@@ -29,7 +29,7 @@ import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
-import stackpot.stackpot.pot.service.PotSummarizationService;
+import stackpot.stackpot.pot.service.pot.PotSummarizationService;
 import stackpot.stackpot.badge.repository.PotMemberBadgeRepository;
 import stackpot.stackpot.todo.repository.UserTodoRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
@@ -353,7 +353,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     private void deleteTaskRelatedData(Long userId) {
         // PotMember 관련 데이터 조회
-        List<PotMember> potMembers = potMemberRepository.findByuserId(userId);
+        List<PotMember> potMembers = potMemberRepository.findByUserId(userId);
         List<Long> potMemberIds = potMembers.stream()
                 .map(PotMember::getPotMemberId)
                 .collect(Collectors.toList());

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import stackpot.stackpot.apiPayload.code.BaseCode;
+import stackpot.stackpot.apiPayload.code.BaseErrorCode;
 import stackpot.stackpot.apiPayload.code.status.SuccessStatus;
 
 @Getter
@@ -20,15 +21,19 @@ public class ApiResponse<T> {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private T result;
 
-    public static <T> ApiResponse<T> onSuccess(T result){
-        return new ApiResponse<>(true, SuccessStatus._OK.getCode() , SuccessStatus._OK.getMessage(), result);
+    public static <T> ApiResponse<T> onSuccess(T result) {
+        return new ApiResponse<>(true, SuccessStatus._OK.getCode(), SuccessStatus._OK.getMessage(), result);
     }
 
-    public static <T> ApiResponse<T> of(BaseCode code, T result){
-            return new ApiResponse<>(true, code.getReasonHttpStatus().getCode() , code.getReasonHttpStatus().getMessage(), result);
+    public static <T> ApiResponse<T> of(BaseCode code, T result) {
+        return new ApiResponse<>(true, code.getReasonHttpStatus().getCode(), code.getReasonHttpStatus().getMessage(), result);
     }
 
-    public static <T> ApiResponse<T> onFailure(String code, String message, T data){
+    public static <T> ApiResponse<T> of(BaseErrorCode code, T result) {
+        return new ApiResponse<>(true, code.getReasonHttpStatus().getCode(), code.getReasonHttpStatus().getMessage(), result);
+    }
+
+    public static <T> ApiResponse<T> onFailure(String code, String message, T data) {
         return new ApiResponse<>(false, code, message, data);
     }
 

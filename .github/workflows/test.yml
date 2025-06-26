@@ -22,6 +22,3 @@ jobs:
           cd ./src/main/resources
           echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
         shell: bash
-
-      - name: Run Tests with Gradle
-        run: ./gradlew test

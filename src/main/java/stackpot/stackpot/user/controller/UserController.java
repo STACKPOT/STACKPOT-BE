@@ -19,14 +19,14 @@ import stackpot.stackpot.user.dto.request.TokenRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
-import stackpot.stackpot.pot.service.PotCommandService;
+import stackpot.stackpot.pot.service.pot.PotCommandService;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
 import stackpot.stackpot.pot.dto.PotResponseDto;
 import stackpot.stackpot.user.service.KakaoService;
-import stackpot.stackpot.pot.service.MyPotService;
+import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.user.service.UserCommandService;
 
 import java.io.IOException;
@@ -88,7 +88,7 @@ public class UserController {
                             description = "Internal Server Error",
                             content = @Content(mediaType = "application/json")
                     )
-        }
+            }
     )
     public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
 
@@ -156,8 +156,8 @@ public class UserController {
     @Operation(
             summary = "회원 탈퇴 API",
             description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 "+
-            "-pot 생성자인 경우 softDelet\n"+
-            "-pot 생성자가 아닌 경우 hardDelet"
+                    "-pot 생성자인 경우 softDelet\n"+
+                    "-pot 생성자가 아닌 경우 hardDelet"
     )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND,
@@ -234,7 +234,7 @@ public class UserController {
     @Operation(
             summary = "나의 프로필 수정 API",
             description = "사용자의 역할, 관심사, 한 줄 소개, 카카오 아이디를 수정합니다."
-            )
+    )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND
     })
@@ -277,4 +277,18 @@ public class UserController {
         PotResponseDto responseDto = potCommandService.updateCompletedPot(potId, requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
+    /*@GetMapping("/pots")
+    @Operation(
+            summary = "나의 마이페이지의 '모든 팟' 조회 API",
+            description = "토큰을 통해 자신의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)"
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+            ErrorStatus.USER_ALREADY_WITHDRAWN,
+    })
+    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> usersMypages(
+            @RequestParam(name = "dataType", required = false) String dataType){
+        UserMyPageResponseDto userDetails = userCommandService.getMypages(dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }*/
 }

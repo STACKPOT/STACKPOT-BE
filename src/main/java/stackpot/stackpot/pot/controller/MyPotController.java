@@ -9,8 +9,8 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
-import stackpot.stackpot.pot.service.MyPotService;
-import stackpot.stackpot.pot.service.PotCommandService;
+import stackpot.stackpot.pot.service.pot.MyPotService;
+import stackpot.stackpot.pot.service.pot.PotCommandService;
 import java.util.List;
 
 @RestController
@@ -72,5 +72,12 @@ public class MyPotController {
     public ResponseEntity<ApiResponse<Boolean>> checkPotOwner(@PathVariable("pot_id") Long potId) {
         boolean isOwner = myPotService.isOwner(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(isOwner));
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "나의 모든 팟 조회 API", description = "나의 모든 팟(모집중 / 진행중 / 완료)을 조회합니다. status = all / recruiting / ongoing / completed")
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyAllInvolvedPots( @RequestParam(name = "potStatus", required = false) String dataType) {
+        List<OngoingPotResponseDto> pots = myPotService.getMyAllInvolvedPots(dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(pots));
     }
 }

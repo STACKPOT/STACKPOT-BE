@@ -11,8 +11,8 @@ import stackpot.stackpot.apiPayload.code.ErrorReasonDTO;
 public enum ErrorStatus implements BaseErrorCode {
     // 가장 일반적인 응답
     _INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500", "서버 에러, 관리자에게 문의 바랍니다."),
-    _BAD_REQUEST(HttpStatus.BAD_REQUEST,"COMMON400","잘못된 요청입니다."),
-    _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
+    _BAD_REQUEST(HttpStatus.BAD_REQUEST, "COMMON400", "잘못된 요청입니다."),
+    _UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON401", "인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4004", "등록된 사용자가 없습니다."),
@@ -40,6 +40,9 @@ public enum ErrorStatus implements BaseErrorCode {
     POT_NOT_FOUND(HttpStatus.NOT_FOUND, "POT4004", "팟이 존재하지 않습니다."),
     POT_FORBIDDEN(HttpStatus.FORBIDDEN, "POT4003", "팟 생성자가 아닙니다."),
 
+    // Pot Comment 관련 에러
+    POT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POTCOMMENT4001", "Pot Comment를 찾을 수 없습니다"),
+
     // Pot 멤버 관련 에러
     POT_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "POT_MEMBER4004", "해당 팟의 멤버가 아닙니다."),
 
@@ -55,8 +58,8 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_PAGE(HttpStatus.BAD_REQUEST, "PAGE4000", "Page는 1이상입니다."),
 
     // 투두 관련 에러 코드
-    USER_TODO_NOT_FOUND(HttpStatus.BAD_REQUEST,"TODO4004", "해당 Pot ID 및 Todo ID에 대한 투두를 찾을 수 없습니다."),
-    USER_TODO_UNAUTHORIZED(HttpStatus.FORBIDDEN,"TODO4003", "해당 투두에 대한 수정 권한이 없습니다."),
+    USER_TODO_NOT_FOUND(HttpStatus.BAD_REQUEST, "TODO4004", "해당 Pot ID 및 Todo ID에 대한 투두를 찾을 수 없습니다."),
+    USER_TODO_UNAUTHORIZED(HttpStatus.FORBIDDEN, "TODO4003", "해당 투두에 대한 수정 권한이 없습니다."),
 
     // Enum 관련 에러
     INVALID_POT_STATUS(HttpStatus.BAD_REQUEST, "POT_STATUS4000", "Pot Status 형식이 올바르지 않습니다 (RECRUITING / ONGOING / COMPLETED)"),
@@ -76,8 +79,29 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_SEARCH_TYPE(HttpStatus.BAD_REQUEST, "SEARCH_STATUS4000", "검색 Type 형식이 올바르지 않습니다 (pot/feed)"),
 
     // feed 관연 에러
-    FEED_UNAUTHORIZED(HttpStatus.FORBIDDEN,"FEED4003", "해당 Feed에 대한 수정 권한이 없습니다."),
-    FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "FEED4004", "Feed를 찾을 수 없습니다.");
+    FEED_UNAUTHORIZED(HttpStatus.FORBIDDEN, "FEED4003", "해당 Feed에 대한 수정 권한이 없습니다."),
+    FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "FEED4004", "Feed를 찾을 수 없습니다."),
+
+    // feed like 관련 에러
+    FEED_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDLIKE4001", "Feed Like를 찾을 수 없습니다."),
+
+    // feed comment 관련 에러
+    FEED_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDCOMMENT4001", "Feed Comment를 찾을 수 없습니다"),
+
+    // ChatRoom 관련 에러
+    CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHATROOM4001", "팟의 채팅방이 없습니다"),
+    CHATROOM_NOT_CHANGE(HttpStatus.NOT_FOUND, "CHATROOM4002", "채팅방 목록에 변화가 없습니다. 재요청 하세요"),
+
+    // Chat 관련 에러
+    CHAT_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT4001", "채팅이 없습니다"),
+    CHAT_BAD_REQUEST(HttpStatus.BAD_REQUEST, "CHAT4002", "채팅 조회 파라미터 오류입니다"),
+
+    // Notification 관련 에러
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "알림을 찾을 수 없습니다."),
+    INVALID_NOTIFICATION_TYPE(HttpStatus.BAD_REQUEST, "NOTIFICATION4002", "알림 타입이 올바르지 않습니다."),
+
+    // AWS 관련 에러
+    S3_BAD_REQUEST(HttpStatus.BAD_REQUEST, "AWS4001", "S3 저장 에러 발생");
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;
