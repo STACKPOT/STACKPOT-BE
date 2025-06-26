@@ -202,14 +202,7 @@ public class MyPotServiceImpl implements MyPotService {
 
 
     public boolean isOwner(Long potId) {
-        // 현재 로그인한 사용자 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-
-        // 팟 조회
+        User user = authService.getCurrentUser();
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
@@ -248,5 +241,40 @@ public class MyPotServiceImpl implements MyPotService {
         return filteredPots.stream()
                 .map(pot -> myPotConverter.convertToOngoingPotResponseDto(pot, user.getId()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public String patchDelegate(Long potId, Long memberId) {
+        User user = authService.getCurrentUser();
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        // 기존 Owner PotMember 찾기
+        PotMember prevOwner = potMemberRepository.findByPot_PotIdAndOwnerTrue(potId);
+        if (!prevOwner.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN); // 권한 없음
+        }
+
+        // 기존 Owner PotMember의 owner = false
+        prevOwner.updateOwner(false);
+
+        // 새로운 Owner PotMember의 owner = true
+        PotMember newOwner = potMemberRepository.findByPotIdAndUserId(potId, memberId);
+        if (newOwner == null) {
+            throw new PotHandler(ErrorStatus.INVALID_MEMBER); // 존재하지 않는 멤버
+        }
+
+        // 새로운 오너 PotMember의 owner = true
+        newOwner.updateOwner(true);
+
+        // Pot의 user 외래키 수정
+        pot.setUser(newOwner.getUser());
+
+        // 저장
+        potMemberRepository.save(prevOwner);
+        potMemberRepository.save(newOwner);
+        potRepository.save(pot);
+
+        return "권한 위임 완료";
     }
 }

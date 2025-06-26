@@ -1,24 +1,34 @@
-package stackpot.stackpot.pot.service.pot;
+package stackpot.stackpot.pot.service;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.badge.service.BadgeService;
 import stackpot.stackpot.common.util.AuthService;
+import stackpot.stackpot.badge.service.BadgeService;
+import stackpot.stackpot.pot.converter.MyPotConverter;
 import stackpot.stackpot.pot.converter.PotConverter;
+import stackpot.stackpot.pot.converter.PotMemberConverter;
+import stackpot.stackpot.pot.converter.PotDetailConverter;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
 import stackpot.stackpot.pot.dto.PotRequestDto;
 import stackpot.stackpot.pot.dto.PotResponseDto;
+import stackpot.stackpot.pot.dto.RecruitingPotResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.pot.entity.mapping.PotApplication;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
+import stackpot.stackpot.pot.repository.PotApplicationRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
+import stackpot.stackpot.pot.service.pot.PotCommandService;
 import stackpot.stackpot.todo.service.UserTodoService;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
@@ -43,6 +53,7 @@ public class PotCommandServiceImpl implements PotCommandService {
     private final UserTodoService userTodoService;
     private final AuthService authService;
     private final BadgeService badgeService;
+    private final PotMemberConverter potMemberConverter;
 
     @Override
     @Transactional
@@ -59,6 +70,9 @@ public class PotCommandServiceImpl implements PotCommandService {
         Pot pot = potConverter.toEntity(requestDto, user);
         pot.setPotStatus("RECRUITING");
         Pot savedPot = potRepository.save(pot);
+
+        PotMember creator = potMemberConverter.toCreatorEntity(user, pot, requestDto.getPotRole());
+        potMemberRepository.save(creator);
 
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(dto -> PotRecruitmentDetails.builder()

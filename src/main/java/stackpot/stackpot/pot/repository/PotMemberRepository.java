@@ -80,4 +80,6 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
 
     @Query("select pm.roleName from PotMember pm where pm.user.id = :userId and pm.pot.potId = :potId")
     Optional<Role> selectRoleByUserIdAndPotId(@Param("userId") Long userId, @Param("potId") Long potId);
+
+    PotMember findByPot_PotIdAndOwnerTrue(Long potId);
 }

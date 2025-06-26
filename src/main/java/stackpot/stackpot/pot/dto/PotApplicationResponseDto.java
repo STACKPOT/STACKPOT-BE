@@ -2,6 +2,8 @@ package stackpot.stackpot.pot.dto;
 
 import lombok.*;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -9,7 +11,7 @@ import lombok.*;
 @Builder
 public class PotApplicationResponseDto {
     private Long applicationId;
-    private String potRole;
+    private Map<String,String> potRole;
     private Long userId;
     private String userNickname;
 }
