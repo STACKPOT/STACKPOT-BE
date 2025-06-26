@@ -17,4 +17,5 @@ public interface MyPotService {
     List<OngoingPotResponseDto> getMyOngoingPots();
     boolean isOwner(Long potId);
     List<OngoingPotResponseDto> getMyAllInvolvedPots(String dataType);
+    String patchDelegate(Long potId, Long memberId);
 }
