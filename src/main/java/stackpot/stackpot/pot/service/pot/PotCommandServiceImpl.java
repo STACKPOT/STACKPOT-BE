@@ -28,6 +28,7 @@ import stackpot.stackpot.pot.repository.PotApplicationRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
+import stackpot.stackpot.pot.service.pot.PotCommandService;
 import stackpot.stackpot.todo.service.UserTodoService;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
