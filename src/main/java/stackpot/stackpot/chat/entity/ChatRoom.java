@@ -23,4 +23,3 @@ public class ChatRoom extends BaseEntity {
     @JoinColumn(name = "pot_id")
     private Pot pot;
 }
-
