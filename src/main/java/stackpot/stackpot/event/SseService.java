@@ -1,9 +1,11 @@
-package stackpot.stackpot.chat.service.event;
+package stackpot.stackpot.event;
 
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import stackpot.stackpot.chat.dto.ChatDto;
 import stackpot.stackpot.chat.dto.ChatRoomDto;
@@ -12,6 +14,7 @@ import stackpot.stackpot.chat.service.chat.ChatQueryService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
 import stackpot.stackpot.common.util.AuthService;
+import stackpot.stackpot.notification.event.PotApplicationEvent;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;
 import stackpot.stackpot.pot.service.potMember.PotMemberQueryService;
 
@@ -70,6 +73,24 @@ public class SseService {
                 } catch (Exception e) {
                     emitters.remove(userId);
                 }
+            }
+        }
+    }
+
+    /**
+     * 팟 만든 사람에게 팟 지원 실시간 알림 전송
+     * UNREADNOTIFICATIONDTO 하나 전송하기
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendPotApplicationNotification(PotApplicationEvent event) {
+        SseEmitter emitter = emitters.get(event.getPotLeaderId());
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("Notification")
+                        .data(event.getUnReadNotificationDto()));
+            } catch (Exception e) {
+                emitters.remove(event.getPotLeaderId());
             }
         }
     }

@@ -3,7 +3,7 @@ package stackpot.stackpot.notification.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import stackpot.stackpot.chat.service.event.SseService;
+import stackpot.stackpot.event.SseService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.notification.converter.NotificationConverter;
 import stackpot.stackpot.notification.dto.NotificationDto;
@@ -26,7 +26,6 @@ public class NotificationQueryService {
 
     private final NotificationConverter notificationConverter;
     private final AuthService authService;
-    private final SseService sseService;
 
     public List<NotificationResponseDto.UnReadNotificationDto> getAllUnReadNotifications() {
         Long userId = authService.getCurrentUserId();

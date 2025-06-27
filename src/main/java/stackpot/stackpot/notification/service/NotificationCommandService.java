@@ -10,6 +10,7 @@ import stackpot.stackpot.feed.entity.mapping.FeedLike;
 import stackpot.stackpot.feed.service.FeedCommentQueryService;
 import stackpot.stackpot.feed.service.FeedLikeQueryService;
 import stackpot.stackpot.notification.dto.NotificationRequestDto;
+import stackpot.stackpot.notification.dto.NotificationResponseDto;
 import stackpot.stackpot.notification.entity.FeedCommentNotification;
 import stackpot.stackpot.notification.entity.FeedLikeNotification;
 import stackpot.stackpot.notification.entity.PotApplicationNotification;
@@ -49,14 +50,23 @@ public class NotificationCommandService {
         type.read(notificationId, this);
     }
 
-    public void createPotApplicationNotification(Long applicationId, Long userId) {
+    public NotificationResponseDto.UnReadNotificationDto createPotApplicationNotification(Long applicationId, String userName) {
         PotApplication potApplication = potApplicationQueryService.getPotApplicationById(applicationId);
         // 해당 유저가 Pot의 생성자일 경우 알림 생성하지 않음 -> 이미 PotApplication 생성 자체가 안 됨
         PotApplicationNotification pan = PotApplicationNotification.builder()
                 .isRead(false)
                 .potApplication(potApplication)
                 .build();
-        potApplicationNotificationRepository.save(pan);
+        PotApplicationNotification newPan = potApplicationNotificationRepository.save(pan);
+
+        // Pot의 생성자에게 실시간 알림 전송 필요
+        return NotificationResponseDto.UnReadNotificationDto.builder()
+                .id(newPan.getId())
+                .userName(userName)
+                .type("PotApplication")
+                .content(null)
+                .createdAt(newPan.getCreatedAt())
+                .build();
     }
 
     public void createPotCommentNotification(Long commentId, Long userId) {
