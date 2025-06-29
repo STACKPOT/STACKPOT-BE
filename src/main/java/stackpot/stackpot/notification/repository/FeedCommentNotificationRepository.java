@@ -10,7 +10,7 @@ import java.util.List;
 public interface FeedCommentNotificationRepository extends JpaRepository<FeedCommentNotification, Long> {
 
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
-            "fcn.id, fcn.feedComment.user.nickname, 'FeedComment', fcn.feedComment.comment, fcn.createdAt) " +
+            "fcn.id, fcn.feedComment.feed.feedId, fcn.feedComment.user.nickname, 'FeedComment', fcn.feedComment.comment, fcn.createdAt) " +
             "FROM FeedCommentNotification fcn " +
             "WHERE fcn.isRead = false AND (" +
             "     (fcn.feedComment.parent is null AND fcn.feedComment.feed.user.id = :userId) OR " +

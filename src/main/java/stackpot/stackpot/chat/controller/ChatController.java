@@ -12,11 +12,11 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import stackpot.stackpot.apiPayload.ApiResponse;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.chat.dto.request.ChatRequestDto;
 import stackpot.stackpot.chat.dto.response.ChatResponseDto;
 import stackpot.stackpot.chat.facade.ChatFacade;
-
-import javax.print.attribute.standard.Media;
+import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,6 +42,12 @@ public class ChatController {
 
     @Operation(summary = "채팅방의 모든 채팅 가져오기",
             description = "특정 채팅방에서 발생한 모든 채팅 기록을 가져오는 API 입니다.\n")
+    @ApiErrorCodeExamples({
+            ErrorStatus.AUTHENTICATION_FAILED,
+            ErrorStatus.CHATROOM_NOT_FOUND,
+            ErrorStatus.POT_MEMBER_NOT_FOUND,
+            ErrorStatus.CHAT_BAD_REQUEST
+    })
     @GetMapping("")
     public ResponseEntity<ApiResponse<ChatResponseDto.AllChatDto>> getAllChatsInChatRoom(
             @RequestParam(name = "chatRoomId") Long chatRoomId,
@@ -55,6 +61,9 @@ public class ChatController {
     @Operation(summary = "채팅칠 때 파일/이미지 전송 API",
             description = "채팅칠 때 파일이나 이미지를 전송하는 API입니다.\n" +
                     "파일을 전송하면 S3에 저장하고 URL을 반환합니다.")
+    @ApiErrorCodeExamples({
+            ErrorStatus._BAD_REQUEST
+    })
     @PostMapping(value = "/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ChatResponseDto.ChatFileDto>> sendFileWhenChat(@RequestPart("file") MultipartFile file) {
         ChatResponseDto.ChatFileDto chatFileDto = chatFacade.saveFileInS3(file);

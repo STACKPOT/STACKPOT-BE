@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.FeedCommentHandler;
+import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
 import stackpot.stackpot.feed.converter.FeedCommentConverter;
 import stackpot.stackpot.feed.dto.FeedCommentDto;
 import stackpot.stackpot.feed.dto.FeedCommentResponseDto;

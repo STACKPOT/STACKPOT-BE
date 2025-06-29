@@ -11,7 +11,7 @@ import java.util.List;
 public interface PotCommentNotificationRepository extends JpaRepository<PotCommentNotification, Long> {
 
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
-            "pcn.id, pcn.potComment.user.nickname, 'PotComment', pcn.potComment.comment, pcn.createdAt) " +
+            "pcn.id, pcn.potComment.pot.potId, pcn.potComment.user.nickname, 'PotComment', pcn.potComment.comment, pcn.createdAt) " +
             "FROM PotCommentNotification pcn " +
             "WHERE pcn.isRead = false AND (" +
             "     (pcn.potComment.parent is null AND pcn.potComment.pot.user.id = :userId) OR " +

@@ -12,6 +12,7 @@ import stackpot.stackpot.feed.dto.FeedCommentResponseDto;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.mapping.FeedComment;
 import stackpot.stackpot.feed.repository.FeedCommentRepository;
+import stackpot.stackpot.notification.dto.NotificationResponseDto;
 import stackpot.stackpot.notification.event.FeedCommentEvent;
 import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.user.entity.User;
@@ -46,9 +47,10 @@ public class FeedCommentCommandService {
                 .build());
         Boolean isWriter = Objects.equals(user.getId(), feed.getUser().getUserId());
 
-        notificationCommandService.createdFeedCommentNotification(feedComment.getId(), user.getId());
+        NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createdFeedCommentNotification(
+                feedId, feedComment.getId(), user.getId());
 
-        applicationEventPublisher.publishEvent(new FeedCommentEvent());
+        applicationEventPublisher.publishEvent(new FeedCommentEvent(feed.getUser().getUserId(), null, dto));
 
         return feedCommentConverter.toFeedCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
                 feedComment.getId(), comment, feedComment.getCreatedAt());
@@ -69,6 +71,12 @@ public class FeedCommentCommandService {
                 .parent(parent)
                 .build());
         Boolean isWriter = Objects.equals(user.getId(), feed.getUser().getUserId());
+
+        NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createdFeedCommentNotification(
+                feedId, feedComment.getId(), user.getId());
+
+        applicationEventPublisher.publishEvent(new FeedCommentEvent(feed.getUser().getUserId(), parent.getUser().getUserId(), dto));
+
         return feedCommentConverter.toFeedReplyCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
                 feedComment.getId(), comment, parent.getId(), feedComment.getCreatedAt());
     }

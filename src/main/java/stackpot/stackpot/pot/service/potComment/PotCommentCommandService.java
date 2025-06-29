@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.common.util.AuthService;
+import stackpot.stackpot.notification.dto.NotificationResponseDto;
 import stackpot.stackpot.notification.event.PotCommentEvent;
 import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.pot.converter.PotCommentConverter;
@@ -47,9 +48,10 @@ public class PotCommentCommandService {
                 .build());
         Boolean isWriter = Objects.equals(user.getId(), pot.getUser().getUserId());
 
-        notificationCommandService.createPotCommentNotification(potComment.getId(), user.getId());
+        NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createPotCommentNotification(
+                potId, potComment.getId(), user.getId());
 
-        applicationEventPublisher.publishEvent(new PotCommentEvent());
+        applicationEventPublisher.publishEvent(new PotCommentEvent(pot.getUser().getId(), null, dto));
 
         return potCommentConverter.toPotCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
                 potComment.getId(), comment, potComment.getCreatedAt());
@@ -70,6 +72,12 @@ public class PotCommentCommandService {
                 .parent(parent)
                 .build());
         Boolean isWriter = Objects.equals(user.getId(), pot.getUser().getUserId());
+
+        NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createPotCommentNotification(
+                potId, potComment.getId(), user.getId());
+
+        applicationEventPublisher.publishEvent(new PotCommentEvent(pot.getUser().getId(), parent.getUser().getUserId(), dto));
+
         return potCommentConverter.toPotReplyCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
                 potComment.getId(), comment, parent.getId(), potComment.getCreatedAt());
     }
