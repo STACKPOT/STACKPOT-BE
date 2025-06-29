@@ -21,7 +21,6 @@ public class PotCommentQueryService {
 
     private final PotCommentRepository potCommentRepository;
     private final PotCommentConverter potCommentConverter;
-    private final AuthService authService;
 
     public PotComment selectPotCommentByCommentId(Long commentId) {
         return potCommentRepository.findByCommentId(commentId).orElseThrow(() -> new PotCommentHandler(ErrorStatus.POT_COMMENT_NOT_FOUND));

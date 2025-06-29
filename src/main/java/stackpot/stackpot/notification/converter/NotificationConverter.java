@@ -9,7 +9,8 @@ public class NotificationConverter {
 
     public NotificationResponseDto.UnReadNotificationDto toUnReadNotificationDto(NotificationDto.UnReadNotificationDto unReadNotificationDto) {
         return NotificationResponseDto.UnReadNotificationDto.builder()
-                .id(unReadNotificationDto.getId())
+                .notificationId(unReadNotificationDto.getNotificationId())
+                .potOrFeedId(unReadNotificationDto.getPotOrFeedId())
                 .userName(unReadNotificationDto.getUserName())
                 .type(unReadNotificationDto.getType())
                 .content(unReadNotificationDto.getContent())
