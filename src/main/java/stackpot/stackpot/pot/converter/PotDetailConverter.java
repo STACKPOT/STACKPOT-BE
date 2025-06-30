@@ -7,16 +7,12 @@ import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.user.entity.User;
-import stackpot.stackpot.pot.dto.AppliedPotResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.PotDetailResponseDto;
 
 import org.springframework.stereotype.Component;
 
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -65,26 +61,6 @@ public class PotDetailConverter{
                 .recruitmentDeadline(DateFormatter.dotFormatter(pot.getRecruitmentDeadline()))
                 .recruitmentDetails(recruitmentDetails)
                 .recruitingMembers(recruitingMembers)
-                .build();
-    }
-
-    public AppliedPotResponseDto toAppliedPotResponseDto(User user, Pot pot, String recruitmentDetails) {
-        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
-
-        return AppliedPotResponseDto.builder()
-                .userId(user.getId())
-                .userRole(user.getRole().name())
-                .userNickname(user.getNickname() + RoleNameMapper.mapRoleName(user.getRole().name()))
-                .potId(pot.getPotId())
-                .potStatus(pot.getPotStatus())
-                .potName(pot.getPotName())
-                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
-                .potDuration(pot.getPotDuration())
-                .potLan(pot.getPotLan())
-                .potModeOfOperation(OperationModeMapper.getKoreanMode(pot.getPotModeOfOperation().name()))
-                .potContent(pot.getPotContent())
-                .dDay(dDay)
-                .recruitmentDetails(recruitmentDetails)
                 .build();
     }
 

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
+import stackpot.stackpot.pot.dto.AppliedPotResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
 import stackpot.stackpot.pot.dto.PotSummaryResponseDTO;

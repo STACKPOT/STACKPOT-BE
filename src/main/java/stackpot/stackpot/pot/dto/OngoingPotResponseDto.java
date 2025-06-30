@@ -20,7 +20,7 @@ public class OngoingPotResponseDto {
     private String potModeOfOperation;
     private String potDuration;
     private String potContent;
-    private Boolean isOwner;
     private String dDay;
+    private Boolean isOwner;
     private Map<String, Integer> members;
 }

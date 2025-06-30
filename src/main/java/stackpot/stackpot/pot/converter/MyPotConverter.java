@@ -5,6 +5,7 @@ import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.common.util.DateFormatter;
 import stackpot.stackpot.common.util.DdayCounter;
 import stackpot.stackpot.common.util.RoleNameMapper;
+import stackpot.stackpot.pot.dto.AppliedPotResponseDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
 import stackpot.stackpot.pot.dto.RecruitingPotResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
@@ -29,6 +30,33 @@ import java.util.stream.Collectors;
 @Component
 public class MyPotConverter{
 
+    public AppliedPotResponseDto convertToAppliedPotResponseDto(Pot pot, List<String> recruitmentRoles) {
+        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
+
+        Map<String, Integer> RecruitmentRoleCountMap = pot.getRecruitmentDetails().stream()
+                .collect(Collectors.groupingBy(
+                        member -> member.getRecruitmentRole().name(),
+                        Collectors.reducing(0, e -> 1, Integer::sum)
+                ));
+
+        List<String> koreanRoles = recruitmentRoles.stream()
+                .map(RoleNameMapper::getKoreanRoleName)
+                .collect(Collectors.toList());
+
+        return AppliedPotResponseDto.builder()
+                .potId(pot.getPotId())
+                .potName(pot.getPotName())
+                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
+                .potStatus(pot.getPotStatus())
+                .potModeOfOperation(String.valueOf(pot.getPotModeOfOperation()))
+                .potDuration(pot.getPotDuration())
+                .potContent(pot.getPotContent())
+                .dDay(dDay)
+                .recruitmentRoles(koreanRoles)
+                .members(RecruitmentRoleCountMap)
+                .build();
+    }
+
     public OngoingPotResponseDto convertToOngoingPotResponseDto(Pot pot, Long userId) {
         String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
         Map<String, Integer> memberRoleCountMap = pot.getPotMembers().stream()
@@ -37,17 +65,6 @@ public class MyPotConverter{
                         Collectors.reducing(0, e -> 1, Integer::sum)
                 ));
 
-        Map<String, Integer> RecruitmentRoleCountMap = pot.getRecruitmentDetails().stream()
-                .collect(Collectors.groupingBy(
-                        member -> member.getRecruitmentRole().name(),
-                        Collectors.reducing(0, e -> 1, Integer::sum)
-                ));
-
-        // 팟 상태에 따라 적절한 멤버 맵 선택
-        Map<String, Integer> membersToShow = switch (pot.getPotStatus()) {
-            case "RECRUITING" -> RecruitmentRoleCountMap;
-            default -> memberRoleCountMap;
-        };
 
         return OngoingPotResponseDto.builder()
                 .potId(pot.getPotId())
@@ -59,7 +76,7 @@ public class MyPotConverter{
                 .potContent(pot.getPotContent())
                 .dDay(dDay)
                 .isOwner(isOwnerCheck(userId, pot))
-                .members(membersToShow)
+                .members(memberRoleCountMap)
                 .build();
     }
 
