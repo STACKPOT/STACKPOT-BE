@@ -1,5 +1,6 @@
 package stackpot.stackpot.user.service;
 
+import stackpot.stackpot.user.dto.request.MyDescriptionRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
@@ -28,4 +29,7 @@ public interface UserCommandService {
     String deleteUser(String accessToken);
 
     String logout(String aToken, String refreshToken);
+
+    void upsertDescription(MyDescriptionRequestDto dto);
+    void deleteDescription();
 }

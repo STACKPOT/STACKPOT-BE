@@ -20,6 +20,7 @@ import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.task.entity.Taskboard;
+import stackpot.stackpot.user.dto.request.MyDescriptionRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
@@ -402,7 +403,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Transactional
     public void deletePotAndRelatedData(Pot pot) {
-        log.info("Pot {} 삭제 시작", pot.getPotId());
+
 
         // PotMember 조회 및 ID 추출
         List<PotMember> potMembers = potMemberRepository.findByPotId(pot.getPotId());
@@ -410,7 +411,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 .map(PotMember::getPotMemberId)
                 .collect(Collectors.toList());
 
-        log.info("삭제할 PotMember 수: {}", potMembers.size());
+
 
         if (pot.getPotStatus().equals("ONGOING")) {
             sendDeletionNotifications(potMembers, pot);
@@ -431,25 +432,21 @@ public class UserCommandServiceImpl implements UserCommandService {
 
             // 각 PotMember의 application 참조 제거
             potMemberRepository.clearApplicationReferences(pot.getPotId());
-            log.info("PotMember의 application 참조 제거 완료");
+
 
             // PotMember 삭제
             potMemberRepository.deleteByPotId(pot.getPotId());
-            log.info("PotMember 삭제 완료");
+
 
             // PotApplication 삭제
             potApplicationRepository.deleteByPotId(pot.getPotId());
-            log.info("PotApplication 삭제 완료");
 
             potRecruitmentDetailsRepository.deleteByPot_PotId(pot.getPotId());
-            log.info("PotRecruitmentDetails 삭제 완료");
 
             // Pot 삭제
             potRepository.delete(pot);
-            log.info("Pot {} 삭제 완료", pot.getPotId());
 
         } catch (Exception e) {
-            log.error("Pot {} 삭제 중 오류 발생: {}", pot.getPotId(), e.getMessage());
             throw new UserHandler(ErrorStatus.USER_WITHDRAWAL_FAILED);
         }
     }
@@ -616,5 +613,19 @@ public class UserCommandServiceImpl implements UserCommandService {
                         "닉네임은 15자 이내여야 하고, 특수문자와 숫자는 포함하지 마. " +
                         "이제 개발자의 일상을 반영한 닉네임 수식어 하나를 만들어줘.";
         }
+    }
+
+    @Transactional
+    public void upsertDescription(MyDescriptionRequestDto dto) {
+        User user = authService.getCurrentUser();
+        user.updateUserDescription(dto.getUserDescription());
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteDescription() {
+        User user = authService.getCurrentUser();
+        user.updateUserDescription(null);
+        userRepository.save(user);
     }
 }

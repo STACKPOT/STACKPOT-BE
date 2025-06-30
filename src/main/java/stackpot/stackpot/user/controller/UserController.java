@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
+import stackpot.stackpot.user.dto.request.MyDescriptionRequestDto;
 import stackpot.stackpot.user.dto.request.TokenRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
@@ -28,6 +29,7 @@ import stackpot.stackpot.pot.dto.PotResponseDto;
 import stackpot.stackpot.user.service.KakaoService;
 import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.user.service.UserCommandService;
+import stackpot.stackpot.user.service.UserQueryService;
 
 import java.io.IOException;
 
@@ -42,6 +44,7 @@ public class UserController {
     private final KakaoService kakaoService;
     private final MyPotService myPotService;
     private final PotCommandService potCommandService;
+    private final UserQueryService userQueryService;
 
 
     @GetMapping("/login/token")
@@ -291,4 +294,21 @@ public class UserController {
         UserMyPageResponseDto userDetails = userCommandService.getMypages(dataType);
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }*/
+
+    @GetMapping("/description")
+    public ResponseEntity<MyDescriptionResponseDto> getMyDescription() {
+        return ResponseEntity.ok(userQueryService.getMyDescription());
+    }
+
+    @PatchMapping("/description")
+    public ResponseEntity<Void> upsertMyDescription(@RequestBody MyDescriptionRequestDto dto) {
+        userCommandService.upsertDescription(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/description")
+    public ResponseEntity<Void> deleteMyDescription() {
+        userCommandService.deleteDescription();
+        return ResponseEntity.noContent().build();
+    }
 }

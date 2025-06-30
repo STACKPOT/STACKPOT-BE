@@ -42,6 +42,7 @@ public class PotQueryServiceImpl implements PotQueryService {
     private final AuthService authService;
     private final MyPotConverter myPotConverter;
     private final PotSaveRepository potSaveRepository;
+    private final PotSummarizationService potSummarizationService;
 
     @Override
     public CursorPageResponse<CompletedPotResponseDto> getMyCompletedPots(Long cursor, int size) {
@@ -179,9 +180,11 @@ public class PotQueryServiceImpl implements PotQueryService {
                 "- 사용 기술: " + pot.getPotLan() + "\n" +
                 "- 운영 방식: " + pot.getPotModeOfOperation();
 
-        String summary = "(요약 결과 반환 로직 연결 예정)";
+        String summary = potSummarizationService.summarizeText(prompt, 400);
 
-        return PotSummaryResponseDTO.builder().summary(summary).build();
+        return PotSummaryResponseDTO.builder()
+                .summary(summary)
+                .build();
     }
 
     @Override
