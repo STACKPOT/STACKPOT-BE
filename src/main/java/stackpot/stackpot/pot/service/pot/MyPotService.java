@@ -2,6 +2,7 @@ package stackpot.stackpot.pot.service.pot;
 
 
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
+import stackpot.stackpot.pot.dto.AppliedPotResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
 
