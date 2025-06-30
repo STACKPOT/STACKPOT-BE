@@ -18,17 +18,21 @@ import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.converter.FeedConverter;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
+import stackpot.stackpot.feed.dto.SeriesRequestDto;
 import stackpot.stackpot.feed.entity.Feed;
+import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.feed.entity.enums.Category;
 import stackpot.stackpot.feed.entity.mapping.FeedLike;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
+import stackpot.stackpot.feed.repository.SeriesRepository;
 import stackpot.stackpot.notification.event.FeedLikeEvent;
 import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,6 +47,7 @@ public class FeedServiceImpl implements FeedService {
     private final FeedConverter feedConverter;
     private final UserRepository userRepository;
     private final FeedLikeRepository feedLikeRepository;
+    private final SeriesRepository seriesRepository;
     private final AuthService authService;
 
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -124,28 +129,34 @@ public class FeedServiceImpl implements FeedService {
         return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
     }
 
+
     @Override
-    public FeedResponseDto.FeedDto createFeed(FeedRequestDto.createDto request) {
-        Feed feed = feedConverter.toFeed(request);
+    public FeedResponseDto.CreatedFeedDto createFeed(FeedRequestDto.createDto request) {
         User user = authService.getCurrentUser();
 
+        Series series = null;
+        if (request.getSeriesId() != null) {
+            series = seriesRepository.findById(request.getSeriesId())
+                    .orElseThrow(() -> new FeedHandler(ErrorStatus.SERIES_NOT_FOUND));
+        }
+
+        Feed feed = feedConverter.toFeed(request, series);
         feed.setUser(user);
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feedRepository.save(feed));
-        return response;
+
+        Feed saved = feedRepository.save(feed);
+        return feedConverter.createFeedDto(saved);
     }
 
     @Override
-    public FeedResponseDto.FeedDto getFeed(Long feedId) {
-
+    public FeedResponseDto.AuthorizedFeedDto getFeed(Long feedId) {
         User user = authService.getCurrentUser();
+
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
-        boolean isOwner = Objects.equals(user.getId(), feed.getUser().getUserId());
+        boolean isOwner = feed.getUser().getId().equals(user.getId());
 
-        FeedResponseDto.FeedDto response = feedConverter.toAuthorizedFeedDto(feed, isOwner);
-
-        return response;
+        return feedConverter.toAuthorizedFeedDto(feed, isOwner);
     }
 
     @Transactional
@@ -210,7 +221,7 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
-    public FeedResponseDto.FeedDto modifyFeed(long feedId, FeedRequestDto.createDto request) {
+    public FeedResponseDto.CreatedFeedDto modifyFeed(long feedId, FeedRequestDto.createDto request) {
         User user = authService.getCurrentUser();
 
         Feed feed = feedRepository.findById(feedId)
@@ -223,14 +234,29 @@ public class FeedServiceImpl implements FeedService {
         if (request.getTitle() != null) {
             feed.setTitle(request.getTitle());
         }
+
         if (request.getContent() != null) {
             feed.setContent(request.getContent());
         }
-        if (request.getCategory() != null) {
-            feed.setCategory(request.getCategory());
+
+        if (request.getCategories() != null) {
+            feed.setCategories(request.getCategories());
         }
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feedRepository.save(feed));
-        return response;
+
+        if (request.getInterests() != null) {
+            feed.setInterests(request.getInterests());
+        }
+
+        if (request.getSeriesId() != null) {
+            Series series = seriesRepository.findById(request.getSeriesId())
+                    .orElseThrow(() -> new FeedHandler(ErrorStatus.SERIES_NOT_FOUND));
+            feed.setSeries(series);
+        } else {
+            feed.setSeries(null); // 시리즈 제거
+        }
+
+        Feed updated = feedRepository.save(feed);
+        return feedConverter.createFeedDto(updated);
     }
 
     @Override
@@ -295,4 +321,46 @@ public class FeedServiceImpl implements FeedService {
         return feedRepository.findById(feedId)
                 .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
     }
+
+    @Override
+    public Map<Long, String> createSeries(SeriesRequestDto requestDto) {
+        User user = authService.getCurrentUser();
+
+        List<Series> existingSeries = seriesRepository.findAllByUser(user);
+        int existingCount = existingSeries.size();
+        int newCount = requestDto.getComments().size();
+
+        if (existingCount + newCount > 5) {
+            throw new FeedHandler(ErrorStatus.SERIES_BAD_REQUEST);
+        }
+
+        List<Series> newSeriesList = requestDto.getComments().stream()
+                .map(comment -> feedConverter.toEntity(comment, user))
+                .toList();
+
+        seriesRepository.saveAll(newSeriesList);
+
+        // 전체 목록 다시 조회
+        List<Series> updatedSeries = seriesRepository.findAllByUser(user);
+
+        return updatedSeries.stream()
+                .collect(Collectors.toMap(
+                        Series::getSeriesId,
+                        Series::getComment
+                ));
+    }
+
+    @Override
+    public Map<Long, String> getMySeries() {
+        User user = authService.getCurrentUser();
+
+        List<Series> userSeriesList = seriesRepository.findAllByUser(user);
+
+        return userSeriesList.stream()
+                .collect(Collectors.toMap(
+                        Series::getSeriesId,
+                        Series::getComment
+                ));
+    }
+
 }

@@ -10,13 +10,14 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
-import stackpot.stackpot.feed.converter.FeedConverter;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
+import stackpot.stackpot.feed.dto.SeriesRequestDto;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.enums.Category;
 import stackpot.stackpot.feed.service.FeedService;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -31,12 +32,19 @@ public class FeedController {
 
 
     @PostMapping("")
-    @Operation(summary = "Feed 생성 API", description = "새로운 Feed를 작성합니다.")
+    @Operation(summary = "Feed 생성 API",
+            description = "Feed를 생성하는 API입니다.\n" +
+                    "- categories: 다중 선택 가능하며 enum입니다. [ALL, BACKEND, FRONTEND, DESIGN, PLANNING] \n" +
+                    "- interests: 다중 선택 가능하며 enum입니다. [SIDE_PROJECT(사이드 프로젝트), SOLO_DEVELOPMENT(1인 개발), COMPETITION(공모전), STARTUP(창업), NETWORKING(네트워킹 행사)]\n" +
+                    "- seriesId: 저장할 시리즈의 Id를 입력해 주시면 됩니다. 선택하지 않을 경우 null을 보내주세요. \n")
     @ApiErrorCodeExamples({
-            ErrorStatus.USER_NOT_FOUND
+            ErrorStatus.USER_NOT_FOUND,
+            ErrorStatus.SERIES_NOT_FOUND
     })
-    public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> createFeeds(@Valid @RequestBody FeedRequestDto.createDto requset) {
-        FeedResponseDto.FeedDto response = feedService.createFeed(requset);
+    public ResponseEntity<ApiResponse<FeedResponseDto.CreatedFeedDto>> createFeeds(
+            @Valid @RequestBody FeedRequestDto.createDto request) {
+
+        FeedResponseDto.CreatedFeedDto response = feedService.createFeed(request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -61,31 +69,43 @@ public class FeedController {
         FeedResponseDto.FeedPreviewList response = feedService.getPreViewFeeds(String.valueOf(category), sort, cursor, limit);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
     @GetMapping("/{feedId}/detail")
     @Operation(summary = "Feed 상세 조회 API", description = "요청된 Feed를 보여줍니다.",
-        parameters = {
-            @Parameter(name = "feedId", description = "상세 조회 feedId")
-        })
+            parameters = {
+                    @Parameter(name = "feedId", description = "상세 조회 feedId")
+            })
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND,
             ErrorStatus.FEED_NOT_FOUND
     })
-    public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> getDetailFeed(@PathVariable Long feedId) {
-        FeedResponseDto.FeedDto response = feedService.getFeed(feedId);
+    public ResponseEntity<ApiResponse<FeedResponseDto.AuthorizedFeedDto>> getDetailFeed(@PathVariable Long feedId) {
+        FeedResponseDto.AuthorizedFeedDto response = feedService.getFeed(feedId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
+
     @PatchMapping("/{feedId}")
-    @Operation(summary = "Feed 수정 API", description = "요청된 feedId의 feed 내용을 수정합니다. 수정 사항이 없다면 null 값을 넣어주세요",
-        parameters = {
-            @Parameter(name = "feedId", description = "수정 feedId")
-        })
+    @Operation(
+            summary = "Feed 수정 API",
+            description = "요청된 feedId의 feed 내용을 수정합니다. 수정 사항이 없다면 null 값을 넣어주세요\n" +
+                    "- categories: 다중 선택 가능하며 enum입니다. [ALL, BACKEND, FRONTEND, DESIGN, PLANNING] \n" +
+                    "- interests: 다중 선택 가능하며 enum입니다. [SIDE_PROJECT(사이드 프로젝트), SOLO_DEVELOPMENT(1인 개발), COMPETITION(공모전), STARTUP(창업), NETWORKING(네트워킹 행사)]\n" +
+                    "- seriesId: 저장할 시리즈의 Id를 입력해 주시면 됩니다. 선택하지 않을 경우 null을 보내주세요.\n",
+            parameters = {
+                    @Parameter(name = "feedId", description = "수정할 Feed의 ID")
+            }
+    )
     @ApiErrorCodeExamples({
             ErrorStatus.FEED_UNAUTHORIZED,
-            ErrorStatus.FEED_NOT_FOUND
+            ErrorStatus.FEED_NOT_FOUND,
+            ErrorStatus.SERIES_NOT_FOUND
     })
-    public ResponseEntity<ApiResponse<FeedResponseDto.FeedDto>> modifyFeed(@PathVariable Long feedId, @Valid @RequestBody FeedRequestDto.createDto requset) {
-        FeedResponseDto.FeedDto response = feedService.modifyFeed(feedId, requset);
+    public ResponseEntity<ApiResponse<FeedResponseDto.CreatedFeedDto>> modifyFeed(
+            @PathVariable Long feedId,
+            @Valid @RequestBody FeedRequestDto.createDto request) {
+
+        FeedResponseDto.CreatedFeedDto response = feedService.modifyFeed(feedId, request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -149,5 +169,27 @@ public class FeedController {
 
         FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeeds(cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
+    }
+
+    @PostMapping("/series")
+    @Operation(summary = "Series 생성 API", description = "새로운 Series를 리스트로 넣어주시면 됩니다.")
+    @ApiErrorCodeExamples({
+            ErrorStatus.SERIES_BAD_REQUEST
+    })
+    public ResponseEntity<ApiResponse<Map<Long, String>>> createSeries(
+            @Valid @RequestBody SeriesRequestDto requestDto) {
+
+        Map<Long, String> seriesMap = feedService.createSeries(requestDto);
+        return ResponseEntity.ok(ApiResponse.onSuccess(seriesMap));
+    }
+
+    @GetMapping("/series")
+    @Operation(summary = "Series 조회 API", description = "본인의 Series List를 조회합니다.")
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
+    public ResponseEntity<ApiResponse<Map<Long, String>>> getSeries() {
+        Map<Long, String> seriesMap = feedService.getMySeries();
+        return ResponseEntity.ok(ApiResponse.onSuccess(seriesMap));
     }
 }
