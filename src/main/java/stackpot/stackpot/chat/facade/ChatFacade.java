@@ -17,7 +17,7 @@ import stackpot.stackpot.chat.service.chat.ChatSendService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
-import stackpot.stackpot.chat.service.event.SseService;
+import stackpot.stackpot.event.SseService;
 import stackpot.stackpot.chat.session.ChatSessionManager;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.service.potMember.PotMemberQueryService;

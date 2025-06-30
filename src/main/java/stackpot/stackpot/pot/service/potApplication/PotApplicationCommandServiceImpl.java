@@ -9,6 +9,7 @@ import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.common.service.EmailService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.common.util.RoleNameMapper;
+import stackpot.stackpot.notification.dto.NotificationResponseDto;
 import stackpot.stackpot.notification.event.PotApplicationEvent;
 import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.pot.converter.PotApplicationConverter;
@@ -58,9 +59,10 @@ public class PotApplicationCommandServiceImpl implements PotApplicationCommandSe
 
         sendSupportEmailAsync(user, pot, savedApplication);
 
-        notificationCommandService.createPotApplicationNotification(savedApplication.getApplicationId(), user.getId());
+        NotificationResponseDto.UnReadNotificationDto notiDto = notificationCommandService.createPotApplicationNotification(
+                pot.getPotId(), savedApplication.getApplicationId(), user.getNickname());
 
-        applicationEventPublisher.publishEvent(new PotApplicationEvent());
+        applicationEventPublisher.publishEvent(new PotApplicationEvent(pot.getUser().getId(), notiDto));
 
         return potApplicationConverter.toDto(savedApplication);
     }

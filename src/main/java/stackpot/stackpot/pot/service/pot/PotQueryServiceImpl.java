@@ -154,12 +154,19 @@ public class PotQueryServiceImpl implements PotQueryService {
     }
 
     @Override
-    public List<OngoingPotResponseDto> getAppliedPots() {
+    public List<AppliedPotResponseDto> getAppliedPots() {
         User user = authService.getCurrentUser();
         List<Pot> appliedPots = potRepository.findByPotApplication_User_Id(user.getId());
-        // DTO 변환 시 userId 추가
         return appliedPots.stream()
-                .map(pot -> myPotConverter.convertToOngoingPotResponseDto(pot, user.getId()))
+                .map(pot -> {
+                    // 역할 목록 추출
+                    List<String> roles = pot.getRecruitmentDetails().stream()
+                            .map(rd -> String.valueOf(rd.getRecruitmentRole()))
+                            .collect(Collectors.toList());
+
+                    // 역할을 포함하여 DTO 생성
+                    return myPotConverter.convertToAppliedPotResponseDto(pot, roles);
+                })
                 .collect(Collectors.toList());
     }
 
