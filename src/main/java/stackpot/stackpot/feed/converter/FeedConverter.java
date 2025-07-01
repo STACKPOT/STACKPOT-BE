@@ -4,7 +4,6 @@ package stackpot.stackpot.feed.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.common.util.DateFormatter;
-import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
@@ -14,29 +13,21 @@ import stackpot.stackpot.feed.entity.enums.Interest;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.user.entity.User;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static stackpot.stackpot.common.util.RoleNameMapper.mapRoleName;
 
 @RequiredArgsConstructor
 @Component
 public class FeedConverter{
 
-    private final FeedLikeRepository feedLikeRepository;
-
     public FeedResponseDto.FeedDto feedDto(Feed feed) {
-        String roleName = feed.getUser().getRole() != null
-                ? feed.getUser().getRole().name()
-                : "멤버";
-        String nicknameWithRole = feed.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(roleName);
-
         return FeedResponseDto.FeedDto.builder()
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUser().getId())
-                .writer(nicknameWithRole)
+                .writer(feed.getUser().getNickname()+" "+mapRoleName(String.valueOf(feed.getUser().getRole())))
                 .writerRole(feed.getUser().getRole())
 //                .category(feed.getCategory())
                 .title(feed.getTitle())
@@ -61,7 +52,7 @@ public class FeedConverter{
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .writerId(feed.getUser().getId())
-                .writer(feed.getUser().getNickname()+""+mapRoleName(String.valueOf(feed.getUser().getRole())))
+                .writer(feed.getUser().getNickname()+" "+mapRoleName(String.valueOf(feed.getUser().getRole())))
                 .writerRole(feed.getUser().getRole())
                 .categories(feed.getCategories().stream()
                         .map(Enum::name)
@@ -86,29 +77,20 @@ public class FeedConverter{
     }
 
     public FeedSearchResponseDto toSearchDto(Feed feed) {
-        String roleName = feed.getUser().getRole() != null
-                ? feed.getUser().getRole().name()
-                : "멤버";
-        String nicknameWithRole = feed.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(roleName);
 
         return FeedSearchResponseDto.builder()
                 .userId(feed.getUser().getId())
                 .feedId(feed.getFeedId())
                 .title(feed.getTitle())
                 .content(feed.getContent())
-                .creatorNickname(nicknameWithRole) // 닉네임과 역할 포함
-                .creatorRole(roleName)
+                .creatorNickname(feed.getUser().getNickname()+" "+mapRoleName(String.valueOf(feed.getUser().getRole())))
+                .creatorRole(mapRoleName(String.valueOf(feed.getUser().getRole())))
                 .createdAt(DateFormatter.koreanFormatter(feed.getCreatedAt()))
                 .likeCount(feed.getLikeCount()) // 좋아요 개수 포함
                 .build();
     }
 
     public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner) {
-        String roleName = feed.getUser().getRole() != null
-                ? feed.getUser().getRole().name()
-                : "멤버";
-        String nicknameWithRole = feed.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(roleName);
-
         Map<String, Object> seriesMap = null;
         if (feed.getSeries() != null) {
             seriesMap = Map.of(
@@ -117,17 +99,15 @@ public class FeedConverter{
             );
         }
 
-        return FeedResponseDto.FeedDto.builder()
+        FeedResponseDto.CreatedFeedDto createdDto = FeedResponseDto.CreatedFeedDto.builder()
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUser().getId())
-                .writer(nicknameWithRole)
-                .writer(feed.getUser().getNickname() + mapRoleName(feed.getUser().getRole().name()))
+                .writer(feed.getUser().getNickname()+ " " +mapRoleName(String.valueOf(feed.getUser().getRole())))
                 .writerRole(feed.getUser().getRole())
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .likeCount(feed.getLikeCount())
                 .createdAt(DateFormatter.koreanFormatter(feed.getCreatedAt()))
-                .createdAt(formatLocalDateTime(feed.getCreatedAt()))
                 .categories(feed.getCategories().stream().map(Enum::name).toList())
                 .interests(feed.getInterests().stream().map(Interest::getLabel).toList())
                 .series(seriesMap)
