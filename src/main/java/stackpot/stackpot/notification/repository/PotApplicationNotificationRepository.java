@@ -11,7 +11,7 @@ import java.util.List;
 public interface PotApplicationNotificationRepository extends JpaRepository<PotApplicationNotification, Long> {
 
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
-            "pan.id, pan.potApplication.user.nickname, 'PotApplication', null, pan.createdAt) " +
+            "pan.id, pan.potApplication.pot.potId, pan.potApplication.user.nickname, 'PotApplication', null, pan.createdAt) " +
             "FROM PotApplicationNotification pan " +
             "WHERE pan.isRead = false AND pan.potApplication.pot.user.id = :userId")
     List<NotificationDto.UnReadNotificationDto> findAllUnReadNotificationsByUserId(@Param("userId") Long userId);

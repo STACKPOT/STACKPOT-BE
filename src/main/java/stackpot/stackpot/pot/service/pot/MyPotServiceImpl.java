@@ -17,6 +17,7 @@ import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.converter.MyPotConverter;
 import stackpot.stackpot.pot.converter.PotDetailConverter;
+import stackpot.stackpot.pot.dto.AppliedPotResponseDto;
 import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
@@ -64,7 +65,6 @@ public class MyPotServiceImpl implements MyPotService {
         // 내가 생성한 ONGOING 상태의 팟 조회
         List<Pot> ongoingOwnedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "ONGOING");
 
-        // DTO 변환 시 userId 추가
         return ongoingOwnedPots.stream()
                 .map(pot -> myPotConverter.convertToOngoingPotResponseDto(pot, user.getId()))
                 .collect(Collectors.toList());

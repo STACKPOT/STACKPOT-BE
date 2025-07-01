@@ -12,7 +12,7 @@ public interface PotQueryService {
     CursorPageResponse<CompletedPotResponseDto> getMyCompletedPots(Long cursor, int size);
     PotDetailResponseDto getPotDetails(Long potId);
     List<LikedApplicantResponseDTO> getLikedApplicants(Long potId);
-    List<OngoingPotResponseDto> getAppliedPots();
+    List<AppliedPotResponseDto> getAppliedPots();
     PotSummaryResponseDTO getPotSummary(Long potId);
     CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size);
     CompletedPotDetailResponseDto getCompletedPotDetail(Long potId, Long userId);

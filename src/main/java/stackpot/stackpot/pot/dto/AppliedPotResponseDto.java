@@ -1,41 +1,24 @@
 package stackpot.stackpot.pot.dto;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
 @Builder
-@JsonPropertyOrder({
-        "userId",
-        "userRole",
-        "userNickname",
-        "potId",
-        "potStatus",
-        "potName",
-        "potStartDate",
-        "potDuration",
-        "potLan",
-        "potModeOfOperation",
-        "potContent",
-        "dDay",
-        "recruitmentDetails"
-})
 public class AppliedPotResponseDto {
-    private Long userId;
-    protected String userRole;
-    private String userNickname;
     private Long potId;
-    private String potStatus;
     private String potName;
     private String potStartDate;
-    private String potDuration;
-    private String potLan;
+    private String potStatus;
     private String potModeOfOperation;
+    private String potDuration;
     private String potContent;
     private String dDay;
-    private String recruitmentDetails;
+    private List<String> recruitmentRoles;
+    private Map<String, Integer> members;
 }

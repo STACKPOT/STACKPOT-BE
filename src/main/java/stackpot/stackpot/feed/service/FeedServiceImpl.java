@@ -25,6 +25,7 @@ import stackpot.stackpot.feed.entity.enums.Category;
 import stackpot.stackpot.feed.entity.mapping.FeedLike;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
+import stackpot.stackpot.notification.dto.NotificationResponseDto;
 import stackpot.stackpot.feed.repository.SeriesRepository;
 import stackpot.stackpot.notification.event.FeedLikeEvent;
 import stackpot.stackpot.notification.service.NotificationCommandService;
@@ -299,9 +300,10 @@ public class FeedServiceImpl implements FeedService {
                     .build();
             FeedLike savedFeedLike = feedLikeRepository.save(feedLike);
 
-            notificationCommandService.createFeedLikeNotification(savedFeedLike.getLikeId(), user.getId());
+            NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createFeedLikeNotification(
+                    feed.getFeedId(), savedFeedLike.getLikeId(), user.getId());
 
-            applicationEventPublisher.publishEvent(new FeedLikeEvent());
+            applicationEventPublisher.publishEvent(new FeedLikeEvent(feed.getUser().getUserId(), dto));
 
             feed.setLikeCount(feed.getLikeCount() + 1);
             feedRepository.save(feed);
