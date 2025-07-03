@@ -77,10 +77,7 @@ public class PotMemberQueryServiceImpl implements PotMemberQueryService {
 
     @Override
     public List<UserMemberIdDto> selectPotMemberIdsByUserId(Long userId) {
-        List<UserMemberIdDto> dtos = potMemberRepository.selectPotMemberIdsByUserId(userId);
-        if (dtos.isEmpty())
-            throw new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND);
-        return dtos;
+        return potMemberRepository.selectPotMemberIdsByUserId(userId);
     }
 
     @Override

@@ -33,12 +33,10 @@ public class PotApplicationController {
     public ResponseEntity<ApiResponse<PotApplicationResponseDto>> applyToPot(
             @PathVariable("pot_id") Long potId,
             @RequestBody @Valid PotApplicationRequestDto requestDto) {
-
-
         PotApplicationResponseDto responseDto = potApplicationCommandService.applyToPot(requestDto, potId);
-
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
+
     @Operation(summary = "팟 지원 취소 API")
     @ApiErrorCodeExamples({
             ErrorStatus.APPLICATION_NOT_FOUND

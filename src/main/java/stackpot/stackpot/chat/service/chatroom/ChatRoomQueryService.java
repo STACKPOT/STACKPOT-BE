@@ -18,15 +18,11 @@ public class ChatRoomQueryService {
         return chatRoomRepository.findPotIdByChatRoomId(chatRoomId).orElseThrow(() -> new ChatHandler(ErrorStatus.CHATROOM_NOT_FOUND));
     }
 
-    public ChatRoomDto.ChatRoomNameDto selectChatRoomNameDtoIdByPotId(Long potId) {
-        return chatRoomRepository.findChatRoomIdByPotId(potId).orElseThrow(() -> new ChatHandler(ErrorStatus.CHATROOM_NOT_FOUND));
-    }
-
-    public Long selectChatRoomIdByPotId(Long potId) {
+    public Long selectChatRoomIdByPotId(Long potId){
         return chatRoomRepository.selectChatRoomIdByPotId(potId).orElseThrow(() -> new ChatHandler(ErrorStatus.CHATROOM_NOT_FOUND));
     }
 
-    public ChatRoom selectChatRoomByPotId(Long potId) {
-        return chatRoomRepository.selectChatRoomByPotId(potId).orElseThrow(() -> new ChatHandler(ErrorStatus.CHATROOM_NOT_FOUND));
+    public ChatRoomDto.ChatRoomNameDto selectChatRoomNameDtoIdByPotId(Long potId) {
+        return chatRoomRepository.findChatRoomNameDtoIdByPotId(potId).orElse(null);
     }
 }

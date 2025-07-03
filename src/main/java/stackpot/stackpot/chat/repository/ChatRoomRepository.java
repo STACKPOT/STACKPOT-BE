@@ -2,6 +2,7 @@ package stackpot.stackpot.chat.repository;
 
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import stackpot.stackpot.chat.dto.ChatRoomDto;
 import stackpot.stackpot.chat.entity.ChatRoom;
@@ -14,11 +15,15 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     Optional<Long> findPotIdByChatRoomId(@Param("chatRoomId") Long chatRoomId);
 
     @Query("select new stackpot.stackpot.chat.dto.ChatRoomDto$ChatRoomNameDto(cr.id, cr.chatRoomName) from ChatRoom cr where cr.pot.potId = :potId")
-    Optional<ChatRoomDto.ChatRoomNameDto> findChatRoomIdByPotId(@Param("potId") Long potId);
+    Optional<ChatRoomDto.ChatRoomNameDto> findChatRoomNameDtoIdByPotId(@Param("potId") Long potId);
 
     @Query("select cr.id from ChatRoom cr where cr.pot.potId = :potId")
     Optional<Long> selectChatRoomIdByPotId(@Param("potId") Long potId);
 
     @Query("select cr from ChatRoom cr where cr.pot.potId = :potId")
     Optional<ChatRoom> selectChatRoomByPotId(@Param("potId") Long potId);
+
+    @Modifying
+    @Query("delete from ChatRoom c where c.pot.potId = :potId")
+    void deleteByPotId(@Param("potId") Long potId);
 }

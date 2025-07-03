@@ -1,4 +1,4 @@
-package stackpot.stackpot.chat.controller;
+package stackpot.stackpot.event;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
-import stackpot.stackpot.event.SseService;
 
 @RestController
 @RequestMapping("/sse")
