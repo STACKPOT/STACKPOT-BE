@@ -10,15 +10,12 @@ import stackpot.stackpot.chat.dto.ChatRoomDto;
 import stackpot.stackpot.chat.dto.request.ChatRoomRequestDto;
 import stackpot.stackpot.chat.dto.response.ChatRoomResponseDto;
 import stackpot.stackpot.chat.service.chat.ChatQueryService;
-import stackpot.stackpot.chat.service.chatroom.ChatRoomCommandService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;
-import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.service.potMember.PotMemberQueryService;
-import stackpot.stackpot.pot.service.pot.PotQueryService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,30 +29,12 @@ import java.util.UUID;
 public class ChatRoomFacade {
 
     private final ChatRoomInfoCommandService chatRoomInfoCommandService;
-    private final ChatRoomCommandService chatRoomCommandService;
     private final ChatRoomInfoQueryService chatRoomInfoQueryService;
     private final ChatRoomQueryService chatRoomQueryService;
     private final ChatQueryService chatQueryService;
     private final PotMemberQueryService potMemberQueryService;
-    private final PotQueryService potQueryService;
     private final AuthService authService;
     private final AmazonS3Manager amazonS3Manager;
-
-    // OSIV 끄면 pot 준영속이라서 안 됨
-    // 채팅방 생성
-    public void createChatRoom(ChatRoomRequestDto.CreateChatRoomDto createChatRoomDto) {
-        Long potId = createChatRoomDto.getPotId();
-        Pot pot = potQueryService.getPotByPotId(potId);
-        chatRoomCommandService.createChatRoom(pot.getPotName(), pot);
-    }
-
-    // 채팅방 정보 생성
-    public void createChatRoomInfo(ChatRoomRequestDto.CreateChatRoomInfoDto createChatRoomInfoDto) {
-        List<Long> potMemberIds = createChatRoomInfoDto.getPotMemberIds();
-        Long potId = createChatRoomInfoDto.getPotId();
-        Long chatRoomId = chatRoomQueryService.selectChatRoomIdByPotId(potId);
-        chatRoomInfoCommandService.createChatRoomInfo(potMemberIds, chatRoomId);
-    }
 
     // 채팅방 목록 조회
     public List<ChatRoomResponseDto.ChatRoomListDto> selectChatRoomList() {
@@ -63,6 +42,9 @@ public class ChatRoomFacade {
 
         Long userId = authService.getCurrentUserId();
         List<UserMemberIdDto> potMemberIds = potMemberQueryService.selectPotMemberIdsByUserId(userId);
+        if (potMemberIds.isEmpty()) {
+            return result;
+        }
 
         for (UserMemberIdDto ids : potMemberIds) {
             ChatRoomResponseDto.ChatRoomListDto dto = createChatRoomListDto(ids);
@@ -83,8 +65,8 @@ public class ChatRoomFacade {
     }
 
     public void updateThumbnail(Long chatRoomId, MultipartFile file) {
-        Long potId = chatRoomQueryService.selectPotIdByChatRoomId(chatRoomId);
         Long userId = authService.getCurrentUserId();
+        Long potId = chatRoomQueryService.selectPotIdByChatRoomId(chatRoomId);
         Long potMemberId = potMemberQueryService.selectPotMemberIdByUserIdAndPotId(userId, potId);
 
         String keyName = "chat-room/" + UUID.randomUUID();
@@ -98,10 +80,11 @@ public class ChatRoomFacade {
         Long potId = ids.getPotId();
 
         ChatRoomDto.ChatRoomNameDto chatRoomNameDto = chatRoomQueryService.selectChatRoomNameDtoIdByPotId(potId);
+        if (chatRoomNameDto == null)
+            return null;
+
         Long chatRoomId = chatRoomNameDto.getChatRoomId();
-
         Long lastReadChatId = chatRoomInfoQueryService.selectLastReadChatIdByPotMemberIdAndChatRoomId(potMemberId, chatRoomId);
-
         ChatDto.LastChatDto lastChatDto = chatQueryService.selectLastChatInChatRoom(chatRoomId);
 
         String thumbnailUrl = chatRoomInfoQueryService.selectThumbnailUrlByPotMemberIdAndChatRoomId(potMemberId, chatRoomId);

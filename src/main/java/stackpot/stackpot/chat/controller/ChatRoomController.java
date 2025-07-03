@@ -24,28 +24,6 @@ public class ChatRoomController {
 
     private final ChatRoomFacade chatRoomFacade;
 
-    @Operation(summary = "채팅방 생성하기",
-            description = "팟에 대한 채팅방을 생성하는 API 입니다.")
-    @ApiErrorCodeExamples({
-            ErrorStatus.POT_NOT_FOUND
-    })
-    @PostMapping("")
-    public ResponseEntity<ApiResponse<Void>> createChatRoom(@RequestBody ChatRoomRequestDto.CreateChatRoomDto createChatRoomDto) {
-        chatRoomFacade.createChatRoom(createChatRoomDto);
-        return ResponseEntity.ok(ApiResponse.onSuccess(null));
-    }
-
-    @Operation(summary = "채팅방 정보 생성하기",
-            description = "팟 멤버와 채팅방 사이를 연결하는 채팅방 정보를 생성하는 API 입니다.")
-    @ApiErrorCodeExamples({
-            ErrorStatus.CHATROOM_NOT_FOUND
-    })
-    @PostMapping("/info")
-    public ResponseEntity<ApiResponse<Void>> createChatRoomInfo(@RequestBody ChatRoomRequestDto.CreateChatRoomInfoDto createChatRoomInfoDto) {
-        chatRoomFacade.createChatRoomInfo(createChatRoomInfoDto);
-        return ResponseEntity.ok(ApiResponse.onSuccess(null));
-    }
-
     @Operation(summary = "채팅방 목록 가져오기",
             description = "사용자가 속한 모든 채팅방 목록을 가져오는 API 입니다.")
     @ApiErrorCodeExamples({

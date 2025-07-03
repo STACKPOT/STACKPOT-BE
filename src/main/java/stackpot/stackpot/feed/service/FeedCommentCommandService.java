@@ -91,6 +91,7 @@ public class FeedCommentCommandService {
     @Transactional
     public void deleteFeedComment(Long commentId) {
         FeedComment feedComment = feedCommentQueryService.selectFeedCommentByCommentId(commentId);
+        notificationCommandService.deleteFeedCommentNotification(commentId);
         feedCommentRepository.delete(feedComment);
     }
 }

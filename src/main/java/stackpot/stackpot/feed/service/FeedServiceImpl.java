@@ -264,6 +264,7 @@ public class FeedServiceImpl implements FeedService {
             feedLikeRepository.delete(existingLike.get());
             feed.setLikeCount(feed.getLikeCount() - 1);
             feedRepository.save(feed);
+            notificationCommandService.deleteFeedLikeNotification(existingLike.get().getLikeId());
 
             return false; // 좋아요 취소
         } else {

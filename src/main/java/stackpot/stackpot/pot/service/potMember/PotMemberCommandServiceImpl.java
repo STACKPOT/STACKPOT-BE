@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
+import stackpot.stackpot.chat.service.chatroom.ChatRoomCommandService;
+import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
+import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.pot.converter.PotMemberConverter;
 import stackpot.stackpot.pot.dto.PotMemberAppealResponseDto;
@@ -23,10 +26,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class PotMemberCommandServiceImpl implements PotMemberCommandService {
 
+    private final ChatRoomInfoCommandService chatRoomInfoCommandService;
+    private final ChatRoomCommandService chatRoomCommandService;
     private final PotRepository potRepository;
     private final UserRepository userRepository;
     private final PotApplicationRepository potApplicationRepository;
@@ -74,6 +80,14 @@ public class PotMemberCommandServiceImpl implements PotMemberCommandService {
         newMembers.add(member);
 
         List<PotMember> savedMembers = potMemberRepository.saveAll(newMembers);
+
+        // ChatRoom + ChatRoomInfo 생성
+        Long chatRoomId = chatRoomCommandService.createChatRoom(pot.getPotName(), pot);
+        List<Long> potMemberIds = savedMembers.stream()
+                .map(PotMember::getPotMemberId)
+                .collect(Collectors.toList());
+        chatRoomInfoCommandService.createChatRoomInfo(potMemberIds, chatRoomId);
+
         return savedMembers.stream()
                 .map(potMemberConverter::toDto)
                 .collect(Collectors.toList());

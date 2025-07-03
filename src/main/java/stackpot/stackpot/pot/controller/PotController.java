@@ -49,12 +49,12 @@ public class PotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(potCommandService.updatePotWithRecruitments(potId, requestDto)));
     }
 
-    @Operation(summary = "팟 삭제 API")
-    @DeleteMapping("/{pot_id}")
-    public ResponseEntity<ApiResponse<Void>> deletePot(@PathVariable("pot_id") Long potId) {
-        potCommandService.deletePot(potId);
-        return ResponseEntity.ok(ApiResponse.onSuccess(null));
-    }
+//    @Operation(summary = "팟 삭제 API")
+//    @DeleteMapping("/{pot_id}")
+//    public ResponseEntity<ApiResponse<Void>> deletePot(@PathVariable("pot_id") Long potId) {
+//        potCommandService.deletePot(potId);
+//        return ResponseEntity.ok(ApiResponse.onSuccess(null));
+//    }
 
     @GetMapping("/completed")
     @Operation(summary = "내가 만든 팟 - 끓인 나의 팟 조회 API", description = "potStatus가 COMPLETED인 팟의 목록을 커서 기반 페이지네이션으로 가져옵니다.", parameters = {
@@ -70,7 +70,6 @@ public class PotController {
     public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(@PathVariable("pot_id") Long potId, @PathVariable("user_id") Long userId) {
         return ResponseEntity.ok(ApiResponse.onSuccess(potQueryService.getCompletedPotDetail(potId, userId)));
     }
-
 
     @GetMapping
     @Operation(
@@ -99,9 +98,6 @@ public class PotController {
         Map<String, Object> response = potQueryService.getAllPotsWithPaging(roleEnum, page, size, onlyMine);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-
-
-
 
     @Operation(summary = "팟 상세 조회 API", description = "팟 작성 완료 후, <내가 만든 팟>에서 상세보기 페이지에서 팟 상세 정보를 조회하는 API입니다.")
     @GetMapping("/{pot_id}")
@@ -159,6 +155,5 @@ public class PotController {
         Map<String, Object> response = potQueryService.getMyRecruitingPotsWithPaging(page, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-
 
 }

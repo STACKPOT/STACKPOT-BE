@@ -29,7 +29,6 @@ public class FeedController {
     private final FeedService feedService;
 
 
-
     @PostMapping("")
     @Operation(summary = "Feed 생성 API", description = "새로운 Feed를 작성합니다.")
     @ApiErrorCodeExamples({
