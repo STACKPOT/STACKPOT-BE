@@ -5,6 +5,7 @@ import lombok.*;
 import stackpot.stackpot.user.entity.enums.Role;
 
 import java.util.List;
+import java.util.Map;
 
 public class FeedResponseDto {
 
@@ -41,8 +42,28 @@ public class FeedResponseDto {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class CreatedFeedDto {
+        private Long feedId;
+        private Long writerId;
+        private String writer;
+        private Role writerRole;
+        private String title;
+        private String content;
+        private Long likeCount;
+        private Boolean isLiked;
+        private String createdAt;
+        private List<String> categories;
+        private List<String> interests;
+        private Map<String, Object> series;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class AuthorizedFeedDto {
-        private FeedDto feed;
+        private CreatedFeedDto feed;
         private boolean isOwner;
     }
 
