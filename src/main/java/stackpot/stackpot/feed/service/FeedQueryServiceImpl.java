@@ -16,34 +16,31 @@ import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.converter.FeedConverter;
-import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.feed.entity.Feed;
+import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.feed.entity.enums.Category;
-import stackpot.stackpot.feed.entity.mapping.FeedLike;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
-import stackpot.stackpot.notification.dto.NotificationResponseDto;
-import stackpot.stackpot.notification.event.FeedLikeEvent;
+import stackpot.stackpot.feed.repository.SeriesRepository;
 import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FeedServiceImpl implements FeedService {
+public class FeedQueryServiceImpl implements FeedQueryService {
 
     private final NotificationCommandService notificationCommandService;
     private final FeedRepository feedRepository;
     private final FeedConverter feedConverter;
     private final UserRepository userRepository;
     private final FeedLikeRepository feedLikeRepository;
+    private final SeriesRepository seriesRepository;
     private final AuthService authService;
 
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -126,27 +123,15 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
-    public FeedResponseDto.FeedDto createFeed(FeedRequestDto.createDto request) {
-        Feed feed = feedConverter.toFeed(request);
+    public FeedResponseDto.AuthorizedFeedDto getFeed(Long feedId) {
         User user = authService.getCurrentUser();
 
-        feed.setUser(user);
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feedRepository.save(feed));
-        return response;
-    }
-
-    @Override
-    public FeedResponseDto.FeedDto getFeed(Long feedId) {
-
-        User user = authService.getCurrentUser();
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
-        boolean isOwner = Objects.equals(user.getId(), feed.getUser().getUserId());
+        boolean isOwner = feed.getUser().getId().equals(user.getId());
 
-        FeedResponseDto.FeedDto response = feedConverter.toAuthorizedFeedDto(feed, isOwner);
-
-        return response;
+        return feedConverter.toAuthorizedFeedDto(feed, isOwner);
     }
 
     @Transactional
@@ -210,80 +195,6 @@ public class FeedServiceImpl implements FeedService {
                 .build();
     }
 
-    @Override
-    public FeedResponseDto.FeedDto modifyFeed(long feedId, FeedRequestDto.createDto request) {
-        User user = authService.getCurrentUser();
-
-        Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
-
-        if (!feed.getUser().getEmail().equals(user.getEmail())) {
-            throw new FeedHandler(ErrorStatus.FEED_UNAUTHORIZED);
-        }
-
-        if (request.getTitle() != null) {
-            feed.setTitle(request.getTitle());
-        }
-        if (request.getContent() != null) {
-            feed.setContent(request.getContent());
-        }
-        if (request.getCategory() != null) {
-            feed.setCategory(request.getCategory());
-        }
-        FeedResponseDto.FeedDto response = feedConverter.feedDto(feedRepository.save(feed));
-        return response;
-    }
-
-    @Override
-    public String deleteFeed(Long feedId) {
-        User user = authService.getCurrentUser();
-
-        Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
-
-        if (!feed.getUser().getEmail().equals(user.getEmail())) {
-            throw new FeedHandler(ErrorStatus.FEED_UNAUTHORIZED);
-        }
-
-        feedRepository.delete(feed);
-
-        return "피드를 삭제했습니다.";
-    }
-
-    @Transactional
-    @Override
-    public boolean toggleLike(Long feedId) {
-        User user = authService.getCurrentUser();
-
-        Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
-        Optional<FeedLike> existingLike = feedLikeRepository.findByFeedAndUser(feed, user);
-
-        if (existingLike.isPresent()) {
-            // 이미 좋아요가 있다면 삭제 (좋아요 취소)
-            feedLikeRepository.delete(existingLike.get());
-            feed.setLikeCount(feed.getLikeCount() - 1);
-            feedRepository.save(feed);
-
-            return false; // 좋아요 취소
-        } else {
-            // 좋아요 추가
-            FeedLike feedLike = FeedLike.builder()
-                    .feed(feed)
-                    .user(user)
-                    .build();
-            FeedLike savedFeedLike = feedLikeRepository.save(feedLike);
-
-            NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createFeedLikeNotification(
-                    feed.getFeedId(), savedFeedLike.getLikeId(), user.getId());
-
-            applicationEventPublisher.publishEvent(new FeedLikeEvent(feed.getUser().getUserId(), dto));
-
-            feed.setLikeCount(feed.getLikeCount() + 1);
-            feedRepository.save(feed);
-            return true; // 좋아요 성공
-        }
-    }
 
     @Override
     public Long getLikeCount(Long feedId) {
@@ -297,4 +208,19 @@ public class FeedServiceImpl implements FeedService {
         return feedRepository.findById(feedId)
                 .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
     }
+
+
+    @Override
+    public Map<Long, String> getMySeries() {
+        User user = authService.getCurrentUser();
+
+        List<Series> userSeriesList = seriesRepository.findAllByUser(user);
+
+        return userSeriesList.stream()
+                .collect(Collectors.toMap(
+                        Series::getSeriesId,
+                        Series::getComment
+                ));
+    }
+
 }
