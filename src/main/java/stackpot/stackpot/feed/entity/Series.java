@@ -5,6 +5,9 @@ import lombok.*;
 import stackpot.stackpot.common.BaseEntity;
 import stackpot.stackpot.user.entity.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
@@ -22,5 +25,8 @@ public class Series extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "series", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Feed> feedList = new ArrayList<>();
 
 }

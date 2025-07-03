@@ -83,6 +83,11 @@ public enum ErrorStatus implements BaseErrorCode {
     FEED_UNAUTHORIZED(HttpStatus.FORBIDDEN, "FEED4003", "해당 Feed에 대한 수정 권한이 없습니다."),
     FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "FEED4004", "Feed를 찾을 수 없습니다."),
 
+    // series 관련 에러
+    SERIES_BAD_REQUEST(HttpStatus.BAD_REQUEST, "SERIES4001", "시리즈는 최대 5개까지만 등록할 수 있습니다."),
+    SERIES_NOT_FOUND(HttpStatus.NOT_FOUND, "SERIES4002", "series를 찾을 수 없습니다."),
+
+
     // feed like 관련 에러
     FEED_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDLIKE4001", "Feed Like를 찾을 수 없습니다."),
 
