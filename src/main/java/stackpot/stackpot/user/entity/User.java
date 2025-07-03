@@ -56,6 +56,9 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = true, columnDefinition = "TEXT")
     private String userIntroduction; // 한 줄 소개
 
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String userDescription;; // 나의 소개
+
     @Getter
     @Setter
     @Column(nullable = true)
@@ -100,8 +103,14 @@ public class User extends BaseEntity implements UserDetails{
         this.userTemperature = null;
         this.email = null;
         this.userIntroduction = null;
+        this.userDescription = null;
         // 이메일 등 개인 정보 삭제
     }
+
+    public void updateUserDescription(String userDescription) {
+        this.userDescription = userDescription;
+    }
+
 
 }
 

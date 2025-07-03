@@ -37,22 +37,6 @@ public class SearchServiceImpl implements SearchService {
     private final PotSaveRepository potSaveRepository;
     private final AuthService authService;
 
-/*@Override
-@Transactional(readOnly = true)
-public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable) {
-
-
-    Page<Pot> pots = potRepository.searchByKeyword(keyword, pageable);
-
-    return pots.map(pot -> {
-        User user = pot.getUser();
-        List<String> recruitmentRoles = pot.getRecruitmentDetails().stream()
-                .map(rd -> rd.getRecruitmentRole().name())
-                .collect(Collectors.toList());
-
-        return potConverter.toPrviewDto(user, pot, recruitmentRoles);
-    });
-}*/
 
     @Override
     @Transactional(readOnly = true)

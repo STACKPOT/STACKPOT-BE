@@ -42,6 +42,7 @@ public class UserConverter {
                 .role(user.getRole())
                 .interest(user.getInterest())
                 .userTemperature(user.getUserTemperature())
+                .userDescription(user.getUserDescription())
                 .userIntroduction(user.getUserIntroduction())
                 .build();
     }
