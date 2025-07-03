@@ -25,7 +25,7 @@ import java.util.Objects;
 public class FeedCommentCommandService {
 
     private final NotificationCommandService notificationCommandService;
-    private final FeedCommandService feedCommandService;
+    private final FeedQueryService feedQueryService;
     private final FeedCommentQueryService feedCommentQueryService;
     private final FeedCommentRepository feedCommentRepository;
     private final FeedCommentConverter feedCommentConverter;
@@ -36,7 +36,7 @@ public class FeedCommentCommandService {
     public FeedCommentResponseDto.FeedCommentCreateDto createFeedComment(FeedCommentRequestDto.FeedCommentCreateDto feedCommentCreateDto) {
         User user = authService.getCurrentUser();
         Long feedId = feedCommentCreateDto.getFeedId();
-        Feed feed = feedCommandService.getFeedByFeedId(feedId);
+        Feed feed = feedQueryService.getFeedByFeedId(feedId);
         String comment = feedCommentCreateDto.getComment();
 
         FeedComment feedComment = feedCommentRepository.save(FeedComment.builder()
@@ -60,7 +60,7 @@ public class FeedCommentCommandService {
     public FeedCommentResponseDto.FeedReplyCommentCreateDto createFeedReplyComment(Long parentCommentId, FeedCommentRequestDto.FeedCommentCreateDto feedCommentCreateDto) {
         User user = authService.getCurrentUser();
         Long feedId = feedCommentCreateDto.getFeedId();
-        Feed feed = feedCommandService.getFeedByFeedId(feedId);
+        Feed feed = feedQueryService.getFeedByFeedId(feedId);
         String comment = feedCommentCreateDto.getComment();
         FeedComment parent = feedCommentQueryService.selectFeedCommentByCommentId(parentCommentId);
 
