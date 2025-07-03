@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FeedServiceImpl implements FeedService {
+public class FeedCommandServiceImpl implements FeedCommandService {
 
     private final NotificationCommandService notificationCommandService;
     private final FeedRepository feedRepository;
@@ -128,24 +128,6 @@ public class FeedServiceImpl implements FeedService {
         return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
     }
 
-
-    @Override
-    public FeedResponseDto.CreatedFeedDto createFeed(FeedRequestDto.createDto request) {
-        User user = authService.getCurrentUser();
-
-        Series series = null;
-        if (request.getSeriesId() != null) {
-            series = seriesRepository.findById(request.getSeriesId())
-                    .orElseThrow(() -> new FeedHandler(ErrorStatus.SERIES_NOT_FOUND));
-        }
-
-        Feed feed = feedConverter.toFeed(request, series);
-        feed.setUser(user);
-
-        Feed saved = feedRepository.save(feed);
-        return feedConverter.createFeedDto(saved);
-    }
-
     @Override
     public FeedResponseDto.AuthorizedFeedDto getFeed(Long feedId) {
         User user = authService.getCurrentUser();
@@ -219,95 +201,6 @@ public class FeedServiceImpl implements FeedService {
                 .build();
     }
 
-    @Override
-    public FeedResponseDto.CreatedFeedDto modifyFeed(long feedId, FeedRequestDto.createDto request) {
-        User user = authService.getCurrentUser();
-
-        Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
-
-        if (!feed.getUser().getEmail().equals(user.getEmail())) {
-            throw new FeedHandler(ErrorStatus.FEED_UNAUTHORIZED);
-        }
-
-        if (request.getTitle() != null) {
-            feed.setTitle(request.getTitle());
-        }
-
-        if (request.getContent() != null) {
-            feed.setContent(request.getContent());
-        }
-
-        if (request.getCategories() != null) {
-            feed.setCategories(request.getCategories());
-        }
-
-        if (request.getInterests() != null) {
-            feed.setInterests(request.getInterests());
-        }
-
-        if (request.getSeriesId() != null) {
-            Series series = seriesRepository.findById(request.getSeriesId())
-                    .orElseThrow(() -> new FeedHandler(ErrorStatus.SERIES_NOT_FOUND));
-            feed.setSeries(series);
-        } else {
-            feed.setSeries(null); // 시리즈 제거
-        }
-
-        Feed updated = feedRepository.save(feed);
-        return feedConverter.createFeedDto(updated);
-    }
-
-    @Override
-    public String deleteFeed(Long feedId) {
-        User user = authService.getCurrentUser();
-
-        Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
-
-        if (!feed.getUser().getEmail().equals(user.getEmail())) {
-            throw new FeedHandler(ErrorStatus.FEED_UNAUTHORIZED);
-        }
-
-        feedRepository.delete(feed);
-
-        return "피드를 삭제했습니다.";
-    }
-
-    @Transactional
-    @Override
-    public boolean toggleLike(Long feedId) {
-        User user = authService.getCurrentUser();
-
-        Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
-        Optional<FeedLike> existingLike = feedLikeRepository.findByFeedAndUser(feed, user);
-
-        if (existingLike.isPresent()) {
-            // 이미 좋아요가 있다면 삭제 (좋아요 취소)
-            feedLikeRepository.delete(existingLike.get());
-            feed.setLikeCount(feed.getLikeCount() - 1);
-            feedRepository.save(feed);
-
-            return false; // 좋아요 취소
-        } else {
-            // 좋아요 추가
-            FeedLike feedLike = FeedLike.builder()
-                    .feed(feed)
-                    .user(user)
-                    .build();
-            FeedLike savedFeedLike = feedLikeRepository.save(feedLike);
-
-            NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createFeedLikeNotification(
-                    feed.getFeedId(), savedFeedLike.getLikeId(), user.getId());
-
-            applicationEventPublisher.publishEvent(new FeedLikeEvent(feed.getUser().getUserId(), dto));
-
-            feed.setLikeCount(feed.getLikeCount() + 1);
-            feedRepository.save(feed);
-            return true; // 좋아요 성공
-        }
-    }
 
     @Override
     public Long getLikeCount(Long feedId) {
@@ -322,52 +215,6 @@ public class FeedServiceImpl implements FeedService {
                 .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
     }
 
-    @Override
-    @Transactional
-    public Map<Long, String> createSeries(SeriesRequestDto requestDto) {
-        User user = authService.getCurrentUser();
-
-        List<Series> existingSeries = seriesRepository.findAllByUser(user);
-        @NotNull Set<String> existingComments = existingSeries.stream()
-                .map(Series::getComment)
-                .collect(Collectors.toSet());
-
-        Set<String> incomingComments = new HashSet<>(requestDto.getComments());
-
-        // 최대 5개 제약
-        if (incomingComments.size() > 5) {
-            throw new FeedHandler(ErrorStatus.SERIES_BAD_REQUEST);
-        }
-
-        //  삭제: 기존에 있었는데 지금은 없음
-        List<Series> toDelete = existingSeries.stream()
-                .filter(series -> !incomingComments.contains(series.getComment()))
-                .toList();
-
-        for (Series series : toDelete) {
-            feedRepository.clearSeriesReference(series.getSeriesId()); // feed의 series_id null 처리
-        }
-        seriesRepository.deleteAll(toDelete);
-
-        //  생성: 지금 있는데 기존엔 없었던 것
-        List<String> toCreate = incomingComments.stream()
-                .filter(comment -> !existingComments.contains(comment))
-                .toList();
-
-        List<Series> newSeries = toCreate.stream()
-                .map(comment -> feedConverter.toEntity(comment, user))
-                .toList();
-
-        seriesRepository.saveAll(newSeries);
-
-        //  전체 목록 다시 조회
-        List<Series> updatedSeries = seriesRepository.findAllByUser(user);
-        return updatedSeries.stream()
-                .collect(Collectors.toMap(
-                        Series::getSeriesId,
-                        Series::getComment
-                ));
-    }
 
     @Override
     public Map<Long, String> getMySeries() {

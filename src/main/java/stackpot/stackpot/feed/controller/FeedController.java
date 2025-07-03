@@ -13,11 +13,10 @@ import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.feed.dto.SeriesRequestDto;
-import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.enums.Category;
-import stackpot.stackpot.feed.service.FeedService;
+import stackpot.stackpot.feed.service.FeedCommandService;
+import stackpot.stackpot.feed.service.FeedQueryService;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -27,8 +26,8 @@ import java.util.Map;
 @Tag(name = "Feed Management", description = "피드 관리 API")
 public class FeedController {
 
-    private final FeedService feedService;
-
+    private final FeedCommandService feedCommandService;
+    private final FeedQueryService feedQueryService;
 
 
     @PostMapping("")
@@ -44,7 +43,7 @@ public class FeedController {
     public ResponseEntity<ApiResponse<FeedResponseDto.CreatedFeedDto>> createFeeds(
             @Valid @RequestBody FeedRequestDto.createDto request) {
 
-        FeedResponseDto.CreatedFeedDto response = feedService.createFeed(request);
+        FeedResponseDto.CreatedFeedDto response = feedQueryService.createFeed(request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -66,7 +65,7 @@ public class FeedController {
             @RequestParam(value = "cursor", required = false) Long cursor,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
 
-        FeedResponseDto.FeedPreviewList response = feedService.getPreViewFeeds(String.valueOf(category), sort, cursor, limit);
+        FeedResponseDto.FeedPreviewList response = feedCommandService.getPreViewFeeds(String.valueOf(category), sort, cursor, limit);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -80,7 +79,7 @@ public class FeedController {
             ErrorStatus.FEED_NOT_FOUND
     })
     public ResponseEntity<ApiResponse<FeedResponseDto.AuthorizedFeedDto>> getDetailFeed(@PathVariable Long feedId) {
-        FeedResponseDto.AuthorizedFeedDto response = feedService.getFeed(feedId);
+        FeedResponseDto.AuthorizedFeedDto response = feedCommandService.getFeed(feedId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -105,7 +104,7 @@ public class FeedController {
             @PathVariable Long feedId,
             @Valid @RequestBody FeedRequestDto.createDto request) {
 
-        FeedResponseDto.CreatedFeedDto response = feedService.modifyFeed(feedId, request);
+        FeedResponseDto.CreatedFeedDto response = feedQueryService.modifyFeed(feedId, request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -119,7 +118,7 @@ public class FeedController {
             ErrorStatus.FEED_NOT_FOUND
     })
     public ResponseEntity<ApiResponse<String>> deleteFeed(@PathVariable Long feedId) {
-        String response = feedService.deleteFeed(feedId);
+        String response = feedQueryService.deleteFeed(feedId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -133,7 +132,7 @@ public class FeedController {
             ErrorStatus.FEED_NOT_FOUND
     })
     public ResponseEntity<ApiResponse<Map>> toggleLike(@PathVariable Long feedId) {
-        boolean isLiked = feedService.toggleLike(feedId);
+        boolean isLiked = feedQueryService.toggleLike(feedId);
         return ResponseEntity.ok(ApiResponse.onSuccess(Map.of(
                 "liked", isLiked,
                 "message", isLiked ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다."
@@ -154,7 +153,7 @@ public class FeedController {
             @Parameter(description = "페이지 크기", example = "10")
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeedsByUserId(userId, cursor, size);
+        FeedResponseDto.FeedPreviewList feedPreviewList = feedCommandService.getFeedsByUserId(userId, cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
     }
 
@@ -167,7 +166,7 @@ public class FeedController {
             @RequestParam(name = "cursor", required = false) Long cursor,
             @RequestParam(name = "size", defaultValue = "10") int size) {
 
-        FeedResponseDto.FeedPreviewList feedPreviewList = feedService.getFeeds(cursor, size);
+        FeedResponseDto.FeedPreviewList feedPreviewList = feedCommandService.getFeeds(cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
     }
 
@@ -185,7 +184,7 @@ public class FeedController {
     public ResponseEntity<ApiResponse<Map<Long, String>>> createSeries(
             @Valid @RequestBody SeriesRequestDto requestDto) {
 
-        Map<Long, String> seriesMap = feedService.createSeries(requestDto);
+        Map<Long, String> seriesMap = feedQueryService.createSeries(requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(seriesMap));
     }
 
@@ -195,7 +194,7 @@ public class FeedController {
             ErrorStatus.USER_NOT_FOUND
     })
     public ResponseEntity<ApiResponse<Map<Long, String>>> getSeries() {
-        Map<Long, String> seriesMap = feedService.getMySeries();
+        Map<Long, String> seriesMap = feedCommandService.getMySeries();
         return ResponseEntity.ok(ApiResponse.onSuccess(seriesMap));
     }
 }
