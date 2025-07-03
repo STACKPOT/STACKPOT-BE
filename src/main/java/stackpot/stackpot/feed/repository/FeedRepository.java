@@ -59,4 +59,8 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
         return feeds.get(feeds.size() - 1).getFeedId().toString();
     }
 
+    @Modifying
+    @Query("UPDATE Feed f SET f.series = null WHERE f.series.seriesId = :seriesId")
+    void clearSeriesReference(@Param("seriesId") Long seriesId);
+
 }

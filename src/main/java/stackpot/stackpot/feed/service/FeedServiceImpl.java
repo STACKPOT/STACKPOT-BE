@@ -3,6 +3,7 @@ package stackpot.stackpot.feed.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,10 +33,7 @@ import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -325,26 +323,45 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
+    @Transactional
     public Map<Long, String> createSeries(SeriesRequestDto requestDto) {
         User user = authService.getCurrentUser();
 
         List<Series> existingSeries = seriesRepository.findAllByUser(user);
-        int existingCount = existingSeries.size();
-        int newCount = requestDto.getComments().size();
+        @NotNull Set<String> existingComments = existingSeries.stream()
+                .map(Series::getComment)
+                .collect(Collectors.toSet());
 
-        if (existingCount + newCount > 5) {
+        Set<String> incomingComments = new HashSet<>(requestDto.getComments());
+
+        // 최대 5개 제약
+        if (incomingComments.size() > 5) {
             throw new FeedHandler(ErrorStatus.SERIES_BAD_REQUEST);
         }
 
-        List<Series> newSeriesList = requestDto.getComments().stream()
+        //  삭제: 기존에 있었는데 지금은 없음
+        List<Series> toDelete = existingSeries.stream()
+                .filter(series -> !incomingComments.contains(series.getComment()))
+                .toList();
+
+        for (Series series : toDelete) {
+            feedRepository.clearSeriesReference(series.getSeriesId()); // feed의 series_id null 처리
+        }
+        seriesRepository.deleteAll(toDelete);
+
+        //  생성: 지금 있는데 기존엔 없었던 것
+        List<String> toCreate = incomingComments.stream()
+                .filter(comment -> !existingComments.contains(comment))
+                .toList();
+
+        List<Series> newSeries = toCreate.stream()
                 .map(comment -> feedConverter.toEntity(comment, user))
                 .toList();
 
-        seriesRepository.saveAll(newSeriesList);
+        seriesRepository.saveAll(newSeries);
 
-        // 전체 목록 다시 조회
+        //  전체 목록 다시 조회
         List<Series> updatedSeries = seriesRepository.findAllByUser(user);
-
         return updatedSeries.stream()
                 .collect(Collectors.toMap(
                         Series::getSeriesId,

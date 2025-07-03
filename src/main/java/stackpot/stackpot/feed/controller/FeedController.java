@@ -172,7 +172,13 @@ public class FeedController {
     }
 
     @PostMapping("/series")
-    @Operation(summary = "Series 생성 API", description = "새로운 Series를 리스트로 넣어주시면 됩니다.")
+    @Operation(summary = "시리즈 생성/삭제 동기화 API",
+            description = "현재 화면에 표시되는 시리즈 이름 전체를 문자열 리스트로 전달해 주세요.\n" +
+                    "서버에서는 해당 목록을 기준으로 새로운 시리즈는 생성하고,\n" +
+                    "기존에 있던 시리즈 중 목록에 없는 항목은 삭제 처리합니다.\n" +
+                    "기존 시리즈와 신규 시리즈를 따로 구분하지 않으셔도 되며,\n" +
+                    "전체 목록만 보내주시면 됩니다.\n\n"+
+                    "다 삭제하는 경우, 빈 리스트를 보내주시면 됩니다! {\"comments\": []}\n" )
     @ApiErrorCodeExamples({
             ErrorStatus.SERIES_BAD_REQUEST
     })
