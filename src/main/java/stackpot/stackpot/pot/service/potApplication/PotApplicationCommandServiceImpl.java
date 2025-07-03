@@ -73,6 +73,7 @@ public class PotApplicationCommandServiceImpl implements PotApplicationCommandSe
         User user = authService.getCurrentUser();
         PotApplication application = potApplicationRepository.findByUserIdAndPot_PotId(user.getId(), potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.APPLICATION_NOT_FOUND));
+        notificationCommandService.deletePotApplicationNotification(application.getApplicationId());
         potApplicationRepository.delete(application);
     }
 

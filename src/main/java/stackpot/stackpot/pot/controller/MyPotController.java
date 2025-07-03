@@ -40,7 +40,6 @@ public class MyPotController {
     @Operation(summary = "팟 멤버 또는 팟 삭제 API", description = "생성자는 팟을 삭제하며, 생성자가 아니면 팟 멤버에서 본인을 삭제합니다.")
     public ResponseEntity<ApiResponse<String>> removePotOrMember(
             @PathVariable("pot_id") Long potId) {
-
         String responseMessage = potCommandService.removePotOrMember(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseMessage));
     }

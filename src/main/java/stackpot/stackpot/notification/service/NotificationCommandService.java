@@ -32,6 +32,7 @@ import stackpot.stackpot.pot.service.potComment.PotCommentQueryService;
 @Getter
 public class NotificationCommandService {
 
+    private final NotificationQueryService notificationQueryService;
     private final PotApplicationQueryService potApplicationQueryService;
     private final PotCommentQueryService potCommentQueryService;
     private final FeedCommentQueryService feedCommentQueryService;
@@ -72,6 +73,11 @@ public class NotificationCommandService {
                 .build();
     }
 
+    @Transactional
+    public void deletePotApplicationNotification(Long potApplicationId) {
+        potApplicationNotificationRepository.deleteByPotApplicationId(potApplicationId);
+    }
+
     public NotificationResponseDto.UnReadNotificationDto createPotCommentNotification(Long potId, Long commentId, Long userId) {
         PotComment potComment = potCommentQueryService.selectPotCommentByCommentId(commentId);
         if (potComment.getPot().getUser().getId().equals(userId)) {
@@ -97,6 +103,11 @@ public class NotificationCommandService {
                 .build();
     }
 
+    @Transactional
+    public void deletePotCommentNotification(Long potCommentId) {
+        potCommentNotificationRepository.deleteByPotCommentId(potCommentId);
+    }
+
     public NotificationResponseDto.UnReadNotificationDto createFeedLikeNotification(Long feedId, Long feedLikeId, Long userId) {
         FeedLike feedLike = feedLikeQueryService.getFeedLikeById(feedLikeId);
         if (feedLike.getFeed().getUser().getId().equals(userId)) {
@@ -118,12 +129,17 @@ public class NotificationCommandService {
                 .build();
     }
 
+    @Transactional
+    public void deleteFeedLikeNotification(Long feedLikeId) {
+        feedLikeNotificationRepository.deleteByFeedLikeId(feedLikeId);
+    }
+
     public NotificationResponseDto.UnReadNotificationDto createdFeedCommentNotification(Long feedId, Long commentId, Long userId) {
         FeedComment feedComment = feedCommentQueryService.selectFeedCommentByCommentId(commentId);
         if (feedComment.getFeed().getUser().getId().equals(userId)) {
             return null; // 해당 유저가 Feed의 생성자일 경우 알림 생성하지 않음
         }
-        if(feedComment.getParent() != null && feedComment.getParent().getUser().getUserId().equals(userId)){
+        if (feedComment.getParent() != null && feedComment.getParent().getUser().getUserId().equals(userId)) {
             return null; // 해당 유저가 부모 댓글 생성자인 경우 알림 생성하지 않음
         }
         FeedCommentNotification fcn = FeedCommentNotification.builder()
@@ -140,5 +156,10 @@ public class NotificationCommandService {
                 .content(feedComment.getComment())
                 .createdAt(newFcn.getCreatedAt())
                 .build();
+    }
+
+    @Transactional
+    public void deleteFeedCommentNotification(Long feedCommentId) {
+        feedCommentNotificationRepository.deleteByFeedCommentId(feedCommentId);
     }
 }

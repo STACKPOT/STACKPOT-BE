@@ -92,6 +92,7 @@ public class PotCommentCommandService {
     @Transactional
     public void deletePotComment(Long commentId) {
         PotComment potComment = potCommentQueryService.selectPotCommentByCommentId(commentId);
+        notificationCommandService.deletePotCommentNotification(potComment.getId());
         potCommentRepository.delete(potComment);
     }
 }

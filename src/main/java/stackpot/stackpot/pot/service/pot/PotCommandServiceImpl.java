@@ -10,6 +10,9 @@ import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.badge.service.BadgeService;
+import stackpot.stackpot.chat.service.chatroom.ChatRoomCommandService;
+import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
+import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.badge.service.BadgeService;
 import stackpot.stackpot.pot.converter.MyPotConverter;
@@ -45,6 +48,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PotCommandServiceImpl implements PotCommandService {
 
+    private final ChatRoomQueryService chatRoomQueryService;
+    private final ChatRoomInfoCommandService chatRoomInfoCommandService;
+    private final ChatRoomCommandService chatRoomCommandService;
     private final PotRepository potRepository;
     private final PotRecruitmentDetailsRepository recruitmentDetailsRepository;
     private final PotConverter potConverter;
@@ -54,6 +60,7 @@ public class PotCommandServiceImpl implements PotCommandService {
     private final AuthService authService;
     private final BadgeService badgeService;
     private final PotMemberConverter potMemberConverter;
+
 
     @Override
     @Transactional
@@ -71,8 +78,8 @@ public class PotCommandServiceImpl implements PotCommandService {
         pot.setPotStatus("RECRUITING");
         Pot savedPot = potRepository.save(pot);
 
-        PotMember creator = potMemberConverter.toCreatorEntity(user, pot, requestDto.getPotRole());
-        potMemberRepository.save(creator);
+//        PotMember creator = potMemberConverter.toCreatorEntity(user, pot, requestDto.getPotRole());
+//        potMemberRepository.save(creator);
 
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(dto -> PotRecruitmentDetails.builder()
@@ -141,6 +148,7 @@ public class PotCommandServiceImpl implements PotCommandService {
             throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
+        //
         recruitmentDetailsRepository.deleteByPot_PotId(potId);
         potRepository.delete(pot);
     }
@@ -220,13 +228,20 @@ public class PotCommandServiceImpl implements PotCommandService {
         User user = authService.getCurrentUser();
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
-
+        Long chatRoomId = chatRoomQueryService.selectChatRoomIdByPotId(potId);
         if (pot.getUser().equals(user)) {
+            // 채팅방 정보, 채팅방 삭제
+            List<Long> potMemberIds = potMemberRepository.selectPotMemberIdsByPotId(potId);
+            chatRoomInfoCommandService.deleteChatRoomInfo(potMemberIds);
+            chatRoomCommandService.deleteChatRoomByPotId(potId);
+            recruitmentDetailsRepository.deleteByPot_PotId(potId);
             potRepository.delete(pot);
             return "팟이 성공적으로 삭제되었습니다.";
         } else {
             PotMember member = potMemberRepository.findByPotAndUser(pot, user)
                     .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+            // 채팅방 정보 삭제
+            chatRoomInfoCommandService.deleteChatRoomInfo(member.getPotMemberId(), chatRoomId);
             potMemberRepository.delete(member);
             return "팟 멤버가 성공적으로 삭제되었습니다.";
         }

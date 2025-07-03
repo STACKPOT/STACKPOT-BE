@@ -29,7 +29,6 @@ public class FeedController {
     private final FeedQueryService feedQueryService;
     private final FeedCommandService feedCommandService;
 
-
     @PostMapping("")
     @Operation(summary = "Feed 생성 API",
             description = "Feed를 생성하는 API입니다.\n" +

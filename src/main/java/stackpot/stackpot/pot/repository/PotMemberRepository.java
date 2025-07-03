@@ -82,4 +82,7 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     Optional<Role> selectRoleByUserIdAndPotId(@Param("userId") Long userId, @Param("potId") Long potId);
 
     PotMember findByPot_PotIdAndOwnerTrue(Long potId);
+
+    @Query("SELECT pm.potMemberId FROM PotMember pm WHERE pm.pot.potId = :potId")
+    List<Long> selectPotMemberIdsByPotId(@Param("potId") Long potId);
 }
