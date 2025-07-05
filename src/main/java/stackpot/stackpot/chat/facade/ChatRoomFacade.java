@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import stackpot.stackpot.aws.s3.AmazonS3Manager;
+import stackpot.stackpot.chat.converter.ChatConverter;
 import stackpot.stackpot.chat.dto.ChatDto;
 import stackpot.stackpot.chat.dto.ChatRoomDto;
 import stackpot.stackpot.chat.dto.request.ChatRoomRequestDto;
@@ -32,6 +33,7 @@ public class ChatRoomFacade {
     private final ChatRoomInfoQueryService chatRoomInfoQueryService;
     private final ChatRoomQueryService chatRoomQueryService;
     private final ChatQueryService chatQueryService;
+    private final ChatConverter chatConverter;
     private final PotMemberQueryService potMemberQueryService;
     private final AuthService authService;
     private final AmazonS3Manager amazonS3Manager;
@@ -93,13 +95,13 @@ public class ChatRoomFacade {
         LocalDateTime lastChatTime = lastChatDto.getLastChatTime();
         int unReadMessageCount = chatQueryService.getUnReadMessageCount(chatRoomId, lastReadChatId);
 
-        return ChatRoomResponseDto.ChatRoomListDto.builder()
-                .chatRoomId(chatRoomId)
-                .chatRoomName(chatRoomName)
-                .thumbnailUrl(thumbnailUrl)
-                .lastChatTime(lastChatTime)
-                .lastChat(lastChat)
-                .unReadMessageCount(unReadMessageCount)
-                .build();
+        return chatConverter.toChatRoomListDto(
+                chatRoomId,
+                chatRoomName,
+                thumbnailUrl,
+                lastChatTime,
+                lastChat,
+                unReadMessageCount
+        );
     }
 }

@@ -48,7 +48,7 @@ public class FeedCommentCommandService {
         Boolean isWriter = Objects.equals(user.getId(), feed.getUser().getUserId());
 
         NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createdFeedCommentNotification(
-                feedId, feedComment.getId(), user.getId());
+                feedId, feedComment.getId(), user.getId(), user.getRole());
 
         applicationEventPublisher.publishEvent(new FeedCommentEvent(feed.getUser().getUserId(), null, dto));
 
@@ -73,7 +73,7 @@ public class FeedCommentCommandService {
         Boolean isWriter = Objects.equals(user.getId(), feed.getUser().getUserId());
 
         NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createdFeedCommentNotification(
-                feedId, feedComment.getId(), user.getId());
+                feedId, feedComment.getId(), user.getId(), user.getRole());
 
         applicationEventPublisher.publishEvent(new FeedCommentEvent(feed.getUser().getUserId(), parent.getUser().getUserId(), dto));
 

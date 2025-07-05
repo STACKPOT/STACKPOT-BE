@@ -3,6 +3,7 @@ package stackpot.stackpot.notification.converter;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.notification.dto.NotificationDto;
 import stackpot.stackpot.notification.dto.NotificationResponseDto;
+import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,7 +18,8 @@ public class NotificationConverter {
         return NotificationResponseDto.UnReadNotificationDto.builder()
                 .notificationId(unReadNotificationDto.getNotificationId())
                 .potOrFeedId(unReadNotificationDto.getPotOrFeedId())
-                .userName(unReadNotificationDto.getUserName())
+                .role(unReadNotificationDto.getRole())
+                .userName(unReadNotificationDto.getUserName() + " " + unReadNotificationDto.getRole().getVegetable())
                 .type(unReadNotificationDto.getType())
                 .content(unReadNotificationDto.getContent())
                 .createdAt(unReadNotificationDto.getCreatedAt().format(DATE_FORMATTER))
@@ -25,11 +27,12 @@ public class NotificationConverter {
     }
 
     public NotificationResponseDto.UnReadNotificationDto toUnReadNotificationDto(
-            Long notificationId, Long potOrFeedId, String userName, String type, String content, LocalDateTime createdAt) {
+            Long notificationId, Long potOrFeedId, Role role, String userName, String type, String content, LocalDateTime createdAt) {
         return NotificationResponseDto.UnReadNotificationDto.builder()
                 .notificationId(notificationId)
                 .potOrFeedId(potOrFeedId)
-                .userName(userName)
+                .role(role)
+                .userName(userName + " " + role.getVegetable())
                 .type(type)
                 .content(content)
                 .createdAt(createdAt.format(DATE_FORMATTER))

@@ -30,7 +30,7 @@ public class ChatResponseDto {
         private Role role;
         private String message;
         private String fileUrl;
-        private LocalDateTime createdAt;
+        private String createdAt;
     }
 
     @Builder
