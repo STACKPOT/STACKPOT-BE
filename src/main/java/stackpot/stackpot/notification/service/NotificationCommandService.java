@@ -10,6 +10,7 @@ import stackpot.stackpot.feed.entity.mapping.FeedComment;
 import stackpot.stackpot.feed.entity.mapping.FeedLike;
 import stackpot.stackpot.feed.service.FeedCommentQueryService;
 import stackpot.stackpot.feed.service.FeedLikeQueryService;
+import stackpot.stackpot.notification.converter.NotificationConverter;
 import stackpot.stackpot.notification.dto.NotificationRequestDto;
 import stackpot.stackpot.notification.dto.NotificationResponseDto;
 import stackpot.stackpot.notification.entity.FeedCommentNotification;
@@ -43,6 +44,7 @@ public class NotificationCommandService {
     private final FeedLikeNotificationRepository feedLikeNotificationRepository;
     private final FeedCommentNotificationRepository feedCommentNotificationRepository;
 
+    private final NotificationConverter notificationConverter;
     private final AuthService authService;
 
     @Transactional
@@ -63,14 +65,8 @@ public class NotificationCommandService {
         PotApplicationNotification newPan = potApplicationNotificationRepository.save(pan);
 
         // Pot의 생성자에게 실시간 알림 전송 필요
-        return NotificationResponseDto.UnReadNotificationDto.builder()
-                .notificationId(newPan.getId())
-                .potOrFeedId(potId)
-                .userName(userName)
-                .type("PotApplication")
-                .content(null)
-                .createdAt(newPan.getCreatedAt())
-                .build();
+        return notificationConverter.toUnReadNotificationDto(
+                newPan.getId(), potId, userName, "PotApplication", null, newPan.getCreatedAt());
     }
 
     @Transactional
@@ -93,14 +89,9 @@ public class NotificationCommandService {
                 .build();
         PotCommentNotification newPcn = potCommentNotificationRepository.save(pcn);
 
-        return NotificationResponseDto.UnReadNotificationDto.builder()
-                .notificationId(newPcn.getId())
-                .potOrFeedId(potId)
-                .userName(potComment.getUser().getNickname())
-                .type("PotComment")
-                .content(potComment.getComment())
-                .createdAt(newPcn.getCreatedAt())
-                .build();
+        return notificationConverter.toUnReadNotificationDto(
+                newPcn.getId(), potId, potComment.getUser().getNickname(),
+                "PotComment", potComment.getComment(), newPcn.getCreatedAt());
     }
 
     @Transactional
@@ -119,14 +110,9 @@ public class NotificationCommandService {
                 .build();
         FeedLikeNotification newFln = feedLikeNotificationRepository.save(fln);
 
-        return NotificationResponseDto.UnReadNotificationDto.builder()
-                .notificationId(newFln.getId())
-                .potOrFeedId(feedId)
-                .userName(feedLike.getUser().getNickname())
-                .type("FeedLike")
-                .content(null)
-                .createdAt(newFln.getCreatedAt())
-                .build();
+        return notificationConverter.toUnReadNotificationDto(
+                newFln.getId(), feedId, feedLike.getUser().getNickname(),
+                "FeedLike", null, newFln.getCreatedAt());
     }
 
     @Transactional
@@ -148,14 +134,9 @@ public class NotificationCommandService {
                 .build();
         FeedCommentNotification newFcn = feedCommentNotificationRepository.save(fcn);
 
-        return NotificationResponseDto.UnReadNotificationDto.builder()
-                .notificationId(newFcn.getId())
-                .potOrFeedId(feedId)
-                .userName(feedComment.getUser().getNickname())
-                .type("FeedComment")
-                .content(feedComment.getComment())
-                .createdAt(newFcn.getCreatedAt())
-                .build();
+        return notificationConverter.toUnReadNotificationDto(
+                newFcn.getId(), feedId, feedComment.getUser().getNickname(),
+                "FeedComment", feedComment.getComment(), newFcn.getCreatedAt());
     }
 
     @Transactional
