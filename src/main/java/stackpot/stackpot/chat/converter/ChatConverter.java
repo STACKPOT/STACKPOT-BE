@@ -5,10 +5,13 @@ import stackpot.mongo.Chat;
 import stackpot.stackpot.chat.dto.response.ChatResponseDto;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Component
 public class ChatConverter {
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy년 M월 d일 H:mm");
 
     public ChatResponseDto.ChatFileDto toChatFileDto(String fileUrl) {
         return ChatResponseDto.ChatFileDto.builder()
