@@ -50,13 +50,16 @@ public class SwaggerConfig {
                         .scheme("bearer")
                         .bearerFormat("JWT"));
 
-        return new OpenAPI()
+        OpenAPI openAPI = new OpenAPI()
                 .info(info)
                 .addServersItem(new Server().url("http://localhost:8080").description("Local server"))// 서버 URL 설정
                 .addServersItem(new Server().url("http://dev.stackpot.co.kr").description("Dev server"))
                 .addServersItem(new Server().url("https://api.stackpot.co.kr").description("Production server"))
                 .addSecurityItem(securityRequirement)
                 .components(components);
+
+        openAPI.addExtension("x-swagger-ui-disable-cache", true);
+        return openAPI;
     }
 
 
