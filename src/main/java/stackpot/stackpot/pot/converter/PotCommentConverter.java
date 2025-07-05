@@ -52,7 +52,7 @@ public class PotCommentConverter {
     public PotCommentResponseDto.AllPotCommentDto toAllPotCommentDto(PotCommentDto.PotCommentInfoDto dto, Long currentUserId) {
         return PotCommentResponseDto.AllPotCommentDto.builder()
                 .userId(dto.getUserId())
-                .userName(dto.getUserName())
+                .userName(dto.getUserName() + " " + dto.getRole().getVegetable())
                 .role(dto.getRole())
                 .isCommentWriter(Objects.equals(dto.getUserId(), currentUserId))
                 .isPotWriter(Objects.equals(dto.getPotWriterId(), dto.getUserId()))

@@ -3,8 +3,9 @@ package stackpot.stackpot.chat.converter;
 import org.springframework.stereotype.Component;
 import stackpot.mongo.Chat;
 import stackpot.stackpot.chat.dto.response.ChatResponseDto;
-import stackpot.stackpot.user.entity.enums.Role;
+import stackpot.stackpot.chat.dto.response.ChatRoomResponseDto;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -23,11 +24,11 @@ public class ChatConverter {
         return ChatResponseDto.ChatDto.builder()
                 .userId(chat.getUserId())
                 .chatId(chat.getId())
-                .userName(chat.getUserName())
+                .userName(chat.getUserName() + " " + chat.getRole().getVegetable())
                 .role(chat.getRole())
                 .message(chat.getMessage())
                 .fileUrl(chat.getFileUrl())
-                .createdAt(chat.getUpdatedAt())
+                .createdAt(chat.getUpdatedAt().format(DATE_FORMATTER))
                 .build();
     }
 
@@ -40,6 +41,18 @@ public class ChatConverter {
                 .nextCursor(nextCursor)
                 .prevCursor(prevCursor)
                 .chats(dtos)
+                .build();
+    }
+
+    public ChatRoomResponseDto.ChatRoomListDto toChatRoomListDto(Long chatRoomId, String chatRoomName, String thumbnailUrl,
+                                                                 LocalDateTime lastChatTime, String lastChat, int unReadMessageCount) {
+        return ChatRoomResponseDto.ChatRoomListDto.builder()
+                .chatRoomId(chatRoomId)
+                .chatRoomName(chatRoomName)
+                .thumbnailUrl(thumbnailUrl)
+                .lastChatTime(lastChatTime)
+                .lastChat(lastChat)
+                .unReadMessageCount(unReadMessageCount)
                 .build();
     }
 }

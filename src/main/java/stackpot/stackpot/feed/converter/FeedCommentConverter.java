@@ -18,7 +18,7 @@ public class FeedCommentConverter {
     public FeedCommentResponseDto.AllFeedCommentDto toAllFeedCommentDto(FeedCommentDto.FeedCommentInfoDto dto, Long currentUserId) {
         return FeedCommentResponseDto.AllFeedCommentDto.builder()
                 .userId(dto.getUserId())
-                .userName(dto.getUserName())
+                .userName(dto.getUserName() + " " + dto.getRole().getVegetable())
                 .role(dto.getRole())
                 .isCommentWriter(Objects.equals(dto.getUserId(), currentUserId))
                 .isFeedWriter(Objects.equals(dto.getFeedWriterId(), dto.getUserId()))

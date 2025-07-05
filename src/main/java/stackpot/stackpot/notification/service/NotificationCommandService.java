@@ -26,6 +26,7 @@ import stackpot.stackpot.pot.entity.mapping.PotApplication;
 import stackpot.stackpot.pot.entity.mapping.PotComment;
 import stackpot.stackpot.pot.service.potApplication.PotApplicationQueryService;
 import stackpot.stackpot.pot.service.potComment.PotCommentQueryService;
+import stackpot.stackpot.user.entity.enums.Role;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +56,7 @@ public class NotificationCommandService {
         type.read(notificationId, this);
     }
 
-    public NotificationResponseDto.UnReadNotificationDto createPotApplicationNotification(Long potId, Long applicationId, String userName) {
+    public NotificationResponseDto.UnReadNotificationDto createPotApplicationNotification(Long potId, Long applicationId, Role role, String userName) {
         PotApplication potApplication = potApplicationQueryService.getPotApplicationById(applicationId);
         // 해당 유저가 Pot의 생성자일 경우 알림 생성하지 않음 -> 이미 PotApplication 생성 자체가 안 됨
         PotApplicationNotification pan = PotApplicationNotification.builder()
@@ -66,7 +67,7 @@ public class NotificationCommandService {
 
         // Pot의 생성자에게 실시간 알림 전송 필요
         return notificationConverter.toUnReadNotificationDto(
-                newPan.getId(), potId, userName, "PotApplication", null, newPan.getCreatedAt());
+                newPan.getId(), potId, role, userName, "PotApplication", null, newPan.getCreatedAt());
     }
 
     @Transactional
@@ -74,7 +75,7 @@ public class NotificationCommandService {
         potApplicationNotificationRepository.deleteByPotApplicationId(potApplicationId);
     }
 
-    public NotificationResponseDto.UnReadNotificationDto createPotCommentNotification(Long potId, Long commentId, Long userId) {
+    public NotificationResponseDto.UnReadNotificationDto createPotCommentNotification(Long potId, Long commentId, Long userId, Role role) {
         PotComment potComment = potCommentQueryService.selectPotCommentByCommentId(commentId);
         if (potComment.getPot().getUser().getId().equals(userId)) {
             return null; // 해당 유저가 Pot의 생성자일 경우 알림 생성하지 않음
@@ -90,7 +91,7 @@ public class NotificationCommandService {
         PotCommentNotification newPcn = potCommentNotificationRepository.save(pcn);
 
         return notificationConverter.toUnReadNotificationDto(
-                newPcn.getId(), potId, potComment.getUser().getNickname(),
+                newPcn.getId(), potId, role, potComment.getUser().getNickname(),
                 "PotComment", potComment.getComment(), newPcn.getCreatedAt());
     }
 
@@ -99,7 +100,7 @@ public class NotificationCommandService {
         potCommentNotificationRepository.deleteByPotCommentId(potCommentId);
     }
 
-    public NotificationResponseDto.UnReadNotificationDto createFeedLikeNotification(Long feedId, Long feedLikeId, Long userId) {
+    public NotificationResponseDto.UnReadNotificationDto createFeedLikeNotification(Long feedId, Long feedLikeId, Long userId, Role role) {
         FeedLike feedLike = feedLikeQueryService.getFeedLikeById(feedLikeId);
         if (feedLike.getFeed().getUser().getId().equals(userId)) {
             return null; // 해당 유저가 Feed의 생성자일 경우 알림 생성하지 않음
@@ -111,7 +112,7 @@ public class NotificationCommandService {
         FeedLikeNotification newFln = feedLikeNotificationRepository.save(fln);
 
         return notificationConverter.toUnReadNotificationDto(
-                newFln.getId(), feedId, feedLike.getUser().getNickname(),
+                newFln.getId(), feedId, role, feedLike.getUser().getNickname(),
                 "FeedLike", null, newFln.getCreatedAt());
     }
 
@@ -120,7 +121,7 @@ public class NotificationCommandService {
         feedLikeNotificationRepository.deleteByFeedLikeId(feedLikeId);
     }
 
-    public NotificationResponseDto.UnReadNotificationDto createdFeedCommentNotification(Long feedId, Long commentId, Long userId) {
+    public NotificationResponseDto.UnReadNotificationDto createdFeedCommentNotification(Long feedId, Long commentId, Long userId, Role role) {
         FeedComment feedComment = feedCommentQueryService.selectFeedCommentByCommentId(commentId);
         if (feedComment.getFeed().getUser().getId().equals(userId)) {
             return null; // 해당 유저가 Feed의 생성자일 경우 알림 생성하지 않음
@@ -135,7 +136,7 @@ public class NotificationCommandService {
         FeedCommentNotification newFcn = feedCommentNotificationRepository.save(fcn);
 
         return notificationConverter.toUnReadNotificationDto(
-                newFcn.getId(), feedId, feedComment.getUser().getNickname(),
+                newFcn.getId(), feedId, role, feedComment.getUser().getNickname(),
                 "FeedComment", feedComment.getComment(), newFcn.getCreatedAt());
     }
 

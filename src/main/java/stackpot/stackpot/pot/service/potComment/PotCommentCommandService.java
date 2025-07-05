@@ -49,7 +49,7 @@ public class PotCommentCommandService {
         Boolean isWriter = Objects.equals(user.getId(), pot.getUser().getUserId());
 
         NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createPotCommentNotification(
-                potId, potComment.getId(), user.getId());
+                potId, potComment.getId(), user.getId(), user.getRole());
 
         applicationEventPublisher.publishEvent(new PotCommentEvent(pot.getUser().getId(), null, dto));
 
@@ -74,7 +74,7 @@ public class PotCommentCommandService {
         Boolean isWriter = Objects.equals(user.getId(), pot.getUser().getUserId());
 
         NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createPotCommentNotification(
-                potId, potComment.getId(), user.getId());
+                potId, potComment.getId(), user.getId(), user.getRole());
 
         applicationEventPublisher.publishEvent(new PotCommentEvent(pot.getUser().getId(), parent.getUser().getUserId(), dto));
 
