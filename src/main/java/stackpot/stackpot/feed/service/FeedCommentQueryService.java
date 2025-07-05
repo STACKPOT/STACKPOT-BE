@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.FeedCommentHandler;
 import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
+import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.converter.FeedCommentConverter;
 import stackpot.stackpot.feed.dto.FeedCommentDto;
 import stackpot.stackpot.feed.dto.FeedCommentResponseDto;
@@ -21,12 +22,14 @@ public class FeedCommentQueryService {
 
     private final FeedCommentRepository feedCommentRepository;
     private final FeedCommentConverter feedCommentConverter;
+    private final AuthService authService;
 
     public FeedComment selectFeedCommentByCommentId(Long commentId) {
         return feedCommentRepository.findByCommentId(commentId).orElseThrow(() -> new FeedCommentHandler(ErrorStatus.FEED_COMMENT_NOT_FOUND));
     }
 
     public List<FeedCommentResponseDto.AllFeedCommentDto> selectAllFeedComments(Long feedId) {
+        Long userId = authService.getCurrentUserId();
         List<FeedCommentDto.FeedCommentInfoDto> dtos = feedCommentRepository.findAllCommentInfoDtoByFeedId(feedId);
         dtos.sort(Comparator.comparing(FeedCommentDto.FeedCommentInfoDto::getCommentId));
 
@@ -34,7 +37,7 @@ public class FeedCommentQueryService {
         List<FeedCommentResponseDto.AllFeedCommentDto> result = new ArrayList<>();
 
         for (FeedCommentDto.FeedCommentInfoDto dto : dtos) {
-            map.put(dto.getCommentId(), feedCommentConverter.toAllFeedCommentDto(dto));
+            map.put(dto.getCommentId(), feedCommentConverter.toAllFeedCommentDto(dto, userId));
         }
         for (FeedCommentDto.FeedCommentInfoDto dto : dtos) {
             FeedCommentResponseDto.AllFeedCommentDto current = map.get(dto.getCommentId());

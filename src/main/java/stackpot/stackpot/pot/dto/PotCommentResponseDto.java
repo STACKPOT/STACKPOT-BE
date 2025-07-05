@@ -19,11 +19,12 @@ public class PotCommentResponseDto {
         private Long userId;
         private String userName;
         private Role role;
-        private Boolean isWriter;
+        private Boolean isCommentWriter;
+        private Boolean isPotWriter;
         private Long commentId;
         private String comment;
         private Long parentCommentId;
-        private LocalDateTime createdAt;
+        private String createdAt;
         private List<AllPotCommentDto> children;
     }
 

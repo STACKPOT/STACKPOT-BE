@@ -290,6 +290,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     private String trimNickname(String nickname) {
         // 앞뒤 공백 유지
+        log.info("닉네임 생성 전 닉네임: {}", nickname);
         nickname = nickname.trim();
 
         // 채소 이름 리스트
@@ -304,6 +305,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 return nickname.replace(vegetable, "").trim();
             }
         }
+        log.info("닉네임 생성 후 닉네임: {}", nickname);
         return nickname; // 기본적으로 원래 닉네임 반환
     }
 

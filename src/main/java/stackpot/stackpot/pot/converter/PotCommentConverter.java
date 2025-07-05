@@ -6,11 +6,14 @@ import stackpot.stackpot.pot.dto.PotCommentResponseDto;
 import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Objects;
 
 @Component
 public class PotCommentConverter {
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy년 M월 d일 H:mm");
 
     public PotCommentResponseDto.PotCommentCreateDto toPotCommentCreateDto(Long userId, String userName, Role role, Boolean isWriter,
                                                                            Long commentId, String comment, LocalDateTime createdAt) {
@@ -46,16 +49,17 @@ public class PotCommentConverter {
                 .build();
     }
 
-    public PotCommentResponseDto.AllPotCommentDto toAllPotCommentDto(PotCommentDto.PotCommentInfoDto dto) {
+    public PotCommentResponseDto.AllPotCommentDto toAllPotCommentDto(PotCommentDto.PotCommentInfoDto dto, Long currentUserId) {
         return PotCommentResponseDto.AllPotCommentDto.builder()
                 .userId(dto.getUserId())
                 .userName(dto.getUserName())
                 .role(dto.getRole())
-                .isWriter(Objects.equals(dto.getWriterId(), dto.getUserId()))
+                .isCommentWriter(Objects.equals(dto.getUserId(), currentUserId))
+                .isPotWriter(Objects.equals(dto.getPotWriterId(), dto.getUserId()))
                 .commentId(dto.getCommentId())
                 .comment(dto.getComment())
                 .parentCommentId(dto.getParentCommentId())
-                .createdAt(dto.getCreatedAt())
+                .createdAt(dto.getCreatedAt().format(DATE_FORMATTER))
                 .children(new ArrayList<>())
                 .build();
     }
