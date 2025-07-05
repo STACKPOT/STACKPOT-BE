@@ -21,12 +21,14 @@ public class PotCommentQueryService {
 
     private final PotCommentRepository potCommentRepository;
     private final PotCommentConverter potCommentConverter;
+    private final AuthService authService;
 
     public PotComment selectPotCommentByCommentId(Long commentId) {
         return potCommentRepository.findByCommentId(commentId).orElseThrow(() -> new PotCommentHandler(ErrorStatus.POT_COMMENT_NOT_FOUND));
     }
 
     public List<PotCommentResponseDto.AllPotCommentDto> selectAllPotComments(Long potId) {
+        Long userId = authService.getCurrentUserId();
         List<PotCommentDto.PotCommentInfoDto> dtos = potCommentRepository.findAllCommentInfoDtoByPotId(potId);
         dtos.sort(Comparator.comparing(PotCommentDto.PotCommentInfoDto::getCommentId));
 
@@ -35,7 +37,7 @@ public class PotCommentQueryService {
 
         // 계층구조로 변환하기
         for (PotCommentDto.PotCommentInfoDto dto : dtos) {
-            map.put(dto.getCommentId(), potCommentConverter.toAllPotCommentDto(dto));
+            map.put(dto.getCommentId(), potCommentConverter.toAllPotCommentDto(dto, userId));
         }
         for (PotCommentDto.PotCommentInfoDto dto : dtos) {
             PotCommentResponseDto.AllPotCommentDto current = map.get(dto.getCommentId());
