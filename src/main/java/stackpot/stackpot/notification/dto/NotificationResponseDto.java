@@ -19,6 +19,6 @@ public class NotificationResponseDto {
         private String userName;
         private String type;
         private String content;
-        private LocalDateTime createdAt;
+        private String createdAt;
     }
 }
