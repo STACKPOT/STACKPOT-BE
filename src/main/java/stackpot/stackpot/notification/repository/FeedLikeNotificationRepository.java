@@ -14,7 +14,8 @@ import java.util.Optional;
 public interface FeedLikeNotificationRepository extends JpaRepository<FeedLikeNotification, Long> {
 
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
-            "fln.id, fln.feedLike.feed.feedId, fln.feedLike.user.nickname, 'FeedLike', null, fln.createdAt) " +
+            "fln.id, fln.feedLike.feed.feedId, fln.feedLike.user.role," +
+            "fln.feedLike.user.nickname, 'FeedLike', null, fln.createdAt) " +
             "FROM FeedLikeNotification fln " +
             "WHERE fln.isRead = false and fln.feedLike.feed.user.id = :userId ")
     List<NotificationDto.UnReadNotificationDto> findAllUnReadNotificationsByUserId(@Param("userId") Long userId);

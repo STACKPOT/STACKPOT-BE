@@ -60,7 +60,7 @@ public class PotApplicationCommandServiceImpl implements PotApplicationCommandSe
         sendSupportEmailAsync(user, pot, savedApplication);
 
         NotificationResponseDto.UnReadNotificationDto notiDto = notificationCommandService.createPotApplicationNotification(
-                pot.getPotId(), savedApplication.getApplicationId(), user.getNickname());
+                pot.getPotId(), savedApplication.getApplicationId(), user.getRole(), user.getNickname());
 
         applicationEventPublisher.publishEvent(new PotApplicationEvent(pot.getUser().getId(), notiDto));
 
