@@ -18,7 +18,7 @@ public class FeedCommentDto {
         private Long userId;
         private String userName;
         private Role role;
-        private Long writerId; // Feed 작성자
+        private Long feedWriterId; // Feed 작성자
         private Long commentId;
         private String comment;
         private Long parentCommentId;

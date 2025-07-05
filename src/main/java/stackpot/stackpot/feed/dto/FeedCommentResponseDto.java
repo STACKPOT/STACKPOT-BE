@@ -19,11 +19,12 @@ public class FeedCommentResponseDto {
         private Long userId;
         private String userName;
         private Role role;
-        private Boolean isWriter;
+        private Boolean isCommentWriter;
+        private Boolean isFeedWriter;
         private Long commentId;
         private String comment;
         private Long parentCommentId;
-        private LocalDateTime createdAt;
+        private String createdAt;
         private List<AllFeedCommentDto> children;
     }
 

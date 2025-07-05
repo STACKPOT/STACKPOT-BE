@@ -6,22 +6,26 @@ import stackpot.stackpot.feed.dto.FeedCommentResponseDto;
 import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Objects;
 
 @Component
 public class FeedCommentConverter {
 
-    public FeedCommentResponseDto.AllFeedCommentDto toAllFeedCommentDto(FeedCommentDto.FeedCommentInfoDto dto) {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy년 M월 d일 H:mm");
+
+    public FeedCommentResponseDto.AllFeedCommentDto toAllFeedCommentDto(FeedCommentDto.FeedCommentInfoDto dto, Long currentUserId) {
         return FeedCommentResponseDto.AllFeedCommentDto.builder()
                 .userId(dto.getUserId())
                 .userName(dto.getUserName())
                 .role(dto.getRole())
-                .isWriter(Objects.equals(dto.getWriterId(), dto.getUserId()))
+                .isCommentWriter(Objects.equals(dto.getUserId(), currentUserId))
+                .isFeedWriter(Objects.equals(dto.getFeedWriterId(), dto.getUserId()))
                 .commentId(dto.getCommentId())
                 .comment(dto.getComment())
                 .parentCommentId(dto.getParentCommentId())
-                .createdAt(dto.getCreatedAt())
+                .createdAt(dto.getCreatedAt().format(DATE_FORMATTER))
                 .children(new ArrayList<>())
                 .build();
     }
