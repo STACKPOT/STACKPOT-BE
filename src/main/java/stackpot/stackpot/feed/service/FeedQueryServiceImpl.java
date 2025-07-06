@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,6 +25,7 @@ import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
 import stackpot.stackpot.feed.repository.SeriesRepository;
 import stackpot.stackpot.notification.service.NotificationCommandService;
+import stackpot.stackpot.save.converter.FeedSaveRepository;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
 
@@ -42,6 +44,7 @@ public class FeedQueryServiceImpl implements FeedQueryService {
     private final FeedLikeRepository feedLikeRepository;
     private final SeriesRepository seriesRepository;
     private final AuthService authService;
+    private final FeedSaveRepository feedSaveRepository;
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -62,6 +65,10 @@ public class FeedQueryServiceImpl implements FeedQueryService {
         final List<Long> likedFeedIds = (userId != null)
                 ? feedLikeRepository.findFeedIdsByUserId(userId)
                 : List.of(); // 비로그인 사용자는 빈 리스트
+
+        final List<Long> savedFeedIds = (userId != null)
+                ? feedSaveRepository.findFeedIdsByUserId(userId)
+                : List.of();
 
         Long lastFeedId = Long.MAX_VALUE;  // 기본적으로 가장 큰 ID부터 조회
         Long lastFeedLike = 0L;
@@ -100,11 +107,15 @@ public class FeedQueryServiceImpl implements FeedQueryService {
 
                     Boolean isLiked = (isAuthenticated && userId != null)
                             ? likedFeedIds.contains(feed.getFeedId())
-                            : null; // 비로그인 사용자는 null 처리
+                            : null;
 
-                    FeedResponseDto.FeedDto feedDto = feedConverter.feedDto(feed);
-                    feedDto.setIsLiked(isLiked); // 좋아요 상태 추가
-                    return feedDto;
+                    Boolean isSaved = (isAuthenticated && userId != null)
+                            ? savedFeedIds.contains(feed.getFeedId())
+                            : null;
+
+                    int saveCount = feedSaveRepository.countByFeed(feed);
+
+                    return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
                 })
                 .collect(Collectors.toList());
 
@@ -130,32 +141,56 @@ public class FeedQueryServiceImpl implements FeedQueryService {
                 .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
 
         boolean isOwner = feed.getUser().getId().equals(user.getId());
+        boolean isLiked = feedLikeRepository.existsByFeedAndUser(feed, user);
 
-        return feedConverter.toAuthorizedFeedDto(feed, isOwner);
+        return feedConverter.toAuthorizedFeedDto(feed, isOwner, isLiked);
     }
 
     @Transactional
     public FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, Long nextCursor, int pageSize) {
-        // 피드 조회 (페이징 처리 추가)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = authentication != null
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.isAuthenticated();
+
+        final User loginUser = isAuthenticated
+                ? userRepository.findByUserId(authService.getCurrentUserId())
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND))
+                : null;
+
+        final Long loginUserId = (loginUser != null) ? loginUser.getId() : null;
+
+        final List<Long> likedFeedIds = (loginUserId != null)
+                ? feedLikeRepository.findFeedIdsByUserId(loginUserId)
+                : List.of();
+
+        final List<Long> savedFeedIds = (loginUserId != null)
+                ? feedSaveRepository.findFeedIdsByUserId(loginUserId)
+                : List.of();
+
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
         List<Feed> feeds;
 
         if (nextCursor == null) {
-            // 첫 페이지 조회
             feeds = feedRepository.findByUser_Id(userId, pageable);
         } else {
-            // 다음 페이지 조회 (Cursor 기반 페이징)
-            Long cursorFeedId = nextCursor;
-            feeds = feedRepository.findByUserIdAndFeedIdBefore(userId, cursorFeedId, pageable);
+            feeds = feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
         }
 
-        // Feed -> FeedDto 변환 (FeedConverter 활용)
         List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
-                .map(feed -> feedConverter.feedDto(feed))
+                .map(feed -> {
+                    boolean isOwner = loginUserId != null && Objects.equals(loginUserId, feed.getUser().getId());
+                    Boolean isLiked = (loginUserId != null) ? likedFeedIds.contains(feed.getFeedId()) : null;
+                    Boolean isSaved = (loginUserId != null) ? savedFeedIds.contains(feed.getFeedId()) : null;
+                    int saveCount = feedSaveRepository.countByFeed(feed);
+
+                    return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
+                })
                 .collect(Collectors.toList());
 
-        // 다음 커서 설정 (마지막 피드의 createdAt)
-        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null;
+        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize)
+                ? feeds.get(feeds.size() - 1).getFeedId()
+                : null;
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
@@ -167,27 +202,28 @@ public class FeedQueryServiceImpl implements FeedQueryService {
     public FeedResponseDto.FeedPreviewList getFeeds(Long nextCursor, int pageSize) {
         User user = authService.getCurrentUser();
 
-        // 피드 조회 (페이징 처리 추가)
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
-        List<Feed> feeds;
+        List<Feed> feeds = (nextCursor == null)
+                ? feedRepository.findByUser_Id(user.getId(), pageable)
+                : feedRepository.findByUserIdAndFeedIdBefore(user.getId(), nextCursor, pageable);
 
-        if (nextCursor == null) {
-            // 첫 페이지 조회
-            feeds = feedRepository.findByUser_Id(user.getId(), pageable);
-        } else {
-            // 다음 페이지 조회 (Cursor 기반 페이징)
-            Long cursorFeedId = nextCursor;
-            feeds = feedRepository.findByUserIdAndFeedIdBefore(user.getId(), cursorFeedId, pageable);
+        List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserId(user.getId());
+        List<Long> savedFeedIds = feedSaveRepository.findFeedIdsByUserId(user.getId());
 
-        }
-
-        // Feed -> FeedDto 변환 (FeedConverter 활용)
         List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
-                .map(feed -> feedConverter.feedDto(feed))
+                .map(feed -> {
+                    boolean isOwner = true;
+                    Boolean isLiked = likedFeedIds.contains(feed.getFeedId());
+                    Boolean isSaved = savedFeedIds.contains(feed.getFeedId());
+                    int saveCount = feedSaveRepository.countByFeed(feed);
+
+                    return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
+                })
                 .collect(Collectors.toList());
 
-        // 다음 커서 설정 (마지막 피드의 createdAt)
-        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null;
+        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize)
+                ? feeds.get(feeds.size() - 1).getFeedId()
+                : null;
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
@@ -221,6 +257,53 @@ public class FeedQueryServiceImpl implements FeedQueryService {
                         Series::getSeriesId,
                         Series::getComment
                 ));
+    }
+
+    @Override
+    public Map<String, Object> getLikedFeedsWithPaging(int page, int size) {
+        User user = authService.getCurrentUser(); // 인증 필요
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Feed> feedPage = feedLikeRepository.findLikedFeedsByUserId(user.getId(), pageable); // 저장된 피드들 조회
+
+        List<Feed> feeds = feedPage.getContent();
+        List<Long> feedIds = feeds.stream()
+                .map(Feed::getFeedId)
+                .collect(Collectors.toList());
+
+        // 미리 좋아요한 피드 ID 조회
+        List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserId(user.getId());
+
+        // 저장 수 조회
+        List<Object[]> rawResults = feedSaveRepository.countSavesByFeedIds(feedIds);
+        Map<Long, Integer> saveCountMap = rawResults.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
+        // DTO 변환
+        List<FeedResponseDto.FeedDto> content = feeds.stream()
+                .map(feed -> {
+                    Long feedId = feed.getFeedId();
+                    boolean isSaved = true;
+                    boolean isLiked = likedFeedIds.contains(feedId);
+                    boolean isOwner = feed.getUser().getId().equals(user.getId());
+                    int saveCount = saveCountMap.getOrDefault(feedId, 0);
+
+                    return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
+                })
+                .collect(Collectors.toList());
+
+        // 결과 Map 생성
+        Map<String, Object> response = new HashMap<>();
+        response.put("feeds", content);
+        response.put("currentPage", feedPage.getNumber() + 1);
+        response.put("totalPages", feedPage.getTotalPages());
+        response.put("totalElements", feedPage.getTotalElements());
+        response.put("size", feedPage.getSize());
+
+        return response;
     }
 
 }
