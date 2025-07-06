@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -256,6 +257,53 @@ public class FeedQueryServiceImpl implements FeedQueryService {
                         Series::getSeriesId,
                         Series::getComment
                 ));
+    }
+
+    @Override
+    public Map<String, Object> getLikedFeedsWithPaging(int page, int size) {
+        User user = authService.getCurrentUser(); // 인증 필요
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Feed> feedPage = feedLikeRepository.findLikedFeedsByUserId(user.getId(), pageable); // 저장된 피드들 조회
+
+        List<Feed> feeds = feedPage.getContent();
+        List<Long> feedIds = feeds.stream()
+                .map(Feed::getFeedId)
+                .collect(Collectors.toList());
+
+        // 미리 좋아요한 피드 ID 조회
+        List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserId(user.getId());
+
+        // 저장 수 조회
+        List<Object[]> rawResults = feedSaveRepository.countSavesByFeedIds(feedIds);
+        Map<Long, Integer> saveCountMap = rawResults.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
+        // DTO 변환
+        List<FeedResponseDto.FeedDto> content = feeds.stream()
+                .map(feed -> {
+                    Long feedId = feed.getFeedId();
+                    boolean isSaved = true;
+                    boolean isLiked = likedFeedIds.contains(feedId);
+                    boolean isOwner = feed.getUser().getId().equals(user.getId());
+                    int saveCount = saveCountMap.getOrDefault(feedId, 0);
+
+                    return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
+                })
+                .collect(Collectors.toList());
+
+        // 결과 Map 생성
+        Map<String, Object> response = new HashMap<>();
+        response.put("feeds", content);
+        response.put("currentPage", feedPage.getNumber() + 1);
+        response.put("totalPages", feedPage.getTotalPages());
+        response.put("totalElements", feedPage.getTotalElements());
+        response.put("size", feedPage.getSize());
+
+        return response;
     }
 
 }

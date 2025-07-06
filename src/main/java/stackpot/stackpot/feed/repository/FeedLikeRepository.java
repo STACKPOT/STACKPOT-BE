@@ -1,5 +1,7 @@
 package stackpot.stackpot.feed.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -30,5 +32,8 @@ public interface FeedLikeRepository extends JpaRepository<FeedLike, Long> {
     void deleteByUserId(@Param("userId") Long userId);
 
     boolean existsByFeedAndUser(Feed feed, User user);
+
+    @Query("SELECT fs.feed FROM FeedLike fs WHERE fs.user.id = :userId")
+    Page<Feed> findLikedFeedsByUserId(@Param("userId") Long userId, Pageable pageable);
 
 }

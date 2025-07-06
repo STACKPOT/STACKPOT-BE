@@ -196,4 +196,14 @@ public class FeedController {
         Map<Long, String> seriesMap = feedQueryService.getMySeries();
         return ResponseEntity.ok(ApiResponse.onSuccess(seriesMap));
     }
+
+    @GetMapping("/likes")
+    @Operation(summary = "좋아요(공감)한 피드 조회", description = "현재 사용자가 공감한 Feed 리스트를 페이징으로 조회합니다.")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getSavedFeeds(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Map<String, Object> result = feedQueryService.getLikedFeedsWithPaging(page, size);
+        return ResponseEntity.ok(ApiResponse.onSuccess(result));
+    }
 }

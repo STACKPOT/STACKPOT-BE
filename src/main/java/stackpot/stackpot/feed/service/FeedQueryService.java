@@ -13,4 +13,5 @@ public interface FeedQueryService {
      Map<Long, String> getMySeries();
      Long getLikeCount(Long feedId);
      Feed getFeedByFeedId(Long feedId);
+     Map<String, Object> getLikedFeedsWithPaging(int page, int size);
 }
