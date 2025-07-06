@@ -5,14 +5,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
 import stackpot.stackpot.save.service.SaveService;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/saves",produces = "application/json; charset=UTF-8")
@@ -21,7 +20,7 @@ import stackpot.stackpot.save.service.SaveService;
 public class SaveController {
     private final SaveService saveService;
 
-    @PostMapping("/feed/{feed_id}")
+    @PostMapping("/feeds/{feed_id}")
     @Operation(
             summary = "Feed 저장 토글 API",
             description = "특정 Feed를 저장하거나 저장을 취소합니다. 이미 저장된 상태에서 다시 호출하면 저장이 해제됩니다.",
@@ -37,7 +36,7 @@ public class SaveController {
         return ResponseEntity.ok(ApiResponse.onSuccess(message));
     }
 
-    @PostMapping("/pot/{pot_id}")
+    @PostMapping("/pots/{pot_id}")
     @Operation(
             summary = "Pot 저장 토글 API",
             description = "특정 Pot을 저장하거나 저장을 취소합니다. 이미 저장된 상태에서 다시 호출하면 저장이 해제됩니다.",
@@ -51,5 +50,15 @@ public class SaveController {
     public ResponseEntity<ApiResponse<String>> togglePotSave(@PathVariable Long pot_id) {
         String message = saveService.potSave(pot_id);
         return ResponseEntity.ok(ApiResponse.onSuccess(message));
+    }
+
+    @GetMapping("/pots")
+    @Operation(summary = "저장한 팟 조회", description = "현재 사용자가 저장한 Pot 리스트를 페이징으로 조회합니다.")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getSavedPots(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Map<String, Object> result = saveService.getSavedPotsWithPaging(page, size);
+        return ResponseEntity.ok(ApiResponse.onSuccess(result));
     }
 }

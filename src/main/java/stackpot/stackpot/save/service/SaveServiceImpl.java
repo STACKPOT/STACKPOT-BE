@@ -3,6 +3,9 @@ package stackpot.stackpot.save.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
@@ -11,6 +14,8 @@ import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.mapping.FeedSave;
 import stackpot.stackpot.feed.repository.FeedRepository;
+import stackpot.stackpot.pot.converter.PotConverter;
+import stackpot.stackpot.pot.dto.PotPreviewResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.mapping.PotSave;
 import stackpot.stackpot.pot.repository.PotRepository;
@@ -18,7 +23,8 @@ import stackpot.stackpot.pot.repository.PotSaveRepository;
 import stackpot.stackpot.save.converter.FeedSaveRepository;
 import stackpot.stackpot.user.entity.User;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,7 +35,7 @@ public class SaveServiceImpl implements SaveService {
     private final FeedSaveRepository feedSaveRepository;
     private final PotSaveRepository potSaveRepository;
     private final PotRepository potRepository;
-
+    private final PotConverter potConverter;
 
 
     @Override
@@ -74,5 +80,46 @@ public class SaveServiceImpl implements SaveService {
             potSaveRepository.save(save);
             return "저장했습니다";
         }
+    }
+
+    @Override
+    public Map<String, Object> getSavedPotsWithPaging(int page, int size) {
+        User user = authService.getCurrentUser(); // 인증 필요
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Pot> potPage = potSaveRepository.findSavedPotsByUserId(user.getId(), pageable);
+
+        List<Pot> pots = potPage.getContent();
+        List<Long> potIds = pots.stream()
+                .map(Pot::getPotId)
+                .collect(Collectors.toList());
+
+        Map<Long, Integer> potSaveCountMap = potSaveRepository.countSavesByPotIds(potIds);
+
+        // 현재는 내가 저장한 팟만 조회 중이므로 전부 isSaved = true
+        Set<Long> savedPotIds = new HashSet<>(potIds);
+
+        List<PotPreviewResponseDto> content = pots.stream()
+                .map(pot -> {
+                    Long potId = pot.getPotId();
+                    List<String> roles = pot.getRecruitmentDetails().stream()
+                            .map(rd -> String.valueOf(rd.getRecruitmentRole()))
+                            .collect(Collectors.toList());
+
+                    boolean isSaved = true;
+                    int saveCount = potSaveCountMap.getOrDefault(potId, 0);
+
+                    return potConverter.toPrviewDto(pot.getUser(), pot, roles, isSaved, saveCount);
+                })
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("pots", content);
+        response.put("currentPage", potPage.getNumber() + 1);
+        response.put("totalPages", potPage.getTotalPages());
+        response.put("totalElements", potPage.getTotalElements());
+        response.put("size", potPage.getSize());
+
+        return response;
     }
 }
