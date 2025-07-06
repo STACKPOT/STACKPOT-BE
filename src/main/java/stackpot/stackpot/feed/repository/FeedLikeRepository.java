@@ -22,11 +22,13 @@ public interface FeedLikeRepository extends JpaRepository<FeedLike, Long> {
     @Query("SELECT COUNT(fl) FROM FeedLike fl WHERE fl.feed = :feed")
     Long countByFeed(@Param("feed") Feed feed);
 
-    @Query("SELECT fl.feed.id FROM FeedLike fl WHERE fl.user.id = :userId")
+    @Query("SELECT fl.feed.feedId FROM FeedLike fl WHERE fl.user.id = :userId")
     List<Long> findFeedIdsByUserId(@Param("userId") Long userId);
 
     @Modifying
     @Query("DELETE FROM FeedLike f WHERE f.user.id = :userId")
     void deleteByUserId(@Param("userId") Long userId);
+
+    boolean existsByFeedAndUser(Feed feed, User user);
 
 }

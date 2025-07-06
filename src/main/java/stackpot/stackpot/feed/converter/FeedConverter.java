@@ -23,18 +23,20 @@ import static stackpot.stackpot.common.util.RoleNameMapper.mapRoleName;
 @Component
 public class FeedConverter{
 
-    public FeedResponseDto.FeedDto feedDto(Feed feed) {
+    public FeedResponseDto.FeedDto feedDto(Feed feed, Boolean isOwner, Boolean isLiked, Boolean isSaved, long saveCount) {
         return FeedResponseDto.FeedDto.builder()
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUser().getId())
-                .writer(feed.getUser().getNickname()+" "+mapRoleName(String.valueOf(feed.getUser().getRole())))
+                .writer(feed.getUser().getNickname() + " " + mapRoleName(String.valueOf(feed.getUser().getRole())))
                 .writerRole(feed.getUser().getRole())
-//                .category(feed.getCategory())
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .likeCount(feed.getLikeCount())
+                .isLiked(isLiked)
+                .saveCount(saveCount)
+                .isSaved(isSaved)
                 .createdAt(DateFormatter.koreanFormatter(feed.getCreatedAt()))
-                .isOwner(null)
+                .isOwner(isOwner)
                 .build();
     }
 
@@ -90,7 +92,7 @@ public class FeedConverter{
                 .build();
     }
 
-    public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner) {
+    public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner, boolean isLiked) {
         Map<String, Object> seriesMap = null;
         if (feed.getSeries() != null) {
             seriesMap = Map.of(
@@ -107,6 +109,7 @@ public class FeedConverter{
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .likeCount(feed.getLikeCount())
+                .isLiked(isLiked)
                 .createdAt(DateFormatter.koreanFormatter(feed.getCreatedAt()))
                 .categories(feed.getCategories().stream().map(Enum::name).toList())
                 .interests(feed.getInterests().stream().map(Interest::getLabel).toList())

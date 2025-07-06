@@ -61,4 +61,14 @@ public class SaveController {
         Map<String, Object> result = saveService.getSavedPotsWithPaging(page, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(result));
     }
+
+    @GetMapping("/feeds")
+    @Operation(summary = "저장한 피드 조회", description = "현재 사용자가 저장한 Feed 리스트를 페이징으로 조회합니다.")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getSavedFeeds(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Map<String, Object> result = saveService.getSavedFeedsWithPaging(page, size);
+        return ResponseEntity.ok(ApiResponse.onSuccess(result));
+    }
 }

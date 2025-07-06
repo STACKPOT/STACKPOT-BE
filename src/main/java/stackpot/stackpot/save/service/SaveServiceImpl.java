@@ -11,8 +11,11 @@ import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.common.util.AuthService;
+import stackpot.stackpot.feed.converter.FeedConverter;
+import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.mapping.FeedSave;
+import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.pot.dto.PotPreviewResponseDto;
@@ -36,7 +39,8 @@ public class SaveServiceImpl implements SaveService {
     private final PotSaveRepository potSaveRepository;
     private final PotRepository potRepository;
     private final PotConverter potConverter;
-
+    private final FeedLikeRepository feedLikeRepository;
+    private final FeedConverter feedConverter;
 
     @Override
     @Transactional
@@ -119,6 +123,53 @@ public class SaveServiceImpl implements SaveService {
         response.put("totalPages", potPage.getTotalPages());
         response.put("totalElements", potPage.getTotalElements());
         response.put("size", potPage.getSize());
+
+        return response;
+    }
+
+    @Override
+    public Map<String, Object> getSavedFeedsWithPaging(int page, int size) {
+        User user = authService.getCurrentUser(); // 인증 필요
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Feed> feedPage = feedSaveRepository.findSavedFeedsByUserId(user.getId(), pageable); // 저장된 피드들 조회
+
+        List<Feed> feeds = feedPage.getContent();
+        List<Long> feedIds = feeds.stream()
+                .map(Feed::getFeedId)
+                .collect(Collectors.toList());
+
+        // 미리 좋아요한 피드 ID 조회
+        List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserId(user.getId());
+
+        // 저장 수 조회
+        List<Object[]> rawResults = feedSaveRepository.countSavesByFeedIds(feedIds);
+        Map<Long, Integer> saveCountMap = rawResults.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
+        // DTO 변환
+        List<FeedResponseDto.FeedDto> content = feeds.stream()
+                .map(feed -> {
+                    Long feedId = feed.getFeedId();
+                    boolean isSaved = true;
+                    boolean isLiked = likedFeedIds.contains(feedId);
+                    boolean isOwner = feed.getUser().getId().equals(user.getId());
+                    int saveCount = saveCountMap.getOrDefault(feedId, 0);
+
+                    return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
+                })
+                .collect(Collectors.toList());
+
+        // 결과 Map 생성
+        Map<String, Object> response = new HashMap<>();
+        response.put("feeds", content);
+        response.put("currentPage", feedPage.getNumber() + 1);
+        response.put("totalPages", feedPage.getTotalPages());
+        response.put("totalElements", feedPage.getTotalElements());
+        response.put("size", feedPage.getSize());
 
         return response;
     }

@@ -8,9 +8,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
+import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.converter.FeedConverter;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
@@ -69,26 +73,50 @@ public class FeedCommandServiceImpl implements FeedCommandService {
 
     @Transactional
     public FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, Long nextCursor, int pageSize) {
-        // 피드 조회 (페이징 처리 추가)
+        // 현재 로그인한 사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = authentication != null
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.isAuthenticated();
+
+        final User loginUser = isAuthenticated
+                ? userRepository.findByUserId(authService.getCurrentUserId())
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND))
+                : null;
+
+        final Long loginUserId = loginUser != null ? loginUser.getId() : null;
+
+        // 좋아요, 저장 목록 미리 조회
+        final List<Long> likedFeedIds = (loginUserId != null)
+                ? feedLikeRepository.findFeedIdsByUserId(loginUserId)
+                : List.of();
+
+        final List<Long> savedFeedIds = (loginUserId != null)
+                ? feedSaveRepository.findFeedIdsByUserId(loginUserId)
+                : List.of();
+
+        // 피드 조회 (페이징)
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
-        List<Feed> feeds;
+        List<Feed> feeds = (nextCursor == null)
+                ? feedRepository.findByUser_Id(userId, pageable)
+                : feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
 
-        if (nextCursor == null) {
-            // 첫 페이지 조회
-            feeds = feedRepository.findByUser_Id(userId, pageable);
-        } else {
-            // 다음 페이지 조회 (Cursor 기반 페이징)
-            Long cursorFeedId = nextCursor;
-            feeds = feedRepository.findByUserIdAndFeedIdBefore(userId, cursorFeedId, pageable);
-        }
-
-        // Feed -> FeedDto 변환 (FeedConverter 활용)
+        // Feed -> FeedDto 변환
         List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
-                .map(feed -> feedConverter.feedDto(feed))
+                .map(feed -> {
+                    boolean isOwner = loginUserId != null && feed.getUser().getId().equals(loginUserId);
+                    Boolean isLiked = loginUserId != null && likedFeedIds.contains(feed.getFeedId());
+                    Boolean isSaved = loginUserId != null && savedFeedIds.contains(feed.getFeedId());
+                    int saveCount = feedSaveRepository.countByFeed(feed);
+
+                    return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
+                })
                 .collect(Collectors.toList());
 
-        // 다음 커서 설정 (마지막 피드의 createdAt)
-        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize) ? feeds.get(feeds.size() - 1).getFeedId() : null;
+        // 다음 커서 설정
+        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize)
+                ? feeds.get(feeds.size() - 1).getFeedId()
+                : null;
 
         return FeedResponseDto.FeedPreviewList.builder()
                 .feeds(feedDtos)
