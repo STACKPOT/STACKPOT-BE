@@ -18,7 +18,8 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     @Query("""
     SELECT f
     FROM Feed f
-    WHERE (:category IS NULL OR :category MEMBER OF f.categories)
+    JOIN f.categories c
+    WHERE (:category IS NULL OR :category = c)
       AND (
           (:sort = 'new' AND f.feedId < :lastFeedId) OR
           (:sort = 'old' AND f.feedId > :lastFeedId) OR
@@ -39,6 +40,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             @Param("lastFeedId") long lastFeedId,
             @Param("lastLikeCount") long lastLikeCount,
             Pageable pageable);
+
     List<Feed> findByUser_Id(Long userId);
     Page<Feed> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String titleKeyword, String contentKeyword, Pageable pageable);
 

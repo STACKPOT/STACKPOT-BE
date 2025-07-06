@@ -5,15 +5,22 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.pot.entity.mapping.PotSave;
+import stackpot.stackpot.user.entity.User;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public interface PotSaveRepository extends JpaRepository<PotSave, Long> {
+    Optional<PotSave> findByUserAndPot(User user, Pot pot);
+    boolean existsByUserAndPot(User user, Pot pot);
+    void deleteByUserAndPot(User user, Pot pot);
+
     // 저장 수 조회 (기존과 동일)
     @Query("SELECT ps.pot.id, COUNT(ps) FROM PotSave ps WHERE ps.pot.id IN :potIds GROUP BY ps.pot.id")
     List<Object[]> countSavesByPotIdsRaw(@Param("potIds") List<Long> potIds);

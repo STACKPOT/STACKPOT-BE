@@ -21,6 +21,7 @@ import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.feed.entity.mapping.FeedLike;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
+import stackpot.stackpot.save.converter.FeedSaveRepository;
 import stackpot.stackpot.feed.repository.SeriesRepository;
 import stackpot.stackpot.notification.dto.NotificationResponseDto;
 import stackpot.stackpot.notification.event.FeedLikeEvent;
@@ -43,6 +44,7 @@ public class FeedCommandServiceImpl implements FeedCommandService {
     private final FeedLikeRepository feedLikeRepository;
     private final SeriesRepository seriesRepository;
     private final AuthService authService;
+    private final FeedSaveRepository feedSaveRepository;
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
