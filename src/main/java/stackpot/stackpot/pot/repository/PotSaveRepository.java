@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 public interface PotSaveRepository extends JpaRepository<PotSave, Long> {
     Optional<PotSave> findByUserAndPot(User user, Pot pot);
-    boolean existsByUserAndPot(User user, Pot pot);
+    boolean existsByUserAndPot_PotId(User user, Long potPotId);
     void deleteByUserAndPot(User user, Pot pot);
 
     // 저장 수 조회 (기존과 동일)
