@@ -1,5 +1,7 @@
 package stackpot.stackpot.feed.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -22,11 +24,16 @@ public interface FeedLikeRepository extends JpaRepository<FeedLike, Long> {
     @Query("SELECT COUNT(fl) FROM FeedLike fl WHERE fl.feed = :feed")
     Long countByFeed(@Param("feed") Feed feed);
 
-    @Query("SELECT fl.feed.id FROM FeedLike fl WHERE fl.user.id = :userId")
+    @Query("SELECT fl.feed.feedId FROM FeedLike fl WHERE fl.user.id = :userId")
     List<Long> findFeedIdsByUserId(@Param("userId") Long userId);
 
     @Modifying
     @Query("DELETE FROM FeedLike f WHERE f.user.id = :userId")
     void deleteByUserId(@Param("userId") Long userId);
+
+    boolean existsByFeedAndUser(Feed feed, User user);
+
+    @Query("SELECT fs.feed FROM FeedLike fs WHERE fs.user.id = :userId")
+    Page<Feed> findLikedFeedsByUserId(@Param("userId") Long userId, Pageable pageable);
 
 }

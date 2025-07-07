@@ -1,9 +1,13 @@
 package stackpot.stackpot.pot.service.pot;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
@@ -29,6 +33,7 @@ import stackpot.stackpot.user.repository.UserRepository;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -85,11 +90,13 @@ public class PotQueryServiceImpl implements PotQueryService {
         boolean isApplied = pot.getPotApplication().stream()
                 .anyMatch(application -> application.getUser().getId().equals(user.getId()));
 
+        boolean isSaved = potSaveRepository.existsByUserAndPot_PotId(user, potId);
+
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
                 .map(rd -> RoleNameMapper.mapRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
-        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied);
+        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, isSaved);
     }
 
     @Override
@@ -254,14 +261,21 @@ public class PotQueryServiceImpl implements PotQueryService {
     @Override
     public Map<String, Object> getAllPotsWithPaging(Role role, int page, int size, Boolean onlyMine) {
         User user = null;
-        if (onlyMine != null && onlyMine) {
-            user = authService.getCurrentUser(); // 로그인 필수
+
+        // 로그인 여부와 무관하게 인증된 사용자인 경우 user 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = authentication != null
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.isAuthenticated();
+
+        if (isAuthenticated) {
+            user = authService.getCurrentUser();
         }
 
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<Pot> potPage;
 
-        if (onlyMine != null && onlyMine) {
+        if (onlyMine != null && onlyMine && user != null) {
             potPage = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING", pageable);
         } else {
             potPage = (role == null)
@@ -270,22 +284,25 @@ public class PotQueryServiceImpl implements PotQueryService {
         }
 
         List<Pot> pots = potPage.getContent();
-        List<Long> potIds = pots.stream().map(Pot::getPotId).collect(Collectors.toList());
+        List<Long> potIds = pots.stream()
+                .map(Pot::getPotId)
+                .collect(Collectors.toList());
 
-        // 저장 수 및 저장 여부 일괄 조회
         Map<Long, Integer> potSaveCountMap = potSaveRepository.countSavesByPotIds(potIds);
-        Set<Long> savedPotIds = (user != null)
+
+        Set<Long> savedPotIds = (user != null && !potIds.isEmpty())
                 ? potSaveRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
                 : Collections.emptySet();
 
         List<PotPreviewResponseDto> content = pots.stream()
                 .map(pot -> {
+                    Long potId = pot.getPotId();
                     List<String> roles = pot.getRecruitmentDetails().stream()
                             .map(rd -> String.valueOf(rd.getRecruitmentRole()))
                             .collect(Collectors.toList());
 
-                    boolean isSaved = savedPotIds.contains(pot.getPotId());
-                    int saveCount = potSaveCountMap.getOrDefault(pot.getPotId(), 0);
+                    boolean isSaved = savedPotIds.contains(potId);
+                    int saveCount = potSaveCountMap.getOrDefault(potId, 0);
 
                     return potConverter.toPrviewDto(pot.getUser(), pot, roles, isSaved, saveCount);
                 })

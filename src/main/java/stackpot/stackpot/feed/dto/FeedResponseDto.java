@@ -18,6 +18,7 @@ public class FeedResponseDto {
     public static class FeedPreviewList {
         private List<FeedDto> feeds;
         private Long nextCursor; // 다음 커서 값
+        // [category, series X / like, save O]일 때사용하는 DTO:  피드 전체 조회, 사용자별, 나의 피드 조회, 검색
     }
 
     @Data
@@ -36,6 +37,8 @@ public class FeedResponseDto {
         private Long commentCount;
         private Long saveCount;
         private Boolean isLiked;
+        private Long saveCount;
+        private Boolean isSaved;
         private String createdAt;
         private Boolean isOwner;
     }
@@ -52,12 +55,11 @@ public class FeedResponseDto {
         private Role writerRole;
         private String title;
         private String content;
-        private Long likeCount;
-        private Boolean isLiked;
         private String createdAt;
         private List<String> categories;
         private List<String> interests;
         private Map<String, Object> series;
+        // save, like 정보가 필요 없는 경우 사용하는 DTO: 피드 생성, 피드 수정
     }
 
     @Data
@@ -67,6 +69,9 @@ public class FeedResponseDto {
     public static class AuthorizedFeedDto {
         private CreatedFeedDto feed;
         private boolean isOwner;
+        private Boolean isLiked;
+        private Boolean isSaved;
+        // category, series, like, save까지 싹 다 필요한 경우 사용하는 DTO: 피드 상세 조회
     }
 
 }
