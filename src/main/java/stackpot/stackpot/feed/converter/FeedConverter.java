@@ -63,7 +63,6 @@ public class FeedConverter{
                         .map(Interest::getLabel) // 혹은 .name()
                         .collect(Collectors.toList()))
                 .series(seriesMap)
-                .likeCount(feed.getLikeCount())
                 .createdAt(DateFormatter.koreanFormatter(feed.getCreatedAt()))
                 .build();
     }
@@ -92,7 +91,7 @@ public class FeedConverter{
                 .build();
     }
 
-    public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner, boolean isLiked) {
+    public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner, boolean isLiked, boolean isSaved) {
         Map<String, Object> seriesMap = null;
         if (feed.getSeries() != null) {
             seriesMap = Map.of(
@@ -108,8 +107,6 @@ public class FeedConverter{
                 .writerRole(feed.getUser().getRole())
                 .title(feed.getTitle())
                 .content(feed.getContent())
-                .likeCount(feed.getLikeCount())
-                .isLiked(isLiked)
                 .createdAt(DateFormatter.koreanFormatter(feed.getCreatedAt()))
                 .categories(feed.getCategories().stream().map(Enum::name).toList())
                 .interests(feed.getInterests().stream().map(Interest::getLabel).toList())
@@ -119,6 +116,8 @@ public class FeedConverter{
         return FeedResponseDto.AuthorizedFeedDto.builder()
                 .feed(createdDto)
                 .isOwner(isOwner)
+                .isLiked(isLiked)
+                .isSaved(isSaved)
                 .build();
     }
 
