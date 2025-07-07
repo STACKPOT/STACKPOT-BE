@@ -143,7 +143,10 @@ public class FeedQueryServiceImpl implements FeedQueryService {
         boolean isOwner = feed.getUser().getId().equals(user.getId());
         boolean isLiked = feedLikeRepository.existsByFeedAndUser(feed, user);
 
-        return feedConverter.toAuthorizedFeedDto(feed, isOwner, isLiked);
+        List<Long> savedFeedIds = feedSaveRepository.findFeedIdsByUserId(user.getId());
+        boolean isSaved = savedFeedIds.contains(feed.getFeedId());
+
+        return feedConverter.toAuthorizedFeedDto(feed, isOwner, isLiked, isSaved);
     }
 
     @Transactional

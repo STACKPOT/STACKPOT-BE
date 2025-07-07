@@ -27,6 +27,7 @@ public class PotDetailResponseDto {
     private String potContent;
     private String potSummary;
     private String dDay;
+    private Boolean isSaved;
     private String recruitmentDetails;
     private String recruitmentDeadline;
     private Map<String, Integer> recruitingMembers;

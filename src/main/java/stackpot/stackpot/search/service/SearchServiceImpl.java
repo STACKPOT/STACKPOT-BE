@@ -3,16 +3,19 @@ package stackpot.stackpot.search.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.feed.converter.FeedConverter;
+import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.repository.PotSaveRepository;
+import stackpot.stackpot.save.converter.FeedSaveRepository;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
@@ -36,6 +39,7 @@ public class SearchServiceImpl implements SearchService {
     private final UserRepository userRepository;
     private final PotSaveRepository potSaveRepository;
     private final AuthService authService;
+    private final FeedSaveRepository feedSaveRepository;
 
 
     @Override
@@ -79,37 +83,43 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FeedSearchResponseDto> searchFeeds(String keyword, Pageable pageable) {
-
-
-        // 현재 로그인한 사용자 정보 가져오기
+    public Page<FeedResponseDto.FeedDto> searchFeeds(String keyword, Pageable pageable) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = authentication != null && authentication.isAuthenticated();
-        Long userId = isAuthenticated ? ((User) authentication.getPrincipal()).getId() : null;
-        Page<Feed> feeds = feedRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(keyword, keyword, pageable);
+        boolean isAuthenticated = authentication != null &&
+                !(authentication instanceof AnonymousAuthenticationToken) &&
+                authentication.isAuthenticated();
 
+        User user;
+        Long userId = null;
+        if (isAuthenticated) {
+            user = authService.getCurrentUser();
+            userId = user.getId();
+        } else {
+            user = null;
+        }
 
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+        // 키워드 기반 검색
+        Page<Feed> feeds = feedRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(
+                keyword, keyword, pageable
+        );
 
+        // 좋아요/저장 정보 조회
+        List<Long> likedFeedIds = (userId != null)
+                ? feedLikeRepository.findFeedIdsByUserId(userId)
+                : Collections.emptyList();
 
-        // 좋아요를 눌렀던 피드 ID 리스트 가져오기
-        List<Long> likedFeedIds = isAuthenticated && userId != null
-                ? feedLikeRepository.findFeedIdsByUserId(userId) // 로그인한 사용자의 좋아요한 피드 ID 리스트
-                : Collections.emptyList(); // 비로그인 상태에서는 빈 리스트
+        List<Long> savedFeedIds = (userId != null)
+                ? feedSaveRepository.findFeedIdsByUserId(userId)
+                : Collections.emptyList();
 
-        // 각 Feed 객체에 대해 좋아요 여부를 확인하고 FeedDto로 변환
+        // 각 Feed를 FeedDto로 변환
         return feeds.map(feed -> {
-            boolean isOwner = (user != null) && Objects.equals(userId, feed.getUser().getUserId());
+            boolean isOwner = user != null && Objects.equals(user.getId(), feed.getUser().getId());
+            Boolean isLiked = likedFeedIds.contains(feed.getFeedId());
+            Boolean isSaved = savedFeedIds.contains(feed.getFeedId());
+            int saveCount = feedSaveRepository.countByFeed(feed);
 
-            Boolean isLiked = isAuthenticated && userId != null
-                    ? likedFeedIds.contains(feed.getFeedId()) // 로그인한 사용자가 좋아요를 눌렀으면 true, 아니면 false
-                    : null; // 비로그인 사용자는 null 처리
-
-            FeedSearchResponseDto feedDto = feedConverter.toSearchDto(feed);
-            feedDto.setIsLiked(isLiked); // 좋아요 상태 추가
-            return feedDto;
+            return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
         });
     }
 

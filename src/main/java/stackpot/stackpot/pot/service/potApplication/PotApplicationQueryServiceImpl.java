@@ -65,7 +65,7 @@ public class PotApplicationQueryServiceImpl implements PotApplicationQueryServic
                 .map(rd -> RoleNameMapper.mapRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
-        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied);
+        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, null);
 
         List<PotApplicationResponseDto> applicants = Collections.emptyList();
         if (isOwner && "RECRUITING".equals(pot.getPotStatus())) {

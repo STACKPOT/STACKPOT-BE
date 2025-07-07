@@ -90,11 +90,13 @@ public class PotQueryServiceImpl implements PotQueryService {
         boolean isApplied = pot.getPotApplication().stream()
                 .anyMatch(application -> application.getUser().getId().equals(user.getId()));
 
+        boolean isSaved = potSaveRepository.existsByUserAndPot_PotId(user, potId);
+
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
                 .map(rd -> RoleNameMapper.mapRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
-        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied);
+        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, isSaved);
     }
 
     @Override
