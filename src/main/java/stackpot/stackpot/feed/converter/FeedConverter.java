@@ -10,6 +10,7 @@ import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.feed.dto.FeedSearchResponseDto;
 import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.feed.entity.enums.Interest;
+import stackpot.stackpot.feed.repository.FeedCommentRepository;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.user.entity.User;
 
@@ -23,7 +24,11 @@ import static stackpot.stackpot.common.util.RoleNameMapper.mapRoleName;
 @Component
 public class FeedConverter{
 
+    private final FeedCommentRepository feedCommentRepository;
+
     public FeedResponseDto.FeedDto feedDto(Feed feed) {
+
+        Long commentCount = feedCommentRepository.countByFeedId(feed.getFeedId());
         return FeedResponseDto.FeedDto.builder()
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUser().getId())
@@ -33,6 +38,7 @@ public class FeedConverter{
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .likeCount(feed.getLikeCount())
+               .commentCount(commentCount)
                 .createdAt(DateFormatter.koreanFormatter(feed.getCreatedAt()))
                 .isOwner(null)
                 .build();
