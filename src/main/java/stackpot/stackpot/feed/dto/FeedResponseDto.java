@@ -18,7 +18,7 @@ public class FeedResponseDto {
     public static class FeedPreviewList {
         private List<FeedDto> feeds;
         private Long nextCursor; // 다음 커서 값
-        // [category, series X / like, save O]일 때사용하는 DTO:  피드 전체 조회, 사용자별, 나의 피드 조회
+        // [category, series X / like, save O]일 때사용하는 DTO:  피드 전체 조회, 사용자별, 나의 피드 조회, 검색
     }
 
     @Data
