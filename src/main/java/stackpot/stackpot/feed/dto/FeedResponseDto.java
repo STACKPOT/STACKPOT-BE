@@ -37,7 +37,6 @@ public class FeedResponseDto {
         private Long commentCount;
         private Long saveCount;
         private Boolean isLiked;
-        private Long saveCount;
         private Boolean isSaved;
         private String createdAt;
         private Boolean isOwner;

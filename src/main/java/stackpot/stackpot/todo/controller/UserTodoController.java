@@ -26,7 +26,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Todo Management", description = "Todo 관리 API")
-@RequestMapping("/todos")
+@RequestMapping("/my-pots")
 public class UserTodoController {
 
     private final UserTodoService userTodoService;

@@ -1,6 +1,8 @@
 package stackpot.stackpot.feed.entity.enums;
 
 
+import java.util.Arrays;
+
 public enum Interest {
     SIDE_PROJECT("사이드 프로젝트"),
     SOLO_DEVELOPMENT("1인 개발"),
@@ -16,5 +18,11 @@ public enum Interest {
 
     public String getLabel() {
         return label;
+    }
+    public static Interest fromLabel(String label) {
+        return Arrays.stream(Interest.values())
+                .filter(i -> i.label.equals(label))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid label: " + label));
     }
 }
