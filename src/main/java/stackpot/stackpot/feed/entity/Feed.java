@@ -48,4 +48,6 @@ public class Feed extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "series_id", nullable = true)
     private Series series;
+
+
 }

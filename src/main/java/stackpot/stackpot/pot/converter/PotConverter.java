@@ -72,7 +72,7 @@ public class PotConverter{
         return PotPreviewResponseDto.builder()
                 .userId(user.getId())
                 .userRole(user.getRole().name())
-                .userNickname(user.getNickname() + RoleNameMapper.mapRoleName(user.getRole().name()))
+                .userNickname(user.getNickname() + " " + RoleNameMapper.mapRoleName(user.getRole().name()))
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
                 .potContent(pot.getPotContent())

@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.enums.Category;
+import stackpot.stackpot.feed.entity.enums.Interest;
 
 import java.util.List;
 
@@ -16,29 +17,32 @@ import java.util.List;
 public interface FeedRepository extends JpaRepository<Feed, Long> {
 
     @Query("""
-    SELECT f
-    FROM Feed f
-    WHERE (:category IS NULL OR :category MEMBER OF f.categories)
-      AND (
-          (:sort = 'new' AND f.feedId < :lastFeedId) OR
-          (:sort = 'old' AND f.feedId > :lastFeedId) OR
-          (:sort = 'popular' AND (
-              f.likeCount < :lastLikeCount OR 
-              (f.likeCount = :lastLikeCount AND f.feedId < :lastFeedId)
-          ))
-      )
-    ORDER BY 
-      CASE WHEN :sort = 'popular' THEN f.likeCount ELSE 0 END DESC,
-      CASE WHEN :sort = 'old' THEN f.feedId ELSE NULL END ASC,
-      CASE WHEN :sort = 'new' THEN f.feedId ELSE NULL END DESC,
-      f.feedId DESC
-    """)
+SELECT f
+FROM Feed f
+LEFT JOIN f.categories c
+WHERE (:category IS NULL OR :category = c)
+  AND (
+      (:sort = 'new' AND f.feedId < :lastFeedId) OR
+      (:sort = 'old' AND f.feedId > :lastFeedId) OR
+      (:sort = 'popular' AND (
+          f.likeCount < :lastLikeCount OR 
+          (f.likeCount = :lastLikeCount AND f.feedId < :lastFeedId)
+      ))
+  )
+ORDER BY 
+  CASE WHEN :sort = 'popular' THEN f.likeCount ELSE 0 END DESC,
+  CASE WHEN :sort = 'old' THEN f.feedId ELSE NULL END ASC,
+  CASE WHEN :sort = 'new' THEN f.feedId ELSE NULL END DESC,
+  f.feedId DESC
+""")
     List<Feed> findFeeds(
             @Param("category") Category category,
             @Param("sort") String sort,
             @Param("lastFeedId") long lastFeedId,
             @Param("lastLikeCount") long lastLikeCount,
             Pageable pageable);
+
+
     List<Feed> findByUser_Id(Long userId);
     Page<Feed> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String titleKeyword, String contentKeyword, Pageable pageable);
 
@@ -62,5 +66,39 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     @Modifying
     @Query("UPDATE Feed f SET f.series = null WHERE f.series.seriesId = :seriesId")
     void clearSeriesReference(@Param("seriesId") Long seriesId);
+
+
+    @Query("""
+    SELECT f FROM Feed f
+    JOIN f.interests i
+    WHERE i = :interest
+    AND (
+        f.likeCount < :lastLikeCount OR
+        (f.likeCount = :lastLikeCount AND f.feedId < :lastFeedId)
+    )
+    ORDER BY f.likeCount DESC, f.feedId DESC
+""")
+    List<Feed> findByInterestWithCursor(
+            @Param("interest") Interest interest,
+            @Param("lastLikeCount") Long lastLikeCount,
+            @Param("lastFeedId") Long lastFeedId,
+            Pageable pageable
+    );
+
+    @Query("""
+SELECT f FROM Feed f
+WHERE :interest MEMBER OF f.interests
+  AND (:category IS NULL OR :category MEMBER OF f.categories)
+  AND (f.likeCount < :lastLikeCount OR (f.likeCount = :lastLikeCount AND f.feedId < :lastFeedId))
+ORDER BY f.likeCount DESC, f.feedId DESC
+""")
+    List<Feed> findFeedsByInterestAndCategoryWithCursor(
+            @Param("interest") Interest interest,
+            @Param("category") Category category,
+            @Param("lastLikeCount") Long lastLikeCount,
+            @Param("lastFeedId") Long lastFeedId,
+            Pageable pageable
+    );
+
 
 }

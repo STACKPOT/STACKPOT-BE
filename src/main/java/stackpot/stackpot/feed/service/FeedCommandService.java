@@ -8,8 +8,12 @@ import java.util.Map;
 
 public interface FeedCommandService {
      FeedResponseDto.CreatedFeedDto createFeed(FeedRequestDto.createDto request);
+
      FeedResponseDto.CreatedFeedDto modifyFeed(long feedId, FeedRequestDto.createDto request);
+
      String deleteFeed(Long feedId);
+
      boolean toggleLike(Long feedId);
+
      Map<Long, String> createSeries(SeriesRequestDto requestDto);
 }
