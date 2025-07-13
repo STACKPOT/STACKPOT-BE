@@ -21,6 +21,7 @@ import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.feed.entity.enums.Category;
+import stackpot.stackpot.feed.entity.enums.Interest;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
 import stackpot.stackpot.feed.repository.SeriesRepository;
@@ -51,9 +52,9 @@ public class FeedQueryServiceImpl implements FeedQueryService {
     @Override
     public FeedResponseDto.FeedPreviewList getPreViewFeeds(String categoryStr, String sort, Long cursor, int limit) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = authentication != null
-                && !(authentication instanceof AnonymousAuthenticationToken)
-                && authentication.isAuthenticated();
+        boolean isAuthenticated = authentication != null &&
+                !(authentication instanceof AnonymousAuthenticationToken) &&
+                authentication.isAuthenticated();
 
         log.info("isAuthenticated :{}", isAuthenticated);
 
@@ -64,55 +65,66 @@ public class FeedQueryServiceImpl implements FeedQueryService {
         final Long userId = (user != null) ? user.getId() : null;
         final List<Long> likedFeedIds = (userId != null)
                 ? feedLikeRepository.findFeedIdsByUserId(userId)
-                : List.of(); // 비로그인 사용자는 빈 리스트
-
+                : List.of();
         final List<Long> savedFeedIds = (userId != null)
                 ? feedSaveRepository.findFeedIdsByUserId(userId)
                 : List.of();
 
-        Long lastFeedId = Long.MAX_VALUE;  // 기본적으로 가장 큰 ID부터 조회
+        Long lastFeedId = Long.MAX_VALUE;
         Long lastFeedLike = 0L;
 
         if (cursor != null) {
             lastFeedId = cursor;
-            Feed lastdFeed = feedRepository.findById(lastFeedId)
+            Feed lastFeed = feedRepository.findById(lastFeedId)
                     .orElseThrow(() -> new FeedHandler(ErrorStatus.FEED_NOT_FOUND));
-
-            lastFeedLike = lastdFeed.getLikeCount();
-        } else if (sort.equals("old")) {
+            lastFeedLike = lastFeed.getLikeCount();
+        } else if ("old".equals(sort)) {
             lastFeedId = 0L;
-        } else if (sort.equals("popular")) {
+        } else if ("popular".equals(sort)) {
             lastFeedLike = Long.MAX_VALUE;
         }
 
         Category category = null;
         if (categoryStr != null && !categoryStr.isEmpty()) {
-            if (categoryStr.equalsIgnoreCase("ALL")) {
-                category = null;
-            } else {
+            if (!categoryStr.equalsIgnoreCase("ALL")) {
                 try {
                     category = Category.valueOf(categoryStr.toUpperCase());
                 } catch (IllegalArgumentException e) {
+                    log.warn("Invalid category string: {}", categoryStr);
                     category = null;
                 }
             }
         }
-        Pageable pageable = PageRequest.ofSize(limit);
 
-        List<Feed> feedResults = feedRepository.findFeeds(category, sort, lastFeedId, lastFeedLike, pageable);
+        Pageable pageable = PageRequest.ofSize(limit);
+        List<Feed> feedResults;
+
+        Interest userInterestEnum = null;
+        if (user != null && user.getInterest() != null) {
+            try {
+                userInterestEnum = Interest.fromLabel(user.getInterest());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid user interest: {}", user.getInterest());
+            }
+        }
+
+        if (userInterestEnum != null) {
+            sort = "popular"; // 강제로 인기순
+            lastFeedLike = (cursor != null) ? lastFeedLike : Long.MAX_VALUE;
+
+            feedResults = feedRepository.findFeedsByInterestAndCategoryWithCursor(
+                    userInterestEnum, category, lastFeedLike, lastFeedId, pageable
+            );
+        } else {
+            feedResults = feedRepository.findFeeds(category, sort, lastFeedId, lastFeedLike, pageable);
+        }
+
 
         List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
                 .map(feed -> {
                     boolean isOwner = (user != null) && Objects.equals(user.getId(), feed.getUser().getUserId());
-
-                    Boolean isLiked = (isAuthenticated && userId != null)
-                            ? likedFeedIds.contains(feed.getFeedId())
-                            : null;
-
-                    Boolean isSaved = (isAuthenticated && userId != null)
-                            ? savedFeedIds.contains(feed.getFeedId())
-                            : null;
-
+                    Boolean isLiked = (isAuthenticated && userId != null) ? likedFeedIds.contains(feed.getFeedId()) : null;
+                    Boolean isSaved = (isAuthenticated && userId != null) ? savedFeedIds.contains(feed.getFeedId()) : null;
                     int saveCount = feedSaveRepository.countByFeed(feed);
 
                     return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
@@ -124,14 +136,25 @@ public class FeedQueryServiceImpl implements FeedQueryService {
         if (!feedResults.isEmpty() && feedResults.size() == limit) {
             Feed lastFeed = feedResults.get(feedResults.size() - 1);
             nextCursor = lastFeed.getFeedId();
-            List<Feed> nextfeedResults = feedRepository.findFeeds(category, sort, nextCursor, lastFeedLike, pageable);
 
-            if (nextfeedResults.size() == 0) {
+            List<Feed> nextFeedResults;
+            if (userInterestEnum != null) {
+                nextFeedResults = feedRepository.findFeedsByInterestAndCategoryWithCursor(
+                        userInterestEnum, category, lastFeed.getLikeCount(), nextCursor, pageable
+                );
+            } else {
+                nextFeedResults = feedRepository.findFeeds(category, sort, nextCursor, lastFeedLike, pageable);
+            }
+
+            if (nextFeedResults.isEmpty()) {
                 nextCursor = null;
             }
+
         }
+
         return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);
     }
+
 
     @Override
     public FeedResponseDto.AuthorizedFeedDto getFeed(Long feedId) {

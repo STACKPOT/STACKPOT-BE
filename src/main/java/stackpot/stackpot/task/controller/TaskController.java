@@ -23,7 +23,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Task Management", description = "Task 관리 API")
-@RequestMapping(value = "/tasks",produces = "application/json; charset=UTF-8")
+@RequestMapping(value = "/my-pots",produces = "application/json; charset=UTF-8")
 public class TaskController {
 
     private final TaskCommandService taskCommandService;
