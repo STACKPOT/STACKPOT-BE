@@ -235,30 +235,6 @@ public class PotQueryServiceImpl implements PotQueryService {
     }
 
     @Override
-    public CompletedPotDetailResponseDto getCompletedPotDetail(Long potId, Long userId) {
-        Pot pot = potRepository.findById(potId)
-                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
-
-        if (!"COMPLETED".equals(pot.getPotStatus())) {
-            throw new PotHandler(ErrorStatus.INVALID_POT_STATUS);
-        }
-
-        User targetUser = userRepository.findById(userId)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-
-        PotMember potMember = potMemberRepository.findByPotAndUser(pot, targetUser)
-                .orElse(null);
-
-        String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
-
-        String userPotRole = pot.getUser().getId().equals(targetUser.getId())
-                ? RoleNameMapper.mapRoleName(targetUser.getRole().name())
-                : RoleNameMapper.mapRoleName(potMember.getRoleName().name());
-
-        return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
-    }
-
-    @Override
     public Map<String, Object> getAllPotsWithPaging(Role role, int page, int size, Boolean onlyMine) {
         User user = null;
 

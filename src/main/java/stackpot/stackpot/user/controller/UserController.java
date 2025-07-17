@@ -280,20 +280,6 @@ public class UserController {
         PotResponseDto responseDto = potCommandService.updateCompletedPot(potId, requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto)); // 수정된 팟 정보 반환
     }
-    /*@GetMapping("/pots")
-    @Operation(
-            summary = "나의 마이페이지의 '모든 팟' 조회 API",
-            description = "토큰을 통해 자신의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)"
-    )
-    @ApiErrorCodeExamples({
-            ErrorStatus.USER_NOT_FOUND,
-            ErrorStatus.USER_ALREADY_WITHDRAWN,
-    })
-    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> usersMypages(
-            @RequestParam(name = "dataType", required = false) String dataType){
-        UserMyPageResponseDto userDetails = userCommandService.getMypages(dataType);
-        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
-    }*/
 
     @GetMapping("/description")
     public ResponseEntity<MyDescriptionResponseDto> getMyDescription() {

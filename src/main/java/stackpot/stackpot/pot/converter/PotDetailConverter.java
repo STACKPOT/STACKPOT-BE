@@ -1,5 +1,6 @@
 package stackpot.stackpot.pot.converter;
 
+import stackpot.stackpot.badge.dto.BadgeDto;
 import stackpot.stackpot.common.util.DateFormatter;
 import stackpot.stackpot.common.util.DdayCounter;
 import stackpot.stackpot.common.util.OperationModeMapper;
@@ -13,22 +14,17 @@ import stackpot.stackpot.pot.dto.PotDetailResponseDto;
 import org.springframework.stereotype.Component;
 
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
 public class PotDetailConverter{
-    public CompletedPotDetailResponseDto toCompletedPotDetailDto(Pot pot, String userPotRole, String appealContent) {
+    public CompletedPotDetailResponseDto toCompletedPotDetailDto(String appealContent, String userPotRole, List<BadgeDto> myBadges) {
         return CompletedPotDetailResponseDto.builder()
-                .potId(pot.getPotId())
-                .potName(pot.getPotName())
-                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
-                .potEndDate(DateFormatter.dotFormatter(pot.getPotEndDate()))
-                .potContent(pot.getPotContent())
-                .potStatus(pot.getPotStatus())
-                .potSummary(pot.getPotSummary())
                 .appealContent(appealContent)
                 .userPotRole(userPotRole)
+                .myBadges(myBadges)
                 .build();
     }
 

@@ -74,13 +74,7 @@ public class MyPotServiceImpl implements MyPotService {
     @Transactional
     @Override
     public CompletedPotDetailResponseDto getCompletedPotDetail(Long potId) {
-        // 현재 로그인한 사용자 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        // 사용자 조회
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        User user = authService.getCurrentUser();
 
         // 팟 조회
         Pot pot = potRepository.findById(potId)
@@ -98,16 +92,23 @@ public class MyPotServiceImpl implements MyPotService {
 
         String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
 
-        String userPotRole;
-
         // Pot 멤버의 Role 조회 후 변환
-        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+        String userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
                 .map(role -> RoleNameMapper.getKoreanRoleName(role.name()))
-                .orElse(RoleNameMapper.getKoreanRoleName(pot.getUser().getRole().name()));
+                .orElse(null);  // 없을 경우 null로 둡니다.
 
+        // 사용자 뱃지 조회
+        List<BadgeDto> myBadges = potMemberBadgeRepository
+                .findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
+                .stream()
+                .map(potMemberBadge -> new BadgeDto(
+                        potMemberBadge.getBadge().getBadgeId(),
+                        potMemberBadge.getBadge().getName()
+                ))
+                .collect(Collectors.toList());
 
-        // DTO 반환
-        return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
+        // 컨버터로 DTO 변환
+        return potDetailConverter.toCompletedPotDetailDto(appealContent, userPotRole, myBadges);
     }
 
     @Transactional
