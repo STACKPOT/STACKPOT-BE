@@ -18,4 +18,7 @@ public interface PotCommentRepository extends JpaRepository<PotComment, Long> {
             ", pc.pot.user.id, pc.id, pc.comment, pc.parent.id, pc.createdAt) " +
             "from PotComment pc where pc.pot.potId = :potId")
     List<PotCommentDto.PotCommentInfoDto> findAllCommentInfoDtoByPotId(@Param("potId") Long potId);
+
+    @Query("select count(*) from PotComment pc where pc.pot.potId = :potId")
+    Long countByPotId(@Param("potId") Long potId);
 }

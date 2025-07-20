@@ -22,6 +22,7 @@ import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.feed.entity.enums.Category;
 import stackpot.stackpot.feed.entity.enums.Interest;
+import stackpot.stackpot.feed.repository.FeedCommentRepository;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
 import stackpot.stackpot.feed.repository.SeriesRepository;
@@ -46,6 +47,7 @@ public class FeedQueryServiceImpl implements FeedQueryService {
     private final SeriesRepository seriesRepository;
     private final AuthService authService;
     private final FeedSaveRepository feedSaveRepository;
+    private final FeedCommentRepository feedCommentRepository;
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -169,7 +171,9 @@ public class FeedQueryServiceImpl implements FeedQueryService {
         List<Long> savedFeedIds = feedSaveRepository.findFeedIdsByUserId(user.getId());
         boolean isSaved = savedFeedIds.contains(feed.getFeedId());
 
-        return feedConverter.toAuthorizedFeedDto(feed, isOwner, isLiked, isSaved);
+        Long commentCount = feedCommentRepository.countByFeedId(feed.getFeedId());
+
+        return feedConverter.toAuthorizedFeedDto(feed, isOwner, isLiked, isSaved, commentCount);
     }
 
     @Transactional
