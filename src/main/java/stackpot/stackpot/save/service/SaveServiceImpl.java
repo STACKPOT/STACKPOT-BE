@@ -23,7 +23,7 @@ import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.mapping.PotSave;
 import stackpot.stackpot.pot.repository.PotRepository;
 import stackpot.stackpot.pot.repository.PotSaveRepository;
-import stackpot.stackpot.save.converter.FeedSaveRepository;
+import stackpot.stackpot.save.repository.FeedSaveRepository;
 import stackpot.stackpot.user.entity.User;
 
 import java.util.*;

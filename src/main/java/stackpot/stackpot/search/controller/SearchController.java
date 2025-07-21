@@ -15,6 +15,8 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
+import stackpot.stackpot.feed.dto.FeedResponseDto;
+import stackpot.stackpot.feed.service.FeedQueryService;
 import stackpot.stackpot.search.service.SearchService;
 
 import java.util.HashMap;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class SearchController {
 
     private final SearchService searchService;
+    private final FeedQueryService feedQueryService;
 
     @GetMapping
     @Operation(summary = "팟 or 피드 검색 API", description = "키워드를 기반으로 팟 또는 피드를 검색합니다.",
@@ -65,4 +68,56 @@ public class SearchController {
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
+    @GetMapping("/feeds/users/{user_id}/search")
+    @Operation(
+            summary = "다른 사용자 피드 검색 API",
+            description = "특정 사용자의 피드 중에서 키워드(제목/내용)를 포함하는 피드 목록을 검색합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+            ErrorStatus.FEED_NOT_FOUND,
+            ErrorStatus._INTERNAL_SERVER_ERROR
+    })
+    public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> searchByUserId(
+            @Parameter(
+                    description = "해당 프로필의 사용자 ID",
+                    example = "12"
+            )
+            @PathVariable Long userId,
+
+            @Parameter(
+                    description = "이전 페이지 마지막 피드 ID",
+                    example = "10"
+            )
+            @RequestParam(required = false) Long nextCursor,
+
+            @Parameter(
+                    description = "페이지 크기",
+                    example = "5"
+            )
+            @RequestParam(defaultValue = "5") int pageSize,
+
+            @Parameter(
+                    description = "검색 키워드 (제목 또는 내용)",
+                    example = "기획"
+            )
+            @RequestParam(required = false) String keyword
+    ) {
+        FeedResponseDto.FeedPreviewList response = feedQueryService.searchByUserIdByKeyword(userId, nextCursor, pageSize, keyword);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    //  키워드 기반 피드 검색 (로그인 유저 기준)
+    @Operation(summary = "나의 피드 키워드 검색", description = "로그인한 사용자의 피드 중 키워드(title/content)로 검색합니다.")
+    @GetMapping("/my-feeds/search")
+    public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> searchMyFeedsByKeyword(
+            @RequestParam(required = false) Long nextCursor,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword
+    ) {
+        FeedResponseDto.FeedPreviewList result = feedQueryService.searchMyFeedsByKeyword(nextCursor, size, keyword);
+        return ResponseEntity.ok(ApiResponse.onSuccess(result));
+    }
+
 }

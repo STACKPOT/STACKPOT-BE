@@ -33,6 +33,9 @@ public class UserMyPageResponseDto {
     @Schema(description = "끓인 팟")
     private List<CompletedPotBadgeResponseDto> completedPots;
 
+    @Schema(description = "시리즈 이름")
+    private List<String> seriesComments;
+
     @Schema(description = "피드")
     private List<FeedResponseDto.FeedDto> feeds;
 }
