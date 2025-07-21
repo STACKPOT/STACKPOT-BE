@@ -296,19 +296,44 @@ public class UserController {
     }*/
 
     @GetMapping("/description")
-    public ResponseEntity<MyDescriptionResponseDto> getMyDescription() {
-        return ResponseEntity.ok(userQueryService.getMyDescription());
+    @Operation(
+            summary = "나의 소개 조회 API",
+            description = "로그인한 사용자의 소개를 조회합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
+    public ResponseEntity<ApiResponse<MyDescriptionResponseDto>> getMyDescription() {
+        MyDescriptionResponseDto responseDto = userQueryService.getMyDescription();
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
 
     @PatchMapping("/description")
-    public ResponseEntity<Void> upsertMyDescription(@RequestBody MyDescriptionRequestDto dto) {
+    @Operation(
+            summary = "나의 소개 수정 또는 추가 API",
+            description = "로그인한 사용자의 소개를 수정하거나 추가합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+
+    })
+    public ResponseEntity<ApiResponse<Void>> upsertMyDescription(
+            @RequestBody @Valid MyDescriptionRequestDto dto) {
         userCommandService.upsertDescription(dto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
     @DeleteMapping("/description")
-    public ResponseEntity<Void> deleteMyDescription() {
+    @Operation(
+            summary = "나의 소개 삭제 API",
+            description = "로그인한 사용자의 소개를 삭제합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
+    public ResponseEntity<ApiResponse<Void>> deleteMyDescription() {
         userCommandService.deleteDescription();
         return ResponseEntity.noContent().build();
     }
+
 }
