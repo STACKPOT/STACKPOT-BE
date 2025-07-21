@@ -69,7 +69,7 @@ public class SearchController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @GetMapping("/feeds/users/{user_id}/search")
+    @GetMapping("/feeds/users/{user_id}")
     @Operation(
             summary = "다른 사용자 피드 검색 API",
             description = "특정 사용자의 피드 중에서 키워드(제목/내용)를 포함하는 피드 목록을 검색합니다."
@@ -110,7 +110,7 @@ public class SearchController {
 
     //  키워드 기반 피드 검색 (로그인 유저 기준)
     @Operation(summary = "나의 피드 키워드 검색", description = "로그인한 사용자의 피드 중 키워드(title/content)로 검색합니다.")
-    @GetMapping("/my-feeds/search")
+    @GetMapping("/my-feeds")
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> searchMyFeedsByKeyword(
             @RequestParam(required = false) Long nextCursor,
             @RequestParam(defaultValue = "10") int size,
