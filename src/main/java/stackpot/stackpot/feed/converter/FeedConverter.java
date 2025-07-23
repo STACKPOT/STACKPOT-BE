@@ -97,7 +97,7 @@ public class FeedConverter{
                 .build();
     }
 
-    public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner, boolean isLiked, boolean isSaved) {
+    public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner, boolean isLiked, boolean isSaved, Long commentCount) {
         Map<String, Object> seriesMap = null;
         if (feed.getSeries() != null) {
             seriesMap = Map.of(
@@ -124,6 +124,7 @@ public class FeedConverter{
                 .isOwner(isOwner)
                 .isLiked(isLiked)
                 .isSaved(isSaved)
+                .commentCount(commentCount)
                 .build();
     }
 
