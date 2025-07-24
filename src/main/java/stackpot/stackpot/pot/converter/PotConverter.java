@@ -10,6 +10,7 @@ import stackpot.stackpot.pot.entity.enums.PotModeOfOperation;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -62,7 +63,7 @@ public class PotConverter{
                 .build();
     }
 
-    public PotPreviewResponseDto toPrviewDto(User user, Pot pot, List<String> recruitmentRoles, boolean isSaved, int potSaveCount) {
+    public PotPreviewResponseDto toPrviewDto(User user, Pot pot, List<String> recruitmentRoles, boolean isSaved, int potSaveCount, boolean isMember) {
         String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
 
         List<String> koreanRoles = recruitmentRoles.stream()
@@ -80,6 +81,7 @@ public class PotConverter{
                 .dDay(dDay)
                 .isSaved(isSaved)
                 .potSaveCount(potSaveCount)
+                .isMember(isMember)
                 .build();
     }
 
@@ -127,6 +129,21 @@ public class PotConverter{
                 )
                 .recruitmentDeadline(pot.getRecruitmentDeadline())
                 .build();
+    }
+
+    public PotSummaryDto toDto(Pot pot) {
+        return PotSummaryDto.builder()
+                .summary(pot.getPotSummary())
+                .potLan(splitLanguages(pot.getPotLan()))
+                .build();
+    }
+
+    private List<String> splitLanguages(String potLan) {
+        if (potLan == null || potLan.isBlank()) return List.of();
+        return Arrays.stream(potLan.split(","))
+                .map(String::trim) // 공백 제거
+                .filter(s -> !s.isEmpty()) // 빈 항목 제거
+                .collect(Collectors.toList());
     }
 
 }

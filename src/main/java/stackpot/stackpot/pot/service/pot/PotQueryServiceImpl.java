@@ -133,6 +133,10 @@ public class PotQueryServiceImpl implements PotQueryService {
                 .map(Pot::getPotId)
                 .collect(Collectors.toList());
 
+        Set<Long> memberPotIds = (user != null && !potIds.isEmpty())
+                ? potMemberRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
+                : Collections.emptySet();
+
         // 저장 수와 유저의 저장 여부를 한 번에 조회
         Map<Long, Integer> potSaveCountMap = potSaveRepository.countSavesByPotIds(potIds);
         Set<Long> savedPotIds = potSaveRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds);
@@ -143,10 +147,13 @@ public class PotQueryServiceImpl implements PotQueryService {
                             .map(rd -> String.valueOf(rd.getRecruitmentRole()))
                             .collect(Collectors.toList());
 
-                    boolean isSaved = savedPotIds.contains(pot.getPotId());
-                    int saveCount = potSaveCountMap.getOrDefault(pot.getPotId(), 0);
+                    Long potId = pot.getPotId();
+                    boolean isSaved = savedPotIds.contains(potId);
+                    int saveCount = potSaveCountMap.getOrDefault(potId, 0);
 
-                    return potConverter.toPrviewDto(user, pot, roles, isSaved, saveCount);
+                    boolean isMember = "COMPLETED".equals(pot.getPotStatus()) && memberPotIds.contains(potId);
+
+                    return potConverter.toPrviewDto(user, pot, roles, isSaved, saveCount, isMember);
                 })
                 .collect(Collectors.toList());
 
@@ -270,6 +277,11 @@ public class PotQueryServiceImpl implements PotQueryService {
                 ? potSaveRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
                 : Collections.emptySet();
 
+        Set<Long> memberPotIds = (user != null && !potIds.isEmpty())
+                ? potMemberRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
+                : Collections.emptySet();
+
+
         List<PotPreviewResponseDto> content = pots.stream()
                 .map(pot -> {
                     Long potId = pot.getPotId();
@@ -279,8 +291,9 @@ public class PotQueryServiceImpl implements PotQueryService {
 
                     boolean isSaved = savedPotIds.contains(potId);
                     int saveCount = potSaveCountMap.getOrDefault(potId, 0);
+                    boolean isMember = memberPotIds.contains(potId);
 
-                    return potConverter.toPrviewDto(pot.getUser(), pot, roles, isSaved, saveCount);
+                    return potConverter.toPrviewDto(pot.getUser(), pot, roles, isSaved, saveCount, isMember);
                 })
                 .collect(Collectors.toList());
 

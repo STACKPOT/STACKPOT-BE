@@ -21,6 +21,7 @@ import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.pot.dto.PotPreviewResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.mapping.PotSave;
+import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
 import stackpot.stackpot.pot.repository.PotSaveRepository;
 import stackpot.stackpot.save.converter.FeedSaveRepository;
@@ -41,6 +42,7 @@ public class SaveServiceImpl implements SaveService {
     private final PotConverter potConverter;
     private final FeedLikeRepository feedLikeRepository;
     private final FeedConverter feedConverter;
+    private final PotMemberRepository potMemberRepository;
 
     @Override
     @Transactional
@@ -100,8 +102,9 @@ public class SaveServiceImpl implements SaveService {
 
         Map<Long, Integer> potSaveCountMap = potSaveRepository.countSavesByPotIds(potIds);
 
-        // 현재는 내가 저장한 팟만 조회 중이므로 전부 isSaved = true
-        Set<Long> savedPotIds = new HashSet<>(potIds);
+        Set<Long> memberPotIds = (user != null && !potIds.isEmpty())
+                ? potMemberRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
+                : Collections.emptySet();
 
         List<PotPreviewResponseDto> content = pots.stream()
                 .map(pot -> {
@@ -111,9 +114,10 @@ public class SaveServiceImpl implements SaveService {
                             .collect(Collectors.toList());
 
                     boolean isSaved = true;
+                    boolean isMember = memberPotIds.contains(potId);
                     int saveCount = potSaveCountMap.getOrDefault(potId, 0);
 
-                    return potConverter.toPrviewDto(pot.getUser(), pot, roles, isSaved, saveCount);
+                    return potConverter.toPrviewDto(pot.getUser(), pot, roles, isSaved, saveCount, isMember);
                 })
                 .collect(Collectors.toList());
 

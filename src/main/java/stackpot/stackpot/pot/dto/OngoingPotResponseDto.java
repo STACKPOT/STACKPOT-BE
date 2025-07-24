@@ -23,4 +23,5 @@ public class OngoingPotResponseDto {
     private String dDay;
     private Boolean isOwner;
     private Map<String, Integer> members;
+    private Boolean isMember;
 }

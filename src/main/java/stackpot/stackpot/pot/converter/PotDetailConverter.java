@@ -8,7 +8,7 @@ import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.user.entity.User;
-import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
+import stackpot.stackpot.pot.dto.AppealContentDto;
 import stackpot.stackpot.pot.dto.PotDetailResponseDto;
 
 import org.springframework.stereotype.Component;
@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class PotDetailConverter{
-    public CompletedPotDetailResponseDto toCompletedPotDetailDto(String appealContent, String userPotRole, List<BadgeDto> myBadges) {
-        return CompletedPotDetailResponseDto.builder()
+    public AppealContentDto toCompletedPotDetailDto(String appealContent, String userPotRole, List<BadgeDto> myBadges) {
+        return AppealContentDto.builder()
                 .appealContent(appealContent)
                 .userPotRole(userPotRole)
                 .myBadges(myBadges)

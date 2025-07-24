@@ -14,6 +14,7 @@ import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.pot.entity.Pot;
+import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotSaveRepository;
 import stackpot.stackpot.save.converter.FeedSaveRepository;
 import stackpot.stackpot.user.entity.User;
@@ -40,6 +41,7 @@ public class SearchServiceImpl implements SearchService {
     private final PotSaveRepository potSaveRepository;
     private final AuthService authService;
     private final FeedSaveRepository feedSaveRepository;
+    private final PotMemberRepository potMemberRepository;
 
 
     @Override
@@ -47,27 +49,30 @@ public class SearchServiceImpl implements SearchService {
     public Page<PotPreviewResponseDto> searchPots(String keyword, Pageable pageable) {
         Page<Pot> pots = potRepository.searchByKeyword(keyword, pageable);
 
-        // Pot ID 리스트 추출
         List<Pot> potList = pots.getContent();
         List<Long> potIds = potList.stream()
                 .map(Pot::getPotId)
                 .collect(Collectors.toList());
 
-        // 현재 로그인 사용자 가져오기 (비로그인 허용 시 예외 처리 필요)
         User user = null;
+        Long userId = null;
         try {
             user = authService.getCurrentUser();
+            userId = user.getId();
         } catch (Exception e) {
-            user = null; // 비로그인 사용자
+            // 비로그인
         }
 
-        // 저장 수 및 유저의 저장 여부 일괄 조회
         Map<Long, Integer> potSaveCountMap = potSaveRepository.countSavesByPotIds(potIds);
-        Set<Long> savedPotIds = (user != null)
-                ? potSaveRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
+        Set<Long> savedPotIds = (userId != null)
+                ? potSaveRepository.findPotIdsByUserIdAndPotIds(userId, potIds)
                 : Collections.emptySet();
 
-        // 변환
+        // 참여 여부 isMember 확인
+        Set<Long> memberPotIds = (userId != null)
+                ? potMemberRepository.findPotIdsByUserIdAndPotIds(userId, potIds)
+                : Collections.emptySet();
+
         return pots.map(pot -> {
             User owner = pot.getUser();
             List<String> recruitmentRoles = pot.getRecruitmentDetails().stream()
@@ -76,8 +81,9 @@ public class SearchServiceImpl implements SearchService {
 
             boolean isSaved = savedPotIds.contains(pot.getPotId());
             int saveCount = potSaveCountMap.getOrDefault(pot.getPotId(), 0);
+            boolean isMember = memberPotIds.contains(pot.getPotId());
 
-            return potConverter.toPrviewDto(owner, pot, recruitmentRoles, isSaved, saveCount);
+            return potConverter.toPrviewDto(owner, pot, recruitmentRoles, isSaved, saveCount, isMember);
         });
     }
 

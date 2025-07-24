@@ -77,6 +77,31 @@ public class MyPotConverter{
                 .dDay(dDay)
                 .isOwner(isOwnerCheck(userId, pot))
                 .members(memberRoleCountMap)
+                .isMember(null)
+                .build();
+    }
+
+    public OngoingPotResponseDto convertToMyPagePotResponseDto(Pot pot, Long userId, Boolean isMember) {
+        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
+        Map<String, Integer> memberRoleCountMap = pot.getPotMembers().stream()
+                .collect(Collectors.groupingBy(
+                        member -> member.getRoleName().name(),
+                        Collectors.reducing(0, e -> 1, Integer::sum)
+                ));
+
+
+        return OngoingPotResponseDto.builder()
+                .potId(pot.getPotId())
+                .potName(pot.getPotName())
+                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
+                .potStatus(pot.getPotStatus())
+                .potModeOfOperation(String.valueOf(pot.getPotModeOfOperation()))
+                .potDuration(pot.getPotDuration())
+                .potContent(pot.getPotContent())
+                .dDay(dDay)
+                .isOwner(isOwnerCheck(userId, pot))
+                .members(memberRoleCountMap)
+                .isMember(isMember)
                 .build();
     }
 

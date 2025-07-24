@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
+import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.user.dto.request.MyDescriptionRequestDto;
 import stackpot.stackpot.user.dto.request.TokenRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
@@ -23,15 +24,13 @@ import stackpot.stackpot.user.dto.response.*;
 import stackpot.stackpot.pot.service.pot.PotCommandService;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
-import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
-import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
-import stackpot.stackpot.pot.dto.PotResponseDto;
 import stackpot.stackpot.user.service.KakaoService;
 import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.user.service.UserCommandService;
 import stackpot.stackpot.user.service.UserQueryService;
 
 import java.io.IOException;
+import java.util.List;
 
 @Tag(name = "User Management", description = "유저 관리 API")
 @Slf4j
@@ -201,38 +200,6 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
-    @GetMapping("/mypages")
-    @Operation(
-            summary = "나의 마이페이지 조회 API",
-            description = "토큰을 통해 자신의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)"
-    )
-    @ApiErrorCodeExamples({
-            ErrorStatus.USER_NOT_FOUND,
-            ErrorStatus.USER_ALREADY_WITHDRAWN,
-    })
-    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> usersMypages(
-            @RequestParam(name = "dataType", required = false) String dataType){
-        UserMyPageResponseDto userDetails = userCommandService.getMypages(dataType);
-        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
-    }
-
-    @GetMapping("/{userId}/mypages")
-    @Operation(
-            summary = "사용자별 마이페이지 조회 API",
-            description = "userId를 통해 사용자의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다.\n"+"dataType = pot / feed / (null : pot + feed)"
-    )
-    @ApiErrorCodeExamples({
-            ErrorStatus.USER_NOT_FOUND,
-            ErrorStatus.USER_ALREADY_WITHDRAWN,
-            ErrorStatus._BAD_REQUEST
-    })
-    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> getUserMypage(
-            @PathVariable("userId") Long userId,
-            @RequestParam(name = "dataType", required = false) String dataType) {
-        UserMyPageResponseDto response = userCommandService.getUserMypage(userId, dataType);
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
-
     @PatchMapping("/profile/update")
     @Operation(
             summary = "나의 프로필 수정 API",
@@ -247,20 +214,45 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(updatedUser));
     }
 
+    @GetMapping("/pots")
+    @Operation(summary = "마이페이지 팟 조회 API", description = "나의 모든 팟(모집중 / 진행중 / 완료)을 조회합니다. status = all / recruiting / ongoing / completed")
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyAllInvolvedPots(@RequestParam(name = "potStatus", required = false) String dataType) {
+        List<OngoingPotResponseDto> pots = myPotService.getMyAllInvolvedPots(dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(pots));
+    }
 
-    //TODO : MyPotService 수정 이후 @Operation, responses 수정
-    @GetMapping("/{pot_id}/details")
+    @GetMapping("/pots/{user_id}")
+    @Operation(summary = "사용자별 마이페이지 팟 조회 API", description = "나의 모든 팟(모집중 / 진행중 / 완료)을 조회합니다. status = all / recruiting / ongoing / completed")
+    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getUserAllInvolvedPots(@PathVariable("user_id") Long user_id, @RequestParam(name = "potStatus", required = false) String dataType) {
+        List<OngoingPotResponseDto> pots = myPotService.getUserAllInvolvedPots(user_id, dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(pots));
+    }
+
+    @GetMapping("/{pot_id}/potAppealContent")
     @Operation(
-            summary = "마이페이지 끓인 팟 상세 보기 모달",
-            description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다."
+            summary = "마이페이지 '여기서 저는요' 모달 조회 API",
+            description = "'끓인 팟 상세보기 모달'에 쓰이는 Role, Badge, Appeal Content를 반환합니다."
     )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND,
+    })
+    public ResponseEntity<ApiResponse<AppealContentDto>> getAppealContent(
+            @PathVariable(name = "pot_id") Long potId) {
+        AppealContentDto response = myPotService.getAppealContent(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @GetMapping("/{pot_id}/potSummary")
+    @Operation(
+            summary = "팟 AI 요약 조회 API",
+            description = "끓인 팟을 상세보기할 때 쓰이는 PotSummary, potLan을 반환합니다."
+    )
+    @ApiErrorCodeExamples({
             ErrorStatus.POT_NOT_FOUND
     })
-    public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
+    public ResponseEntity<ApiResponse<PotSummaryDto>> getPotSummary(
             @PathVariable(name = "pot_id") Long potId) {
-        CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
+        PotSummaryDto response = myPotService.getPotSummary(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -296,5 +288,39 @@ public class UserController {
     public ResponseEntity<Void> deleteMyDescription() {
         userCommandService.deleteDescription();
         return ResponseEntity.noContent().build();
+    }
+
+    //삭제 예정
+    @GetMapping("/mypages")
+    @Operation(
+            summary = "나의 마이페이지 조회 API",
+            description = "토큰을 통해 자신의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)"
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+            ErrorStatus.USER_ALREADY_WITHDRAWN,
+    })
+    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> usersMypages(
+            @RequestParam(name = "dataType", required = false) String dataType){
+        UserMyPageResponseDto userDetails = userCommandService.getMypages(dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    }
+
+    //삭제 예정
+    @GetMapping("/{userId}/mypages")
+    @Operation(
+            summary = "사용자별 마이페이지 조회 API",
+            description = "userId를 통해 사용자의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다.\n"+"dataType = pot / feed / (null : pot + feed)"
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+            ErrorStatus.USER_ALREADY_WITHDRAWN,
+            ErrorStatus._BAD_REQUEST
+    })
+    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> getUserMypage(
+            @PathVariable("userId") Long userId,
+            @RequestParam(name = "dataType", required = false) String dataType) {
+        UserMyPageResponseDto response = userCommandService.getUserMypage(userId, dataType);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }
