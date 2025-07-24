@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                                 .requestMatchers("/actuator/**", "/health").permitAll() // 서버 점검
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll() // 스웨거 관련 접근 허용
-                                .requestMatchers("/users/oauth/kakao", "/reissue").permitAll() // 인증 관련 스웨거 접근 허용
+                                .requestMatchers("/users/oauth/**", "/reissue").permitAll() // 인증 관련 스웨거 접근 허용
                                 .requestMatchers("/home", "/sign-up", "/pots", "/feeds").permitAll()
                                 .requestMatchers("/ws-connect/**").permitAll()
 //                        .requestMatchers("").hasAnyRole("TEMP","ADMIN") // Test를 위해 모든 접근

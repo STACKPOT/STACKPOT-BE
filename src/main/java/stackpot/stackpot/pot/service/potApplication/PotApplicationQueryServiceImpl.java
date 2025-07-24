@@ -15,6 +15,7 @@ import stackpot.stackpot.pot.dto.PotDetailWithApplicantsResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.mapping.PotApplication;
 import stackpot.stackpot.pot.repository.PotApplicationRepository;
+import stackpot.stackpot.pot.repository.PotCommentRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PotApplicationQueryServiceImpl implements PotApplicationQueryService {
 
+    private final PotCommentRepository potCommentRepository;
     private final PotApplicationRepository potApplicationRepository;
     private final PotRepository potRepository;
     private final UserRepository userRepository;
@@ -65,7 +67,9 @@ public class PotApplicationQueryServiceImpl implements PotApplicationQueryServic
                 .map(rd -> RoleNameMapper.mapRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
-        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, null);
+        Long commentCount = potCommentRepository.countByPotId(potId);
+
+        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, null, commentCount);
 
         List<PotApplicationResponseDto> applicants = Collections.emptyList();
         if (isOwner && "RECRUITING".equals(pot.getPotStatus())) {

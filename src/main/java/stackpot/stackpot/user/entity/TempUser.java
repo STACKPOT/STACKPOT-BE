@@ -23,7 +23,7 @@ public class TempUser extends BaseEntity{
     private Provider provider;
 
     @Column(nullable = false)
-    private Long providerId;
+    private String providerId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = true, length = 255)
