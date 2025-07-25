@@ -40,7 +40,7 @@ public class User extends BaseEntity implements UserDetails{
     private Provider provider;
 
     @Column(nullable = false)
-    private Long providerId;
+    private String providerId;
 
     @Column(nullable = false)
     private UserType userType;

@@ -78,6 +78,7 @@ public class FeedResponseDto {
         private boolean isOwner;
         private Boolean isLiked;
         private Boolean isSaved;
+        private Long commentCount;
         // category, series, like, save까지 싹 다 필요한 경우 사용하는 DTO: 피드 상세 조회
     }
 

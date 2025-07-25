@@ -21,6 +21,4 @@ public interface FeedCommentRepository extends JpaRepository<FeedComment, Long> 
 
     @Query("SELECT COUNT(fc) FROM FeedComment fc WHERE fc.feed.feedId = :feedId")
     Long countByFeedId(@Param("feedId") Long feedId);
-
-
 }

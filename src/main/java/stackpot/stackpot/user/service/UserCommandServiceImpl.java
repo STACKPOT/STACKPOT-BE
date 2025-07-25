@@ -93,7 +93,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
-    public UserResponseDto.loginDto isnewUser(Provider provider, Long providerId, String email) {
+    public UserResponseDto.loginDto isnewUser(Provider provider, String providerId, String email) {
         //provider+providId로 조회
         Optional<User> existingUser = userRepository.findByProviderAndProviderId(provider, providerId);
 
