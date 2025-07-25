@@ -4,10 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +13,9 @@ import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.common.util.AuthService;
+import stackpot.stackpot.common.util.RedisUtil;
 import stackpot.stackpot.feed.converter.FeedConverter;
+import stackpot.stackpot.feed.dto.FeedCacheDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.Series;
@@ -27,11 +26,12 @@ import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
 import stackpot.stackpot.feed.repository.SeriesRepository;
 import stackpot.stackpot.notification.service.NotificationCommandService;
-import stackpot.stackpot.save.converter.FeedSaveRepository;
+import stackpot.stackpot.save.repository.FeedSaveRepository;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,7 +48,7 @@ public class FeedQueryServiceImpl implements FeedQueryService {
     private final AuthService authService;
     private final FeedSaveRepository feedSaveRepository;
     private final FeedCommentRepository feedCommentRepository;
-
+    private final RedisUtil redisUtil;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
@@ -335,5 +335,146 @@ public class FeedQueryServiceImpl implements FeedQueryService {
 
         return response;
     }
+
+    @Override
+    public FeedResponseDto.FeedPreviewList searchMyFeeds(Long nextCursor, int pageSize, String keyword) {
+        User user = authService.getCurrentUser();
+
+        // 1. DB에서 로그인 유저의 피드 전체 ID 가져오기 (커서 기반)
+        List<Feed> dbFeeds = feedRepository.findMyFeedsByCursor(user.getId(), nextCursor, PageRequest.of(0, pageSize * 2));
+
+        List<FeedCacheDto> cachedFeeds = new ArrayList<>();
+
+        for (Feed feed : dbFeeds) {
+            String cacheKey = "feed:" + feed.getFeedId();
+            FeedCacheDto cached = redisUtil.get(cacheKey, FeedCacheDto.class);
+            if (cached != null) {
+                cachedFeeds.add(cached);
+            } else {
+                FeedCacheDto dto = feedConverter.toFeedCacheDto(feed);
+                redisUtil.set(cacheKey, dto, 30, TimeUnit.MINUTES);
+                cachedFeeds.add(dto);
+            }
+        }
+
+        // 2. 키워드 필터링
+        List<FeedCacheDto> filtered = cachedFeeds.stream()
+                .filter(feed -> {
+                    if (keyword == null || keyword.isBlank()) return true;
+                    String lower = keyword.toLowerCase();
+                    return (feed.getTitle() != null && feed.getTitle().toLowerCase().contains(lower)) ||
+                            (feed.getContent() != null && feed.getContent().toLowerCase().contains(lower));
+                })
+                .sorted(Comparator.comparing(FeedCacheDto::getFeedId).reversed())
+                .limit(pageSize)
+                .toList();
+
+        List<Long> likedIds = feedLikeRepository.findFeedIdsByUserId(user.getId());
+        List<Long> savedIds = feedSaveRepository.findFeedIdsByUserId(user.getId());
+
+        List<FeedResponseDto.FeedDto> feedDtos = filtered.stream()
+                .map(feed -> {
+                    boolean isLiked = likedIds.contains(feed.getFeedId());
+                    boolean isSaved = savedIds.contains(feed.getFeedId());
+                    long likeCount = feedLikeRepository.countByFeedId(feed.getFeedId());
+                    long saveCount = feedSaveRepository.countByFeedId(feed.getFeedId());
+                    long commentCount = 0L;
+                    boolean isOwner = feed.getUserId().equals(user.getId());
+
+                    return feedConverter.toFeedDtoFromCache(feed, isLiked, isSaved, likeCount, saveCount, commentCount, isOwner);
+                })
+                .toList();
+
+        Long newCursor = filtered.isEmpty() ? null : filtered.get(filtered.size() - 1).getFeedId();
+
+        return FeedResponseDto.FeedPreviewList.builder()
+                .feeds(feedDtos)
+                .nextCursor(newCursor)
+                .build();
+    }
+
+
+    @Override
+    public FeedResponseDto.FeedPreviewList searchMyFeedsByKeyword(Long nextCursor, int pageSize, String keyword) {
+        User user = authService.getCurrentUser();
+
+        Pageable pageable = PageRequest.of(0, pageSize);
+        List<Feed> feeds = feedRepository.searchFeedsByUserAndKeyword(user.getId(), keyword, nextCursor, pageable);
+
+        List<Long> likedIds = feedLikeRepository.findFeedIdsByUserId(user.getId());
+        List<Long> savedIds = feedSaveRepository.findFeedIdsByUserId(user.getId());
+
+        List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
+                .map(feed -> {
+                    boolean isLiked = likedIds.contains(feed.getFeedId());
+                    boolean isSaved = savedIds.contains(feed.getFeedId());
+                    boolean isOwner = feed.getUser().getId().equals(user.getId());
+                    long saveCount = feedSaveRepository.countByFeedId(feed.getFeedId());
+
+                    return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
+                })
+                .collect(Collectors.toList());
+
+        Long newCursor = feeds.isEmpty() ? null : feeds.get(feeds.size() - 1).getFeedId();
+
+
+        return FeedResponseDto.FeedPreviewList.builder()
+                .feeds(feedDtos)
+                .nextCursor(newCursor)
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public FeedResponseDto.FeedPreviewList searchByUserIdByKeyword(Long userId, Long nextCursor, int pageSize, String keyword) {
+        // 현재 로그인한 사용자
+        User loginUser = authService.getCurrentUser();
+        Long loginUserId = loginUser.getId();
+
+        // 로그인한 사용자의 좋아요/저장 목록 조회
+        List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserId(loginUserId);
+        List<Long> savedFeedIds = feedSaveRepository.findFeedIdsByUserId(loginUserId);
+
+        // 커서 기반 피드 조회
+        Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
+        List<Feed> feeds = (nextCursor == null)
+                ? feedRepository.findByUser_Id(userId, pageable)
+                : feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
+
+        // 키워드 필터링
+        String lowerKeyword = (keyword != null) ? keyword.toLowerCase() : null;
+        List<Feed> filteredFeeds = feeds.stream()
+                .filter(feed -> {
+                    if (lowerKeyword == null || lowerKeyword.isBlank()) return true;
+                    return (feed.getTitle() != null && feed.getTitle().toLowerCase().contains(lowerKeyword)) ||
+                            (feed.getContent() != null && feed.getContent().toLowerCase().contains(lowerKeyword));
+                })
+                .collect(Collectors.toList());
+
+        // DTO 변환
+        List<FeedResponseDto.FeedDto> feedDtos = filteredFeeds.stream()
+                .map(feed -> {
+                    boolean isOwner = Objects.equals(loginUserId, feed.getUser().getId());
+                    boolean isLiked = likedFeedIds.contains(feed.getFeedId());
+                    boolean isSaved = savedFeedIds.contains(feed.getFeedId());
+                    int saveCount = feedSaveRepository.countByFeed(feed);
+
+                    return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
+                })
+                .collect(Collectors.toList());
+
+        Long nextCursorResult = (!filteredFeeds.isEmpty() && filteredFeeds.size() >= pageSize)
+                ? filteredFeeds.get(filteredFeeds.size() - 1).getFeedId()
+                : null;
+
+        return FeedResponseDto.FeedPreviewList.builder()
+                .feeds(feedDtos)
+                .nextCursor(nextCursorResult)
+                .build();
+    }
+
+
+
+
 
 }

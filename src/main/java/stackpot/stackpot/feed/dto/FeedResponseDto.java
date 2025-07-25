@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,13 @@ public class FeedResponseDto {
         private List<FeedDto> feeds;
         private Long nextCursor; // 다음 커서 값
         // [category, series X / like, save O]일 때사용하는 DTO:  피드 전체 조회, 사용자별, 나의 피드 조회, 검색
+        public static FeedPreviewList empty() {
+            return FeedPreviewList.builder()
+                    .feeds(Collections.emptyList())
+                    .nextCursor(null)
+                    .build();
+        }
+
     }
 
     @Data
