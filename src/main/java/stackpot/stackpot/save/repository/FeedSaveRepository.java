@@ -1,4 +1,4 @@
-package stackpot.stackpot.save.converter;
+package stackpot.stackpot.save.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +11,6 @@ import stackpot.stackpot.feed.entity.mapping.FeedSave;
 import stackpot.stackpot.user.entity.User;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -26,5 +25,11 @@ public interface FeedSaveRepository extends JpaRepository<FeedSave, Long> {
 
     @Query("SELECT fs.feed.feedId, COUNT(fs) FROM FeedSave fs WHERE fs.feed.feedId IN :feedIds GROUP BY fs.feed.feedId")
     List<Object[]> countSavesByFeedIds(@Param("feedIds") List<Long> feedIds);
+
+
+
+    @Query("SELECT COUNT(fs) FROM FeedSave fs WHERE fs.feed.feedId = :feedId")
+    long countByFeedId(@Param("feedId") Long feedId);
+
 }
 

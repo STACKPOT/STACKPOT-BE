@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +17,9 @@ import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.common.util.AuthService;
+import stackpot.stackpot.common.util.RedisUtil;
 import stackpot.stackpot.feed.converter.FeedConverter;
+import stackpot.stackpot.feed.dto.FeedCacheDto;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.feed.dto.SeriesRequestDto;
@@ -25,7 +28,7 @@ import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.feed.entity.mapping.FeedLike;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
-import stackpot.stackpot.save.converter.FeedSaveRepository;
+import stackpot.stackpot.save.repository.FeedSaveRepository;
 import stackpot.stackpot.feed.repository.SeriesRepository;
 import stackpot.stackpot.notification.dto.NotificationResponseDto;
 import stackpot.stackpot.notification.event.FeedLikeEvent;
@@ -34,6 +37,7 @@ import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,9 +53,9 @@ public class FeedCommandServiceImpl implements FeedCommandService {
     private final SeriesRepository seriesRepository;
     private final AuthService authService;
     private final FeedSaveRepository feedSaveRepository;
-
+    private final RedisUtil redisUtil;
     private final ApplicationEventPublisher applicationEventPublisher;
-
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     public FeedResponseDto.CreatedFeedDto createFeed(FeedRequestDto.createDto request) {
@@ -67,8 +71,11 @@ public class FeedCommandServiceImpl implements FeedCommandService {
         feed.setUser(user);
 
         Feed saved = feedRepository.save(feed);
+
         return feedConverter.createFeedDto(saved);
     }
+
+
 
 
     @Transactional

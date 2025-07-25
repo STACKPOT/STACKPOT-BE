@@ -15,13 +15,12 @@ import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.repository.PotSaveRepository;
-import stackpot.stackpot.save.converter.FeedSaveRepository;
+import stackpot.stackpot.save.repository.FeedSaveRepository;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
 import stackpot.stackpot.user.repository.UserRepository;
-import stackpot.stackpot.feed.dto.FeedSearchResponseDto;
 import stackpot.stackpot.pot.dto.PotPreviewResponseDto;
 
 import java.util.*;

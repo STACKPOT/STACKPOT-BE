@@ -6,11 +6,13 @@ import org.hibernate.annotations.BatchSize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import stackpot.stackpot.common.BaseEntity;
+import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.user.entity.enums.UserType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -73,6 +75,9 @@ public class User extends BaseEntity implements UserDetails{
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 10)
     private List<Pot> pots;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Series> seriesList ;
 
     private boolean isDeleted = false; // 삭제 여부 필드
 

@@ -2,6 +2,7 @@ package stackpot.stackpot.feed.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.enums.Category;
 import stackpot.stackpot.feed.entity.enums.Interest;
+import stackpot.stackpot.user.entity.User;
 
 import java.util.List;
 
@@ -99,6 +101,56 @@ ORDER BY f.likeCount DESC, f.feedId DESC
             @Param("lastFeedId") Long lastFeedId,
             Pageable pageable
     );
+
+    //검색
+    // 처음 조회 (nextCursor 없음)
+    @Query("""
+    SELECT f FROM Feed f
+    WHERE f.user.id = :userId
+      AND (:keyword IS NULL OR LOWER(f.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+                         OR LOWER(f.content) LIKE LOWER(CONCAT('%', :keyword, '%')))
+    ORDER BY f.feedId DESC
+""")
+    List<Feed> searchByUserIdAndKeyword(
+            @Param("userId") Long userId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    // 이후 커서 기반 조회
+    @Query("""
+    SELECT f FROM Feed f
+    WHERE f.user.id = :userId
+      AND f.feedId < :cursor
+      AND (:keyword IS NULL OR LOWER(f.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+                         OR LOWER(f.content) LIKE LOWER(CONCAT('%', :keyword, '%')))
+    ORDER BY f.feedId DESC
+""")
+    List<Feed> searchByUserIdAndKeywordBeforeCursor(
+            @Param("userId") Long userId,
+            @Param("cursor") Long cursor,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("""
+    SELECT f FROM Feed f
+    WHERE f.user.id = :userId
+      AND (:keyword IS NULL OR :keyword = '' OR
+           LOWER(f.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+           LOWER(f.content) LIKE LOWER(CONCAT('%', :keyword, '%')))
+      AND (:cursor IS NULL OR f.feedId< :cursor)
+    ORDER BY f.feedId DESC
+""")
+    List<Feed> searchFeedsByUserAndKeyword(
+            @Param("userId") Long userId,
+            @Param("keyword") String keyword,
+            @Param("cursor") Long cursor,
+            Pageable pageable
+    );
+    @Query("SELECT f FROM Feed f WHERE f.user.id = :userId AND (:cursor IS NULL OR f.feedId < :cursor) ORDER BY f.feedId DESC")
+    List<Feed> findMyFeedsByCursor(@Param("userId") Long userId, @Param("cursor") Long cursor, Pageable pageable);
+
 
 
 }
