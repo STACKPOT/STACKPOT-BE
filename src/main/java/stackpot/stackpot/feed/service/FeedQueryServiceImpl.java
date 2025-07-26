@@ -339,6 +339,7 @@ public class FeedQueryServiceImpl implements FeedQueryService {
         return response;
     }
 
+
     @Override
     public FeedResponseDto.FeedPreviewList searchMyFeeds(Long nextCursor, int pageSize, String keyword) {
         User user = authService.getCurrentUser();
