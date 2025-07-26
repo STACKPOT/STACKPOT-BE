@@ -152,7 +152,7 @@ public class FeedController {
             @Parameter(description = "페이지 크기", example = "10")
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        FeedResponseDto.FeedPreviewList feedPreviewList = feedQueryService.searchByUserIdByKeyword(userId, cursor, size);
+        FeedResponseDto.FeedPreviewList feedPreviewList = feedQueryService.getFeedsByUserId(userId, cursor, size);
         return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
     }
 

@@ -82,13 +82,13 @@ public class SearchController {
     public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> searchByUserId(
             @Parameter(
                     description = "해당 프로필의 사용자 ID",
-                    example = "12"
+                    example = "6"
             )
-            @PathVariable Long userId,
+            @PathVariable Long user_id,
 
             @Parameter(
-                    description = "이전 페이지 마지막 피드 ID",
-                    example = "10"
+                    description = "이전 페이지 마지막 피드 ID"
+
             )
             @RequestParam(required = false) Long nextCursor,
 
@@ -100,11 +100,11 @@ public class SearchController {
 
             @Parameter(
                     description = "검색 키워드 (제목 또는 내용)",
-                    example = "기획"
+                    example = "폭우"
             )
             @RequestParam(required = false) String keyword
     ) {
-        FeedResponseDto.FeedPreviewList response = feedQueryService.searchByUserIdByKeyword(userId, nextCursor, pageSize, keyword);
+        FeedResponseDto.FeedPreviewList response = feedQueryService.searchByUserIdByKeyword(user_id, nextCursor, pageSize, keyword);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
