@@ -5,10 +5,11 @@ import org.springframework.stereotype.Component;
 import stackpot.stackpot.badge.dto.BadgeDto;
 import stackpot.stackpot.feed.converter.FeedConverter;
 import stackpot.stackpot.feed.entity.Feed;
+import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.pot.converter.MyPotConverter;
 import stackpot.stackpot.pot.entity.Pot;
-import stackpot.stackpot.save.converter.FeedSaveRepository;
+import stackpot.stackpot.save.repository.FeedSaveRepository;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.badge.repository.PotMemberBadgeRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
@@ -39,12 +40,16 @@ public class UserMypageConverter {
         // 현재 유저가 저장한 피드 ID 목록
         List<Long> savedFeedIds = feedSaveRepository.findFeedIdsByUserId(user.getId());
 
+        List<String> seriesComments = user.getSeriesList().stream()
+                .map(Series::getComment)
+                .collect(Collectors.toList());
         return UserMyPageResponseDto.builder()
                 .id(user.getId())
                 .nickname(user.getNickname() + Role.toVegetable(String.valueOf(user.getRole())))
                 .role(user.getRole())
                 .userTemperature(user.getUserTemperature())
                 .userIntroduction(user.getUserIntroduction())
+                .seriesComments(seriesComments)
 
                 .completedPots(completedPots.stream()
                         .map(pot -> {

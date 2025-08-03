@@ -49,7 +49,7 @@ public class UserCommandServiceImplTest {
     void existingUser() {
         // given
         Provider provider = Provider.KAKAO;
-        Long providerId = 12345L;
+        String providerId = "1";
         String email = "test@example.com";
 
         User mockUser = User.builder()
@@ -80,7 +80,7 @@ public class UserCommandServiceImplTest {
     void newUser() {
         // given
         Provider provider = Provider.KAKAO;
-        Long providerId = 67890L;
+        String providerId = "67890L";
         String email = "new@example.com";
 
         TokenServiceResponse mockToken = TokenServiceResponse.of("access", null);

@@ -22,6 +22,7 @@ import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.mapping.PotApplication;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
+import stackpot.stackpot.pot.repository.PotCommentRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
 import stackpot.stackpot.pot.repository.PotSaveRepository;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class PotQueryServiceImpl implements PotQueryService {
 
+    private final PotCommentRepository potCommentRepository;
     private final PotRepository potRepository;
     private final PotMemberRepository potMemberRepository;
     private final UserRepository userRepository;
@@ -96,7 +98,9 @@ public class PotQueryServiceImpl implements PotQueryService {
                 .map(rd -> RoleNameMapper.mapRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
-        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, isSaved);
+        Long countComment = potCommentRepository.countByPotId(potId);
+
+        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, isSaved, countComment);
     }
 
     @Override

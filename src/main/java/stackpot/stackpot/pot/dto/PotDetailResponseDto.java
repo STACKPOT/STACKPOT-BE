@@ -31,4 +31,5 @@ public class PotDetailResponseDto {
     private String recruitmentDetails;
     private String recruitmentDeadline;
     private Map<String, Integer> recruitingMembers;
+    private Long commentCount;
 }

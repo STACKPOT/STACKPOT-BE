@@ -1,4 +1,4 @@
-package stackpot.stackpot.user.service;
+package stackpot.stackpot.user.service.oauth;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.RequiredArgsConstructor;

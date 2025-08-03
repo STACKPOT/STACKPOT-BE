@@ -28,7 +28,7 @@ public class PotDetailConverter{
                 .build();
     }
 
-    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied, Boolean isSaved) {
+    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied, Boolean isSaved, Long commentCount) {
         String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
 
         Map<String, Integer> recruitingMembers = pot.getRecruitmentDetails().stream()
@@ -58,6 +58,7 @@ public class PotDetailConverter{
                 .recruitmentDeadline(DateFormatter.dotFormatter(pot.getRecruitmentDeadline()))
                 .recruitmentDetails(recruitmentDetails)
                 .recruitingMembers(recruitingMembers)
+                .commentCount(commentCount)
                 .build();
     }
 

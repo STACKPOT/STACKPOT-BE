@@ -4,6 +4,7 @@ package stackpot.stackpot.feed.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.common.util.DateFormatter;
+import stackpot.stackpot.feed.dto.FeedCacheDto;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
@@ -97,7 +98,7 @@ public class FeedConverter{
                 .build();
     }
 
-    public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner, boolean isLiked, boolean isSaved) {
+    public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner, boolean isLiked, boolean isSaved, Long commentCount) {
         Map<String, Object> seriesMap = null;
         if (feed.getSeries() != null) {
             seriesMap = Map.of(
@@ -124,6 +125,7 @@ public class FeedConverter{
                 .isOwner(isOwner)
                 .isLiked(isLiked)
                 .isSaved(isSaved)
+                .commentCount(commentCount)
                 .build();
     }
 
@@ -133,4 +135,34 @@ public class FeedConverter{
                 .user(user)
                 .build();
     }
+    public FeedResponseDto.FeedDto toFeedDtoFromCache(FeedCacheDto feed, boolean isLiked, boolean isSaved, long likeCount, long saveCount, long commentCount, boolean isOwner) {
+        return FeedResponseDto.FeedDto.builder()
+                .feedId(feed.getFeedId())
+                .writerId(feed.getUserId())
+                .writer(feed.getWriter())
+                .writerRole(feed.getWriterRole())
+                .title(feed.getTitle())
+                .content(feed.getContent())
+                .likeCount(likeCount)
+                .commentCount(commentCount)
+                .saveCount(saveCount)
+                .isLiked(isLiked)
+                .isSaved(isSaved)
+                .createdAt(feed.getCreatedAt())
+                .isOwner(isOwner)
+                .build();
+    }
+    public FeedCacheDto toFeedCacheDto(Feed feed) {
+        return FeedCacheDto.builder()
+                .feedId(feed.getFeedId())
+                .userId(feed.getUser().getId())
+                .writer(feed.getUser().getNickname())
+                .writerRole(feed.getUser().getRole())
+                .title(feed.getTitle())
+                .content(feed.getContent())
+                .createdAt(feed.getCreatedAt().toString())
+                .build();
+    }
+
+
 }

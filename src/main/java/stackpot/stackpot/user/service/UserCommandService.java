@@ -10,7 +10,7 @@ import stackpot.stackpot.user.entity.enums.Role;
 public interface UserCommandService {
     UserSignUpResponseDto joinUser(UserRequestDto.JoinDto request);
 
-    UserResponseDto.loginDto isnewUser(Provider provider, Long providerId, String email);
+    UserResponseDto.loginDto isnewUser(Provider provider, String providerId, String email);
 
     UserResponseDto.UserInfoDto getMyUsers();
     UserResponseDto.UserInfoDto getUsers(Long UserId);

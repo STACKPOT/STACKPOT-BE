@@ -15,19 +15,26 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
+import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
+import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
+import stackpot.stackpot.pot.dto.PotResponseDto;
+import stackpot.stackpot.pot.service.pot.MyPotService;
+import stackpot.stackpot.pot.service.pot.PotCommandService;
 import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.user.dto.request.MyDescriptionRequestDto;
 import stackpot.stackpot.user.dto.request.TokenRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
-import stackpot.stackpot.pot.service.pot.PotCommandService;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.user.service.KakaoService;
 import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.user.service.UserCommandService;
 import stackpot.stackpot.user.service.UserQueryService;
+import stackpot.stackpot.user.service.oauth.GoogleService;
+import stackpot.stackpot.user.service.oauth.KakaoService;
+import stackpot.stackpot.user.service.oauth.NaverService;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,6 +48,8 @@ public class UserController {
 
     private final UserCommandService userCommandService;
     private final KakaoService kakaoService;
+    private final NaverService naverService;
+    private final GoogleService googleService;
     private final MyPotService myPotService;
     private final PotCommandService potCommandService;
     private final UserQueryService userQueryService;
@@ -72,7 +81,7 @@ public class UserController {
 
     @GetMapping("/oauth/kakao")
     @Operation(
-            summary = "로그인 및 토큰발급 API",
+            summary = "카카오 로그인 및 토큰발급 API",
             description = "\"code\" 와 함께 요청시 기존/신규 유저 구분 및 accessToken을 발급합니다. 이떄 발급된 AccessToken은 회원가입 관련 엔드포인트만 접급 가능합니다.\nisNewUser : false( DB 조회 확인 기존 유저 ), ture ( DB에 없음 신규 유저 )",
             responses = {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -92,16 +101,80 @@ public class UserController {
                     )
             }
     )
-    public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> callback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
-
-        log.info("Authorization code : {}", code);
+    public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
 
-        Long providerId = userInfo.getId();
+        String providerId = String.valueOf(userInfo.getId());
         String email = userInfo.getKakaoAccount().getEmail();
 
         UserResponseDto.loginDto userResponse = userCommandService.isnewUser(Provider.KAKAO, providerId, email);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userResponse));
+    }
+
+    @GetMapping("/oauth/naver")
+    @Operation(
+            summary = "네이버 로그인 및 토큰발급 API",
+            description = "\"code\" 와 함께 요청시 기존/신규 유저 구분 및 accessToken을 발급합니다. 이떄 발급된 AccessToken은 회원가입 관련 엔드포인트만 접급 가능합니다.\nisNewUser : false( DB 조회 확인 기존 유저 ), ture ( DB에 없음 신규 유저 )",
+            responses = {
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "200",
+                            description = "성공적으로 토큰 발급",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.loginDto.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid Parameter",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(mediaType = "application/json")
+                    )
+            }
+    )
+    public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> naverCallback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
+        String accessToken = naverService.getAccessTokenFromNaver(code);
+        NaverUserInfoResponseDto userInfo = naverService.getUserInfo(accessToken);
+
+        String providerId = userInfo.getResponse().id();
+        String email = userInfo.getResponse().email();
+
+        UserResponseDto.loginDto userResponse = userCommandService.isnewUser(Provider.NAVER, providerId, email);
+        return ResponseEntity.ok(ApiResponse.onSuccess(userResponse));
+    }
+
+    @GetMapping("/oauth/google")
+    @Operation(
+            summary = "구글 로그인 및 토큰발급 API",
+            description = "\"code\" 와 함께 요청시 기존/신규 유저 구분 및 accessToken을 발급합니다. 이떄 발급된 AccessToken은 회원가입 관련 엔드포인트만 접급 가능합니다.\nisNewUser : false( DB 조회 확인 기존 유저 ), ture ( DB에 없음 신규 유저 )",
+            responses = {
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "200",
+                            description = "성공적으로 토큰 발급",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.loginDto.class))
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid Parameter",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(mediaType = "application/json")
+                    )
+            }
+    )
+    public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> googleCallback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
+        String accessToken = googleService.getAccessTokenFromGoogle(code);
+        GoogleUserInfoResponseDto userInfo = googleService.getUserInfo(accessToken);
+
+        String providerId = userInfo.getId();
+        String email = userInfo.getEmail();
+
+        UserResponseDto.loginDto userResponse = userCommandService.isnewUser(Provider.GOOGLE, providerId, email);
         return ResponseEntity.ok(ApiResponse.onSuccess(userResponse));
     }
 
@@ -120,7 +193,7 @@ public class UserController {
             summary = "닉네임 생성 API",
             description = "닉네임 생성 시 역할별로 닉네임이 생성됩니다. 기존 유저와 중복되지 않는 닉네임이 생성됩니다."
     )
-    public ResponseEntity<ApiResponse<NicknameResponseDto>> nickname(@RequestParam("role") Role role){
+    public ResponseEntity<ApiResponse<NicknameResponseDto>> nickname(@RequestParam("role") Role role) {
         NicknameResponseDto nickName = userCommandService.createNickname(role);
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
@@ -150,15 +223,15 @@ public class UserController {
             ErrorStatus.REDIS_BLACKLIST_SAVE_FAILED
     })
     public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String accessToken, @RequestBody TokenRequestDto refreshToken) {
-        String response = userCommandService.logout(accessToken,refreshToken.getRefreshToken());
+        String response = userCommandService.logout(accessToken, refreshToken.getRefreshToken());
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
     @DeleteMapping("/delete")
     @Operation(
             summary = "회원 탈퇴 API",
-            description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 "+
-                    "-pot 생성자인 경우 softDelet\n"+
+            description = "AccessToken 토큰과 함께 요청 시 회원 탈퇴 " +
+                    "-pot 생성자인 경우 softDelet\n" +
                     "-pot 생성자가 아닌 경우 hardDelet"
     )
     @ApiErrorCodeExamples({
@@ -274,18 +347,42 @@ public class UserController {
     }
 
     @GetMapping("/description")
-    public ResponseEntity<MyDescriptionResponseDto> getMyDescription() {
-        return ResponseEntity.ok(userQueryService.getMyDescription());
+    @Operation(
+            summary = "나의 소개 조회 API",
+            description = "로그인한 사용자의 소개를 조회합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
+    public ResponseEntity<ApiResponse<MyDescriptionResponseDto>> getMyDescription() {
+        MyDescriptionResponseDto responseDto = userQueryService.getMyDescription();
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
 
     @PatchMapping("/description")
-    public ResponseEntity<Void> upsertMyDescription(@RequestBody MyDescriptionRequestDto dto) {
+    @Operation(
+            summary = "나의 소개 수정 또는 추가 API",
+            description = "로그인한 사용자의 소개를 수정하거나 추가합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+
+    })
+    public ResponseEntity<ApiResponse<Void>> upsertMyDescription(
+            @RequestBody @Valid MyDescriptionRequestDto dto) {
         userCommandService.upsertDescription(dto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
     @DeleteMapping("/description")
-    public ResponseEntity<Void> deleteMyDescription() {
+    @Operation(
+            summary = "나의 소개 삭제 API",
+            description = "로그인한 사용자의 소개를 삭제합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
+    public ResponseEntity<ApiResponse<Void>> deleteMyDescription() {
         userCommandService.deleteDescription();
         return ResponseEntity.noContent().build();
     }
