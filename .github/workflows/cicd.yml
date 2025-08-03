@@ -46,8 +46,11 @@ jobs:
 
       - name: Set Target Version
         run: |
-          if [ "${{ steps.get-port.outputs.stdout }}" == "8081" ]; then
-            echo "TARGET_VERSION=green" >> $GITHUB_ENV
+          TARGET_PORT="${{ steps.get-port.outputs.stdout }}"
+          TARGET_PORT=$(echo "$TARGET_PORT" | tr -d '\r\n')  # 개행 제거
+          echo "TARGET_PORT: [$TARGET_PORT]"
+          if [ "$TARGET_PORT" == "8081" ]; then
+             echo "TARGET_VERSION=green" >> $GITHUB_ENV
           else
             echo "TARGET_VERSION=blue" >> $GITHUB_ENV
           fi
