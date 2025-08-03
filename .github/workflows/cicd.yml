@@ -42,11 +42,12 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1
+            ACTIVE_PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
+            echo "active_port=$ACTIVE_PORT" >> $GITHUB_OUTPUT
 
       - name: Set Target Version
         run: |
-          if [ "${{ steps.get-port.outputs.stdout }}" == "8081" ]; then
+          if [ "${{ steps.get-port.outputs.active_port }}" == "8081" ]; then
             echo "TARGET_VERSION=green" >> $GITHUB_ENV
           else
             echo "TARGET_VERSION=blue" >> $GITHUB_ENV

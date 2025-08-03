@@ -45,7 +45,6 @@ public class ChatFacade {
     private final ChatSessionManager chatSessionManager;
     private final ChatConverter chatConverter;
 
-
     public void chat(ChatRequestDto.ChatMessageDto chatMessageDto, Long userId, Long chatRoomId) {
         Long potId = chatRoomQueryService.selectPotIdByChatRoomId(chatRoomId);
         Role role = potMemberQueryService.selectRoleByUserIdAndPotId(userId, potId);
