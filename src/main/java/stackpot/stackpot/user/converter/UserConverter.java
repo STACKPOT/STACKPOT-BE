@@ -46,5 +46,25 @@ public class UserConverter {
                 .userIntroduction(user.getUserIntroduction())
                 .build();
     }
+
+    public static UserResponseDto.UserInfoDto toUserInfo(User user) {
+
+        if (user.getId() == null) {
+            throw new IllegalStateException("User ID is null");
+        }
+
+        // 역할명을 변환하여 닉네임에 추가
+        String roleName = user.getRole() != null ? user.getRole().name() : "멤버";
+        String nicknameWithRole = user.getNickname() + " " + Role.toVegetable(roleName);
+
+        return UserResponseDto.UserInfoDto.builder()
+                .id(user.getId())
+                .nickname(nicknameWithRole)
+                .role(user.getRole())
+                .interest(user.getInterest())
+                .userTemperature(user.getUserTemperature())
+                .userIntroduction(user.getUserIntroduction())
+                .build();
+    }
 }
 

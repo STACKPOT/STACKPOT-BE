@@ -4,7 +4,6 @@ import stackpot.stackpot.user.dto.request.MyDescriptionRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
-import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 
@@ -13,8 +12,8 @@ public interface UserCommandService {
 
     UserResponseDto.loginDto isnewUser(Provider provider, Long providerId, String email);
 
-    UserResponseDto.Userdto getMyUsers();
-    UserResponseDto.Userdto getUsers(Long UserId);
+    UserResponseDto.UserInfoDto getMyUsers();
+    UserResponseDto.UserInfoDto getUsers(Long UserId);
 
     UserMyPageResponseDto getMypages(String dataType);
 

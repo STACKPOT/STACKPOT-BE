@@ -180,9 +180,9 @@ public class UserController {
             ErrorStatus.USER_ALREADY_WITHDRAWN,
             ErrorStatus.USER_NOT_FOUND
     })
-    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersPages(
+    public ResponseEntity<ApiResponse<UserResponseDto.UserInfoDto>> usersPages(
             @PathVariable(name = "userId") Long userId){
-        UserResponseDto.Userdto userDetails = userCommandService.getUsers(userId);
+        UserResponseDto.UserInfoDto userDetails = userCommandService.getUsers(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
@@ -195,8 +195,8 @@ public class UserController {
             ErrorStatus.USER_NOT_FOUND,
             ErrorStatus.USER_ALREADY_WITHDRAWN,
     })
-    public ResponseEntity<ApiResponse<UserResponseDto.Userdto>> usersMyPages(){
-        UserResponseDto.Userdto userDetails = userCommandService.getMyUsers();
+    public ResponseEntity<ApiResponse<UserResponseDto.UserInfoDto>> usersMyPages(){
+        UserResponseDto.UserInfoDto userDetails = userCommandService.getMyUsers();
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
 
@@ -228,7 +228,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(pots));
     }
 
-    @GetMapping("/{pot_id}/potAppealContent")
+    @GetMapping("/potAppealContent/{pot_id}")
     @Operation(
             summary = "마이페이지 '여기서 저는요' 모달 조회 API",
             description = "'끓인 팟 상세보기 모달'에 쓰이는 Role, Badge, Appeal Content를 반환합니다."
@@ -242,9 +242,9 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @GetMapping("/{pot_id}/potSummary")
+    @GetMapping("/potSummary{pot_id}/")
     @Operation(
-            summary = "팟 AI 요약 조회 API",
+            summary = "끓인 팟 AI 요약 모달 조회 API",
             description = "끓인 팟을 상세보기할 때 쓰이는 PotSummary, potLan을 반환합니다."
     )
     @ApiErrorCodeExamples({

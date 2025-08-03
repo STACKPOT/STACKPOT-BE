@@ -144,18 +144,17 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
-    public UserResponseDto.Userdto getMyUsers() {
+    public UserResponseDto.UserInfoDto getMyUsers() {
         User user = authService.getCurrentUser();
         if(user.getRole() == Role.UNKNOWN){
             log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
             throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         }
-        // User 정보를 UserResponseDto로 변환
-        return UserConverter.toDto(user);
+        return UserConverter.toUserInfo(user);
     }
 
     @Override
-    public UserResponseDto.Userdto getUsers(Long UserId) {
+    public UserResponseDto.UserInfoDto getUsers(Long UserId) {
         User user = userRepository.findById(UserId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
@@ -164,7 +163,7 @@ public class UserCommandServiceImpl implements UserCommandService {
             log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
             throw new UserHandler(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
-        return UserConverter.toDto(user);
+        return UserConverter.toUserInfo(user);
     }
 
 
