@@ -34,16 +34,28 @@ jobs:
           arguments: build -x test
 
       # 🔵 현재 활성 포트 읽기
+#      - name: Get Current Active Port
+#        id: get-port
+#        uses: appleboy/ssh-action@v0.1.10
+#        with:
+#          host: ${{ secrets.EC2_HOST }}
+#          username: ${{ secrets.EC2_USERNAME }}
+#          key: ${{ secrets.EC2_SSH_KEY }}
+#          script: |
+#            PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
+#            echo -n "$PORT"
+
       - name: Get Current Active Port
         id: get-port
-        uses: appleboy/ssh-action@v0.1.10
+        uses: GammaGames/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          capture_stdout: 'true'
           script: |
-            PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
-            echo -n "$PORT"
+            sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1
+            
 
       - name: Set Target Version
         run: |
