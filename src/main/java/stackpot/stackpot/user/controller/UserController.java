@@ -35,7 +35,7 @@ import stackpot.stackpot.user.service.oauth.NaverService;
 
 import java.io.IOException;
 
-@Tag(name = "User Management", description = "유저 관리 API")
+@Tag(name = "User or MyPage Management", description = "유저 및 마이페이지 관리 API")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -374,6 +374,19 @@ public class UserController {
         MyDescriptionResponseDto responseDto = userQueryService.getMyDescription();
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
+    @GetMapping("/description/{userId}")
+    @Operation(
+            summary = "특정 사용자의 소개 조회 API",
+            description = "특정 사용자의 소개를 조회합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
+    public ResponseEntity<ApiResponse<MyDescriptionResponseDto>> getUserDescription(@PathVariable Long userId) {
+
+        MyDescriptionResponseDto responseDto = userQueryService.getUserDescription(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
+    }
 
     @PatchMapping("/description")
     @Operation(
@@ -384,10 +397,10 @@ public class UserController {
             ErrorStatus.USER_NOT_FOUND,
 
     })
-    public ResponseEntity<ApiResponse<Void>> upsertMyDescription(
+    public ResponseEntity<ApiResponse<MyDescriptionResponseDto>> upsertMyDescription(
             @RequestBody @Valid MyDescriptionRequestDto dto) {
-        userCommandService.upsertDescription(dto);
-        return ResponseEntity.ok(ApiResponse.onSuccess(null));
+        MyDescriptionResponseDto responseDto = userCommandService.upsertDescription(dto);
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
 
     @DeleteMapping("/description")

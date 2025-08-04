@@ -6,6 +6,10 @@ import lombok.Getter;
 import lombok.Setter;
 import stackpot.stackpot.user.dto.response.TokenServiceResponse;
 import stackpot.stackpot.user.entity.enums.Role;
+
+import java.util.List;
+import java.util.Set;
+
 public class UserResponseDto {
     @Getter
     @Setter
@@ -16,7 +20,7 @@ public class UserResponseDto {
         private String email; // 이메일
         private String nickname; // 닉네임
         private Role role; // 역할
-        private String interest; // 관심사
+        private List<String> interest; // 관심사
         private Integer userTemperature; // 유저 온도
         private String kakaoId;
         private String userIntroduction;

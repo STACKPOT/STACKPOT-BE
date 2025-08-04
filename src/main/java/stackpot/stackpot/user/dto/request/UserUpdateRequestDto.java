@@ -6,6 +6,10 @@ import lombok.Setter;
 import stackpot.stackpot.Validation.annotation.ValidRole;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.util.List;
+import java.util.Set;
+
+
 
 @Getter
 @Setter
@@ -16,7 +20,7 @@ public class UserUpdateRequestDto {
     private Role role;
 
     @Schema(description = "관심사")
-    private String interest;
+    private List<String> interest;
 
     @Schema(description = "유저 소개")
     private String userIntroduction;

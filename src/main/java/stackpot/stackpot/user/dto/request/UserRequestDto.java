@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.util.List;
+import java.util.Set;
+
 @Schema(description = "유저 회원가입 요청 DTO")
 public class UserRequestDto {
     @Getter
@@ -16,7 +19,7 @@ public class UserRequestDto {
         Role role;
 
         @Schema(description = "관심사")
-        String interest;
+        List<String> interest;
 
         @Schema(description = "카카오 아이디")
         String kakaoId;
