@@ -20,6 +20,7 @@ public class UserResponseDto {
         private String email; // 이메일
         private String nickname; // 닉네임
         private Role role; // 역할
+        @Schema(description = "관심사", example = "[\"사이드 프로젝트\", \"1인 개발\"]")
         private List<String> interest; // 관심사
         private Integer userTemperature; // 유저 온도
         private String kakaoId;

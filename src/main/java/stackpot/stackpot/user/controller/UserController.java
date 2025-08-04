@@ -176,7 +176,8 @@ public class UserController {
     @PatchMapping("/profile")
     @Operation(
             summary = "회원가입 API",
-            description = "신규 User 회원가입 시 필요한 정보를 저장합니다."
+            description = "신규 User 회원가입 시 필요한 정보를 저장합니다.\n"+
+                    "- interests: 다중 선택 가능하며 string입니다. [사이드 프로젝트, 1인 개발, 공모전, 창업, 네트워킹 행사]\n"
     )
     public ResponseEntity<ApiResponse<UserSignUpResponseDto>> signup(@Valid @RequestBody UserRequestDto.JoinDto request) {
         UserSignUpResponseDto user = userCommandService.joinUser(request);
@@ -303,7 +304,8 @@ public class UserController {
     @PatchMapping("/profile/update")
     @Operation(
             summary = "나의 프로필 수정 API",
-            description = "사용자의 역할, 관심사, 한 줄 소개, 카카오 아이디를 수정합니다."
+            description = "사용자의 역할, 관심사, 한 줄 소개, 카카오 아이디를 수정합니다.\n"+
+                    "- interests: 다중 선택 가능하며 string입니다. [사이드 프로젝트, 1인 개발, 공모전, 창업, 네트워킹 행사]\n"
     )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND

@@ -19,7 +19,7 @@ public class UserUpdateRequestDto {
     @Schema(description = "역할")
     private Role role;
 
-    @Schema(description = "관심사")
+    @Schema(description = "관심사", example = "[\"사이드 프로젝트\", \"1인 개발\"]")
     private List<String> interest;
 
     @Schema(description = "유저 소개")
