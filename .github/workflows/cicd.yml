@@ -42,7 +42,8 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1
+            PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
+            echo -n "$PORT"
 
       - name: Set Target Version
         run: |
