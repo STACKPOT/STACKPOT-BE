@@ -43,7 +43,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
-            echo "::set-output name=stdout::$PORT"
+            echo "$PORT"
 
       - name: Set Target Version
         run: |
