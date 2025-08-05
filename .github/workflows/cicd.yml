@@ -47,7 +47,7 @@ jobs:
 
       - name: Get Current Active Port
         id: get-port
-        uses: appleboy/ssh-action@2ead5e3
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
@@ -89,7 +89,7 @@ jobs:
 
       # 🔵 SSH into EC2 and Deploy
       - name: SSH into EC2 and Deploy
-        uses: appleboy/ssh-action@2ead5e3
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
