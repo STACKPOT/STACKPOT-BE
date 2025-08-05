@@ -104,26 +104,26 @@ public class FeedQueryServiceImpl implements FeedQueryService {
         Pageable pageable = PageRequest.ofSize(limit);
         List<Feed> feedResults;
 
-        Interest userInterestEnum = null;
-        if (user != null && user.getInterest() != null) {
+        List<Interest> userInterestEnumList = null;
+        if (user != null && user.getInterests() != null && !user.getInterests().isEmpty()) {
             try {
-                userInterestEnum = Interest.fromLabel(user.getInterest());
+                userInterestEnumList = Interest.fromLabels(user.getInterests()); // 여러 관심사 처리
             } catch (IllegalArgumentException e) {
-                log.warn("Invalid user interest: {}", user.getInterest());
+                log.warn("Invalid user interest: {}", user.getInterests());
             }
         }
 
-        if (userInterestEnum != null) {
+        // 관심사가 여러 개 있을 경우
+        if (userInterestEnumList != null && !userInterestEnumList.isEmpty()) {
             sort = "popular"; // 강제로 인기순
             lastFeedLike = (cursor != null) ? lastFeedLike : Long.MAX_VALUE;
 
-            feedResults = feedRepository.findFeedsByInterestAndCategoryWithCursor(
-                    userInterestEnum, category, lastFeedLike, lastFeedId, pageable
+            feedResults = feedRepository.findFeedsByInterestsAndCategoryWithCursor(
+                    userInterestEnumList, category, lastFeedLike, lastFeedId, pageable
             );
         } else {
             feedResults = feedRepository.findFeeds(category, sort, lastFeedId, lastFeedLike, pageable);
         }
-
 
         List<FeedResponseDto.FeedDto> feedDtoList = feedResults.stream()
                 .map(feed -> {
@@ -143,9 +143,9 @@ public class FeedQueryServiceImpl implements FeedQueryService {
             nextCursor = lastFeed.getFeedId();
 
             List<Feed> nextFeedResults;
-            if (userInterestEnum != null) {
-                nextFeedResults = feedRepository.findFeedsByInterestAndCategoryWithCursor(
-                        userInterestEnum, category, lastFeed.getLikeCount(), nextCursor, pageable
+            if (userInterestEnumList != null && !userInterestEnumList.isEmpty()) {
+                nextFeedResults = feedRepository.findFeedsByInterestsAndCategoryWithCursor(
+                        userInterestEnumList, category, lastFeed.getLikeCount(), nextCursor, pageable
                 );
             } else {
                 nextFeedResults = feedRepository.findFeeds(category, sort, nextCursor, lastFeedLike, pageable);
@@ -154,7 +154,6 @@ public class FeedQueryServiceImpl implements FeedQueryService {
             if (nextFeedResults.isEmpty()) {
                 nextCursor = null;
             }
-
         }
 
         return new FeedResponseDto.FeedPreviewList(feedDtoList, nextCursor);

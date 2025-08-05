@@ -7,4 +7,5 @@ public interface UserQueryService {
 
     String selectNameByUserId(Long userId);
     MyDescriptionResponseDto getMyDescription();
+    MyDescriptionResponseDto getUserDescription(Long userId);
 }

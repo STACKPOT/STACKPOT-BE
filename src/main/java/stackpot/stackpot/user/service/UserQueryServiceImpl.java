@@ -28,5 +28,13 @@ public class UserQueryServiceImpl implements UserQueryService {
         String Description = user.getUserDescription() != null ? user.getUserDescription() : "";
         return new MyDescriptionResponseDto(Description);
     }
+    public MyDescriptionResponseDto getUserDescription(Long userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        String description = user.getUserDescription() != null ? user.getUserDescription() : "";
+        return new MyDescriptionResponseDto(description);
+    }
+
 
 }
