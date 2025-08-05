@@ -66,7 +66,8 @@ jobs:
 #          fi
       - name: Set Target Version
         run: |
-          PORT=$(echo "${{ steps.get-port.outputs.stdout }}" | xargs)
+          PORT=$(echo "${{ steps.get-port.outputs.stdout }}" | tr -d '[:space:]' | grep -o '^[0-9]\+')
+          echo "추출된 PORT 값: $PORT"
           if [ "$PORT" == "8081" ]; then
             echo "TARGET_VERSION=green" >> $GITHUB_ENV
           else
