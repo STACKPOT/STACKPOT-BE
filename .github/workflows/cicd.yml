@@ -34,20 +34,41 @@ jobs:
           arguments: build -x test
 
       # 🔵 현재 활성 포트 읽기
+#      - name: Get Current Active Port
+#        id: get-port
+#        uses: appleboy/ssh-action@v0.1.10
+#        with:
+#          host: ${{ secrets.EC2_HOST }}
+#          username: ${{ secrets.EC2_USERNAME }}
+#          key: ${{ secrets.EC2_SSH_KEY }}
+#          script: |
+#            PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
+#            echo -n "$PORT"
+
       - name: Get Current Active Port
         id: get-port
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          capture_stdout: true
           script: |
-            PORT=$(sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1)
-            echo -n "$PORT"
+            sudo grep -oP 'server 127\.0\.0\.1:\K\d+' /etc/nginx/sites-available/default | head -n 1
+            
 
+#      - name: Set Target Version
+#        run: |
+#          if [ "${{ steps.get-port.outputs.stdout }}" == "8081" ]; then
+#            echo "TARGET_VERSION=green" >> $GITHUB_ENV
+#          else
+#            echo "TARGET_VERSION=blue" >> $GITHUB_ENV
+#          fi
       - name: Set Target Version
         run: |
-          if [ "${{ steps.get-port.outputs.stdout }}" == "8081" ]; then
+          PORT=$(echo "${{ steps.get-port.outputs.stdout }}" | tr -d '[:space:]' | grep -o '^[0-9]\+')
+          echo "추출된 PORT 값: $PORT"
+          if [ "$PORT" == "8081" ]; then
             echo "TARGET_VERSION=green" >> $GITHUB_ENV
           else
             echo "TARGET_VERSION=blue" >> $GITHUB_ENV
@@ -69,7 +90,7 @@ jobs:
 
       # 🔵 SSH into EC2 and Deploy
       - name: SSH into EC2 and Deploy
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
