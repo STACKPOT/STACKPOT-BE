@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum Role {
+    DEFAULT("씨앗", "씨앗"),
     BACKEND("양파", "백엔드"),
     FRONTEND("버섯", "프론트엔드"),
     DESIGN("브로콜리", "디자인"),

@@ -58,34 +58,12 @@ ORDER BY
     @Query("DELETE FROM Feed f WHERE f.user.id = :userId")
     void deleteByUserId(@Param("userId") Long userId);
 
-    default String getNextCursor(List<Feed> feeds) {
-        if (feeds.isEmpty()) {
-            throw new IllegalStateException("더 이상 불러올 피드가 없습니다.");
-        }
-        return feeds.get(feeds.size() - 1).getFeedId().toString();
-    }
 
     @Modifying
     @Query("UPDATE Feed f SET f.series = null WHERE f.series.seriesId = :seriesId")
     void clearSeriesReference(@Param("seriesId") Long seriesId);
 
 
-    @Query("""
-    SELECT f FROM Feed f
-    JOIN f.interests i
-    WHERE i = :interest
-    AND (
-        f.likeCount < :lastLikeCount OR
-        (f.likeCount = :lastLikeCount AND f.feedId < :lastFeedId)
-    )
-    ORDER BY f.likeCount DESC, f.feedId DESC
-""")
-    List<Feed> findByInterestWithCursor(
-            @Param("interest") Interest interest,
-            @Param("lastLikeCount") Long lastLikeCount,
-            @Param("lastFeedId") Long lastFeedId,
-            Pageable pageable
-    );
 
     @Query("""
 SELECT f FROM Feed f
@@ -102,36 +80,24 @@ ORDER BY f.likeCount DESC, f.feedId DESC
             Pageable pageable
     );
 
-    //검색
-    // 처음 조회 (nextCursor 없음)
+
     @Query("""
-    SELECT f FROM Feed f
-    WHERE f.user.id = :userId
-      AND (:keyword IS NULL OR LOWER(f.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
-                         OR LOWER(f.content) LIKE LOWER(CONCAT('%', :keyword, '%')))
-    ORDER BY f.feedId DESC
+SELECT f FROM Feed f
+WHERE EXISTS (
+    SELECT 1 FROM f.interests i WHERE i IN :interests
+)
+  AND (:category IS NULL OR :category MEMBER OF f.categories)
+  AND (f.likeCount < :lastLikeCount OR (f.likeCount = :lastLikeCount AND f.feedId < :lastFeedId))
+ORDER BY f.likeCount DESC, f.feedId DESC
 """)
-    List<Feed> searchByUserIdAndKeyword(
-            @Param("userId") Long userId,
-            @Param("keyword") String keyword,
+    List<Feed> findFeedsByInterestsAndCategoryWithCursor(
+            @Param("interests") List<Interest> interests,
+            @Param("category") Category category,
+            @Param("lastLikeCount") Long lastLikeCount,
+            @Param("lastFeedId") Long lastFeedId,
             Pageable pageable
     );
 
-    // 이후 커서 기반 조회
-    @Query("""
-    SELECT f FROM Feed f
-    WHERE f.user.id = :userId
-      AND f.feedId < :cursor
-      AND (:keyword IS NULL OR LOWER(f.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
-                         OR LOWER(f.content) LIKE LOWER(CONCAT('%', :keyword, '%')))
-    ORDER BY f.feedId DESC
-""")
-    List<Feed> searchByUserIdAndKeywordBeforeCursor(
-            @Param("userId") Long userId,
-            @Param("cursor") Long cursor,
-            @Param("keyword") String keyword,
-            Pageable pageable
-    );
 
     @Query("""
     SELECT f FROM Feed f

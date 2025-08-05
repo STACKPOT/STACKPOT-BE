@@ -4,7 +4,6 @@ import stackpot.stackpot.user.dto.request.MyDescriptionRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
-import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 
@@ -30,6 +29,6 @@ public interface UserCommandService {
 
     String logout(String aToken, String refreshToken);
 
-    void upsertDescription(MyDescriptionRequestDto dto);
+    MyDescriptionResponseDto upsertDescription(MyDescriptionRequestDto dto);
     void deleteDescription();
 }

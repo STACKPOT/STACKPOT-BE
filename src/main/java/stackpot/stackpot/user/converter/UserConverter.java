@@ -1,5 +1,6 @@
 package stackpot.stackpot.user.converter;
 
+import stackpot.stackpot.user.entity.Interest;
 import stackpot.stackpot.user.entity.TempUser;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
@@ -7,12 +8,18 @@ import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.response.UserResponseDto;
 import stackpot.stackpot.user.dto.response.UserSignUpResponseDto;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class UserConverter {
     public static User toUser(UserRequestDto.JoinDto request) {
+        List<String> interests = request.getInterest();
 
         return User.builder()
                 .kakaoId(request.getKakaoId())
-                .interest(request.getInterest())
+                .interests(interests)
                 .role(Role.valueOf(String.valueOf(request.getRole())))
                 .build();
     }
@@ -34,17 +41,21 @@ public class UserConverter {
         String roleName = user.getRole() != null ? user.getRole().name() : "멤버";
         String nicknameWithRole = user.getNickname() + " " + Role.toVegetable(roleName);
 
+
+        List<String> interests = user.getInterests();
+
         return UserResponseDto.Userdto.builder()
                 .id(user.getId())
                 .nickname(nicknameWithRole)
                 .email(user.getEmail())
                 .kakaoId(user.getKakaoId())
                 .role(user.getRole())
-                .interest(user.getInterest())
+                .interest(interests)
                 .userTemperature(user.getUserTemperature())
                 .userDescription(user.getUserDescription())
                 .userIntroduction(user.getUserIntroduction())
                 .build();
     }
+
 }
 
