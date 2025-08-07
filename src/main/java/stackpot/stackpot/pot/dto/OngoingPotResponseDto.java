@@ -20,7 +20,6 @@ public class OngoingPotResponseDto {
     private String potStatus;
     private String potModeOfOperation;
     private LocalDate potRecruitmentDeadline;
-    private String potDuration;
     private String potContent;
     private String dDay;
     private Boolean isOwner;

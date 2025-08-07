@@ -26,9 +26,6 @@ public class PotRequestDto {
 
     private Role potRole;
 
-    @NotBlank(message = "예상 기간은 필수입니다.")
-    private String potDuration;
-
     @NotBlank(message = "사용 언어는 필수입니다.")
     private String potLan;
 
