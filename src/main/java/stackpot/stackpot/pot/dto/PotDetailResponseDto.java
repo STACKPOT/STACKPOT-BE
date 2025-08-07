@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 
@@ -19,7 +20,6 @@ public class PotDetailResponseDto {
     private String potName;
     private String potStartDate;
     private String potEndDate;
-    private String potDuration;
     private String potLan;
     private String potStatus;
     private boolean applied;
@@ -29,7 +29,7 @@ public class PotDetailResponseDto {
     private String dDay;
     private Boolean isSaved;
     private String recruitmentDetails;
-    private String recruitmentDeadline;
+    private LocalDate potRecruitmentDeadline;
     private Map<String, Integer> recruitingMembers;
     private Long commentCount;
 }

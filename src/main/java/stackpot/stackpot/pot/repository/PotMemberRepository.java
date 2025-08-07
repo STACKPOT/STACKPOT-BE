@@ -14,6 +14,7 @@ import stackpot.stackpot.user.entity.enums.Role;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 // 8. PotMemberRepository
@@ -85,4 +86,7 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
 
     @Query("SELECT pm.potMemberId FROM PotMember pm WHERE pm.pot.potId = :potId")
     List<Long> selectPotMemberIdsByPotId(@Param("potId") Long potId);
+
+    @Query("SELECT pm.pot.potId FROM PotMember pm WHERE pm.user.id = :userId AND pm.pot.potId IN :potIds")
+    Set<Long> findPotIdsByUserIdAndPotIds(@Param("userId") Long userId, @Param("potIds") List<Long> potIds);
 }

@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import stackpot.stackpot.user.dto.response.TokenServiceResponse;
 import stackpot.stackpot.user.entity.enums.Role;
 
 import java.util.List;
@@ -43,5 +42,18 @@ public class UserResponseDto {
 
         @Schema(description = "신규 유저 여부")
         private Boolean isNewUser;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @Schema(description = "사용자 정보 조회 DTO")
+    public static class UserInfoDto {
+        private Long id;
+        private String nickname;
+        private Role role;
+        private List<String> interest; // 관심사
+        private Integer userTemperature;
+        private String userIntroduction;
     }
 }

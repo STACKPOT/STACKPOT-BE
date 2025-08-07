@@ -16,11 +16,13 @@ public class OngoingPotResponseDto {
     private Long potId;
     private String potName;
     private String potStartDate;
+    private String potEndDate;
     private String potStatus;
     private String potModeOfOperation;
-    private String potDuration;
+    private LocalDate potRecruitmentDeadline;
     private String potContent;
     private String dDay;
     private Boolean isOwner;
     private Map<String, Integer> members;
+    private Boolean isMember;
 }

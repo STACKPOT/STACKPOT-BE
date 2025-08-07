@@ -7,10 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
-import stackpot.stackpot.pot.dto.AppliedPotResponseDto;
-import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
+import stackpot.stackpot.pot.dto.AppealContentDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
-import stackpot.stackpot.pot.dto.PotSummaryResponseDTO;
 import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.pot.service.pot.PotCommandService;
 import java.util.List;
@@ -46,9 +44,9 @@ public class MyPotController {
 
     @GetMapping("/{pot_id}/details")
     @Operation(summary = "마이페이지 끓인 팟 상세 보기 모달", description = "'끓인 팟 상세보기 모달'에 쓰이는 COMPLETED 상태인 팟의 상세 정보를 가져옵니다. 팟 멤버들의 userPotRole : num과 나의 역할도 함께 반환합니다.")
-    public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(
+    public ResponseEntity<ApiResponse<AppealContentDto>> getCompletedPotDetail(
             @PathVariable("pot_id") Long potId) {
-        CompletedPotDetailResponseDto response = myPotService.getCompletedPotDetail(potId);
+        AppealContentDto response = myPotService.getAppealContent(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -75,12 +73,6 @@ public class MyPotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(isOwner));
     }
 
-    @GetMapping("/all")
-    @Operation(summary = "나의 모든 팟 조회 API", description = "나의 모든 팟(모집중 / 진행중 / 완료)을 조회합니다. status = all / recruiting / ongoing / completed")
-    public ResponseEntity<ApiResponse<List<OngoingPotResponseDto>>> getMyAllInvolvedPots( @RequestParam(name = "potStatus", required = false) String dataType) {
-        List<OngoingPotResponseDto> pots = myPotService.getMyAllInvolvedPots(dataType);
-        return ResponseEntity.ok(ApiResponse.onSuccess(pots));
-    }
 
     @PatchMapping("/{pot_id}/delegate/{member_id}")
     @Operation(summary = "팀장 권한 위임 API", description = "본인이 팀장인 경우, 팀장 권한을 특정 팀원에게 위임하는 기능입니다.")

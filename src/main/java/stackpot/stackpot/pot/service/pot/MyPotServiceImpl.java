@@ -8,7 +8,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.GeneralException;
-import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.badge.dto.BadgeDto;
@@ -16,10 +15,11 @@ import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.converter.MyPotConverter;
+import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.pot.converter.PotDetailConverter;
-import stackpot.stackpot.pot.dto.AppliedPotResponseDto;
-import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
+import stackpot.stackpot.pot.dto.AppealContentDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
+import stackpot.stackpot.pot.dto.PotSummaryDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
@@ -44,6 +44,7 @@ public class MyPotServiceImpl implements MyPotService {
     private final MyPotConverter myPotConverter;
     private final PotMemberBadgeRepository potMemberBadgeRepository;
     private final AuthService authService;
+    private final PotConverter potConverter;
 
     @Override
     public List<OngoingPotResponseDto> getMyPots() {
@@ -73,14 +74,8 @@ public class MyPotServiceImpl implements MyPotService {
 
     @Transactional
     @Override
-    public CompletedPotDetailResponseDto getCompletedPotDetail(Long potId) {
-        // 현재 로그인한 사용자 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        // 사용자 조회
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+    public AppealContentDto getAppealContent(Long potId) {
+        User user = authService.getCurrentUser();
 
         // 팟 조회
         Pot pot = potRepository.findById(potId)
@@ -98,16 +93,31 @@ public class MyPotServiceImpl implements MyPotService {
 
         String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
 
-        String userPotRole;
-
         // Pot 멤버의 Role 조회 후 변환
-        userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+        String userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
                 .map(role -> RoleNameMapper.getKoreanRoleName(role.name()))
-                .orElse(RoleNameMapper.getKoreanRoleName(pot.getUser().getRole().name()));
+                .orElse(null);  // 없을 경우 null로 둡니다.
 
+        // 사용자 뱃지 조회
+        List<BadgeDto> myBadges = potMemberBadgeRepository
+                .findByPotMember_Pot_PotIdAndPotMember_User_Id(pot.getPotId(), user.getId())
+                .stream()
+                .map(potMemberBadge -> new BadgeDto(
+                        potMemberBadge.getBadge().getBadgeId(),
+                        potMemberBadge.getBadge().getName()
+                ))
+                .collect(Collectors.toList());
 
-        // DTO 반환
-        return potDetailConverter.toCompletedPotDetailDto(pot, userPotRole, appealContent);
+        // 컨버터로 DTO 변환
+        return potDetailConverter.toCompletedPotDetailDto(appealContent, userPotRole, myBadges);
+    }
+
+    @Override
+    public PotSummaryDto getPotSummary(Long potId) {
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        return potConverter.toDto(pot);
     }
 
     @Transactional
@@ -212,34 +222,47 @@ public class MyPotServiceImpl implements MyPotService {
 
     @Override
     public List<OngoingPotResponseDto> getMyAllInvolvedPots(String dataType) {
-        User user = authService.getCurrentUser();
+        User currentUser = authService.getCurrentUser();
+        return getAllInvolvedPotsByUser(currentUser, dataType);
+    }
 
-        // 1. 내가 PotMember로 참여한 모든 팟 (모든 상태 포함)
-        List<Pot> participatedPots = potRepository.findByPotMembers_UserIdOrderByCreatedAtDesc(user.getId());
+    @Override
+    public List<OngoingPotResponseDto> getUserAllInvolvedPots(Long userId, String dataType) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        return getAllInvolvedPotsByUser(user, dataType);
+    }
 
-        // 2. 내가 만든 팟 중 모집중(RECRUITING) 상태만 별도 조회
-        List<Pot> recruitingOwnedPots = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING");
+    private List<OngoingPotResponseDto> getAllInvolvedPotsByUser(User user, String dataType) {
+        User viewingUser = authService.getCurrentUser(); // 현재 로그인한 사용자 기준
 
-        // 3. 합치고 중복 제거
-        Set<Pot> allRelatedPots = new LinkedHashSet<>();
-        allRelatedPots.addAll(participatedPots);
-        allRelatedPots.addAll(recruitingOwnedPots);
 
-        // 4. dataType에 따라 필터링
-        List<Pot> filteredPots = allRelatedPots.stream()
-                .filter(pot -> {
-                    return switch (dataType.toLowerCase()) {
-                        case "recruiting" -> "RECRUITING".equals(pot.getPotStatus());
-                        case "ongoing" -> "ONGOING".equals(pot.getPotStatus());
-                        case "completed" -> "COMPLETED".equals(pot.getPotStatus());
-                        case "all" -> true;
-                        default -> true; // 잘못된 값 들어오면 기본적으로 all
-                    };
+        List<Pot> participated = potRepository.findByPotMembers_UserIdOrderByCreatedAtDesc(user.getId());
+        List<Pot> createdRecruiting = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING");
+
+        Set<Pot> all = new LinkedHashSet<>();
+        all.addAll(participated);
+        all.addAll(createdRecruiting);
+
+        // 상태 필터링
+        String type = (dataType == null) ? "all" : dataType.toLowerCase();
+        List<Pot> filtered = all.stream()
+                .filter(pot -> switch (type) {
+                    case "recruiting" -> "RECRUITING".equals(pot.getPotStatus());
+                    case "ongoing" -> "ONGOING".equals(pot.getPotStatus());
+                    case "completed" -> "COMPLETED".equals(pot.getPotStatus());
+                    default -> true;
                 })
                 .collect(Collectors.toList());
 
-        return filteredPots.stream()
-                .map(pot -> myPotConverter.convertToOngoingPotResponseDto(pot, user.getId()))
+        // DTO 변환 + isMember 판단
+        return filtered.stream()
+                .map(pot -> {
+                    boolean isMember = pot.getUser().getId().equals(viewingUser.getId()) || // ✅ 로그인한 유저 기준
+                            pot.getPotMembers().stream()
+                                    .anyMatch(pm -> pm.getUser().getId().equals(viewingUser.getId()));
+                    return myPotConverter.convertToMyPagePotResponseDto(pot, user.getId(), isMember);
+                })
                 .collect(Collectors.toList());
     }
 

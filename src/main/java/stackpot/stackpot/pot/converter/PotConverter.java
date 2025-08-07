@@ -10,6 +10,7 @@ import stackpot.stackpot.pot.entity.enums.PotModeOfOperation;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -30,12 +31,12 @@ public class PotConverter{
         return Pot.builder()
                 .potName(requestDto.getPotName())
                 .potStartDate(requestDto.getPotStartDate())
-                .potDuration(requestDto.getPotDuration())
+                .potEndDate(requestDto.getPotEndDate())
+                .potRecruitmentDeadline(requestDto.getPotRecruitmentDeadline())
                 .potLan(requestDto.getPotLan())
                 .potContent(requestDto.getPotContent())
                 .potModeOfOperation(PotModeOfOperation.valueOf(requestDto.getPotModeOfOperation()))
                 .potSummary(requestDto.getPotSummary())
-                .recruitmentDeadline(requestDto.getRecruitmentDeadline())
                 .user(user)
                 .build();
     }
@@ -44,15 +45,14 @@ public class PotConverter{
         return PotResponseDto.builder()
                 .potId(entity.getPotId())
                 .potName(entity.getPotName())
-                .potStartDate(DateFormatter.dotFormatter(entity.getPotStartDate()))
-                .potEndDate(DateFormatter.dotFormatter(entity.getPotEndDate()))
-                .potDuration(entity.getPotDuration())
+                .potStartDate(entity.getPotStartDate())
+                .potEndDate(entity.getPotEndDate())
+                .potRecruitmentDeadline(entity.getPotRecruitmentDeadline())
                 .potLan(entity.getPotLan())
                 .potContent(entity.getPotContent())
                 .potStatus(entity.getPotStatus())
                 .potModeOfOperation(entity.getPotModeOfOperation().name())
                 .potSummary(entity.getPotSummary())
-                .recruitmentDeadline(entity.getRecruitmentDeadline())
                 .recruitmentDetails(recruitmentDetails.stream().map(r ->
                         PotRecruitmentResponseDto.builder()
                                 .recruitmentRole(r.getRecruitmentRole().name())
@@ -62,8 +62,8 @@ public class PotConverter{
                 .build();
     }
 
-    public PotPreviewResponseDto toPrviewDto(User user, Pot pot, List<String> recruitmentRoles, boolean isSaved, int potSaveCount) {
-        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
+    public PotPreviewResponseDto toPrviewDto(User user, Pot pot, List<String> recruitmentRoles, boolean isSaved, int potSaveCount, boolean isMember) {
+        String dDay = DdayCounter.dDayCount(pot.getPotRecruitmentDeadline());
 
         List<String> koreanRoles = recruitmentRoles.stream()
                 .map(RoleNameMapper::getKoreanRoleName)
@@ -80,6 +80,7 @@ public class PotConverter{
                 .dDay(dDay)
                 .isSaved(isSaved)
                 .potSaveCount(potSaveCount)
+                .isMember(isMember)
                 .build();
     }
 
@@ -93,8 +94,9 @@ public class PotConverter{
         return CompletedPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
-                .potEndDate(DateFormatter.dotFormatter(pot.getPotEndDate()))
+                .potStartDate(pot.getPotStartDate())
+                .potEndDate(pot.getPotEndDate())
+                .potRecruitmentDeadline(pot.getPotRecruitmentDeadline())
                 .potLan(pot.getPotLan())
                 .members(formattedMembers)
                 .userPotRole(RoleNameMapper.getKoreanRoleName(userPotRole.name()))
@@ -125,8 +127,23 @@ public class PotConverter{
                                 .collect(Collectors.joining(", "))
                                 : "없음"
                 )
-                .recruitmentDeadline(pot.getRecruitmentDeadline())
+                .recruitmentDeadline(pot.getPotRecruitmentDeadline())
                 .build();
+    }
+
+    public PotSummaryDto toDto(Pot pot) {
+        return PotSummaryDto.builder()
+                .summary(pot.getPotSummary())
+                .potLan(splitLanguages(pot.getPotLan()))
+                .build();
+    }
+
+    private List<String> splitLanguages(String potLan) {
+        if (potLan == null || potLan.isBlank()) return List.of();
+        return Arrays.stream(potLan.split(","))
+                .map(String::trim) // 공백 제거
+                .filter(s -> !s.isEmpty()) // 빈 항목 제거
+                .collect(Collectors.toList());
     }
 
 }

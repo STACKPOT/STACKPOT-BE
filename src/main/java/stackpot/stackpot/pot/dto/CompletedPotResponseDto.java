@@ -2,6 +2,7 @@ package stackpot.stackpot.pot.dto;
 
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @Getter
@@ -14,6 +15,7 @@ public class CompletedPotResponseDto {
     private String potName; // 팟 이름
     private String potStartDate; // 시작 날짜
     private String potEndDate; // 종료 날짜
+    private LocalDate potRecruitmentDeadline; // 종료 날짜
     private String potLan; // 사용 언어
     private String members;
     private String userPotRole;

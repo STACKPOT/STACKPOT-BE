@@ -65,12 +65,6 @@ public class PotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(potQueryService.getMyCompletedPots(cursor, size)));
     }
 
-    @Operation(summary = "특정 사용자의 끓인 팟 상세 조회")
-    @GetMapping("/{pot_id}/users/{user_id}")
-    public ResponseEntity<ApiResponse<CompletedPotDetailResponseDto>> getCompletedPotDetail(@PathVariable("pot_id") Long potId, @PathVariable("user_id") Long userId) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(potQueryService.getCompletedPotDetail(potId, userId)));
-    }
-
     @GetMapping
     @Operation(
             summary = "모든 팟 조회 API",
