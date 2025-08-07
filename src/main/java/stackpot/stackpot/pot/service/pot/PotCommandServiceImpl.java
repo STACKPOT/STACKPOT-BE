@@ -78,8 +78,6 @@ public class PotCommandServiceImpl implements PotCommandService {
         pot.setPotStatus("RECRUITING");
         Pot savedPot = potRepository.save(pot);
 
-//        PotMember creator = potMemberConverter.toCreatorEntity(user, pot, requestDto.getPotRole());
-//        potMemberRepository.save(creator);
 
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(dto -> PotRecruitmentDetails.builder()
@@ -116,7 +114,7 @@ public class PotCommandServiceImpl implements PotCommandService {
         updateValues.put("potLan", requestDto.getPotLan());
         updateValues.put("potContent", requestDto.getPotContent());
         updateValues.put("potModeOfOperation", requestDto.getPotModeOfOperation());
-        updateValues.put("recruitmentDeadline", requestDto.getRecruitmentDeadline());
+        updateValues.put("potRecruitmentDeadline", requestDto.getPotRecruitmentDeadline());
         if (requestDto.getPotSummary() != null) {
             updateValues.put("potSummary", requestDto.getPotSummary());
         }

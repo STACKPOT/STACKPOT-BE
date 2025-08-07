@@ -29,7 +29,7 @@ public class PotDetailConverter{
     }
 
     public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied, Boolean isSaved, Long commentCount) {
-        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
+        String dDay = DdayCounter.dDayCount(pot.getPotRecruitmentDeadline());
 
         Map<String, Integer> recruitingMembers = pot.getRecruitmentDetails().stream()
                 .collect(Collectors.toMap(
@@ -44,9 +44,9 @@ public class PotDetailConverter{
                 .isOwner(isOwner)
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
-                .potEndDate(DateFormatter.dotFormatter(pot.getPotEndDate()))
-                .potDuration(pot.getPotDuration())
+                .potStartDate(pot.getPotStartDate())
+                .potEndDate(pot.getPotEndDate())
+                .potRecruitmentDeadline(pot.getPotRecruitmentDeadline())
                 .potLan(pot.getPotLan())
                 .potStatus(pot.getPotStatus())
                 .applied(isApplied)
@@ -55,7 +55,7 @@ public class PotDetailConverter{
                 .potSummary(pot.getPotSummary())
                 .dDay(dDay)
                 .isSaved(isSaved)
-                .recruitmentDeadline(DateFormatter.dotFormatter(pot.getRecruitmentDeadline()))
+                .potRecruitmentDeadline(pot.getPotRecruitmentDeadline())
                 .recruitmentDetails(recruitmentDetails)
                 .recruitingMembers(recruitingMembers)
                 .commentCount(commentCount)

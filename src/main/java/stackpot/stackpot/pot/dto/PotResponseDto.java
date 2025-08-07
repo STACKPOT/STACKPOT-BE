@@ -16,12 +16,11 @@ public class PotResponseDto {
     private String potName;
     private String potStartDate;
     private String potEndDate;
-    private String potDuration;
+    private LocalDate potRecruitmentDeadline;
     private String potLan;
     private String potContent;
     private String potStatus;
     private String potModeOfOperation;
     private String potSummary;
-    private LocalDate recruitmentDeadline;
     private List<PotRecruitmentResponseDto> recruitmentDetails;
 }

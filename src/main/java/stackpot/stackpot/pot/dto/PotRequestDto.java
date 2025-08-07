@@ -1,5 +1,6 @@
 package stackpot.stackpot.pot.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,9 +18,12 @@ public class PotRequestDto {
     @NotBlank(message = "팟 이름은 필수입니다.")
     private String potName;
 
-    private LocalDate potStartDate;
+    private String potStartDate;
 
-//    private LocalDate potEndDate;
+    private String potEndDate;
+
+    private LocalDate potRecruitmentDeadline;
+
     private Role potRole;
 
     @NotBlank(message = "예상 기간은 필수입니다.")
@@ -36,8 +40,6 @@ public class PotRequestDto {
     private String potModeOfOperation;
 
     private String potSummary;
-
-    private LocalDate recruitmentDeadline;
 
     private List<PotRecruitmentRequestDto> recruitmentDetails;
 }

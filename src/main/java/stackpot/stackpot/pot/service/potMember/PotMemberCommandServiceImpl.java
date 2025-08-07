@@ -49,7 +49,7 @@ public class PotMemberCommandServiceImpl implements PotMemberCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 팟을 찾을 수 없습니다."));
 
         pot.setPotStatus("ONGOING");
-        pot.setPotStartDate(LocalDate.now());
+        pot.setPotStartDate(String.valueOf(LocalDate.now()));
         potRepository.save(pot);
 
         User potCreator = pot.getUser();

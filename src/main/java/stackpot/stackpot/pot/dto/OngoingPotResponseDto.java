@@ -16,8 +16,10 @@ public class OngoingPotResponseDto {
     private Long potId;
     private String potName;
     private String potStartDate;
+    private String potEndDate;
     private String potStatus;
     private String potModeOfOperation;
+    private LocalDate potRecruitmentDeadline;
     private String potDuration;
     private String potContent;
     private String dDay;
