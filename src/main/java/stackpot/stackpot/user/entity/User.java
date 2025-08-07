@@ -52,8 +52,10 @@ public class User extends BaseEntity implements UserDetails{
     @Column(nullable = true, length = 255)
     private Role role; // 역할
 
-    @Column(nullable = true, length = 255)
-    private String interest; // 관심사
+    @ElementCollection
+    @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "interest")
+    private List<String> interests = new ArrayList<>();  // List<String> 사용
 
     @Column(nullable = true, columnDefinition = "TEXT")
     private String userIntroduction; // 한 줄 소개
@@ -104,7 +106,12 @@ public class User extends BaseEntity implements UserDetails{
         this.nickname = "(알 수 없음)";  // 표시용 변경
         this.role = Role.UNKNOWN;
         this.kakaoId = null;
-        this.interest = "UNKNOWN";
+        if (this.interests != null) {
+            this.interests.clear();  // 기존 관심사 목록 비우기
+        }
+        this.interests = new ArrayList<>();  // 새로운 관심사 목록 생성
+        this.interests.add("UNKNOWN");  // "UNKNOWN"을 관심사 목록에 추가
+
         this.userTemperature = null;
         this.email = null;
         this.userIntroduction = null;

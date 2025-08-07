@@ -7,6 +7,9 @@ import stackpot.stackpot.common.BaseEntity;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.util.List;
+import java.util.Set;
+
 @Entity
 @Getter
 @Setter
@@ -29,8 +32,9 @@ public class TempUser extends BaseEntity{
     @Column(nullable = true, length = 255)
     private Role role; // 역할
 
-    @Column(nullable = true, length = 255)
-    private String interest; // 관심사
+    @Column(nullable = true)
+    @ElementCollection
+    private List<String> interest;// 관심사
 
     @Column(nullable = true)
     private String email; // 이메일

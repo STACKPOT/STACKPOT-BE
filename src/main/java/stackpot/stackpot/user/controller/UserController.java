@@ -36,7 +36,7 @@ import stackpot.stackpot.user.service.oauth.NaverService;
 import java.io.IOException;
 import java.util.List;
 
-@Tag(name = "User Management", description = "유저 관리 API")
+@Tag(name = "User or MyPage Management", description = "유저 및 마이페이지 관리 API")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -178,7 +178,8 @@ public class UserController {
     @PatchMapping("/profile")
     @Operation(
             summary = "회원가입 API",
-            description = "신규 User 회원가입 시 필요한 정보를 저장합니다."
+            description = "신규 User 회원가입 시 필요한 정보를 저장합니다.\n"+
+                    "- interests: 다중 선택 가능하며 string입니다. [사이드 프로젝트, 1인 개발, 공모전, 창업, 네트워킹 행사]\n"
     )
     public ResponseEntity<ApiResponse<UserSignUpResponseDto>> signup(@Valid @RequestBody UserRequestDto.JoinDto request) {
         UserSignUpResponseDto user = userCommandService.joinUser(request);
@@ -273,7 +274,8 @@ public class UserController {
     @PatchMapping("/profile/update")
     @Operation(
             summary = "나의 프로필 수정 API",
-            description = "사용자의 역할, 관심사, 한 줄 소개, 카카오 아이디를 수정합니다."
+            description = "사용자의 역할, 관심사, 한 줄 소개, 카카오 아이디를 수정합니다.\n"+
+                    "- interests: 다중 선택 가능하며 string입니다. [사이드 프로젝트, 1인 개발, 공모전, 창업, 네트워킹 행사]\n"
     )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND
@@ -355,6 +357,19 @@ public class UserController {
         MyDescriptionResponseDto responseDto = userQueryService.getMyDescription();
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
+    @GetMapping("/description/{userId}")
+    @Operation(
+            summary = "특정 사용자의 소개 조회 API",
+            description = "특정 사용자의 소개를 조회합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
+    public ResponseEntity<ApiResponse<MyDescriptionResponseDto>> getUserDescription(@PathVariable Long userId) {
+
+        MyDescriptionResponseDto responseDto = userQueryService.getUserDescription(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
+    }
 
     @PatchMapping("/description")
     @Operation(
@@ -365,10 +380,10 @@ public class UserController {
             ErrorStatus.USER_NOT_FOUND,
 
     })
-    public ResponseEntity<ApiResponse<Void>> upsertMyDescription(
+    public ResponseEntity<ApiResponse<MyDescriptionResponseDto>> upsertMyDescription(
             @RequestBody @Valid MyDescriptionRequestDto dto) {
-        userCommandService.upsertDescription(dto);
-        return ResponseEntity.ok(ApiResponse.onSuccess(null));
+        MyDescriptionResponseDto responseDto = userCommandService.upsertDescription(dto);
+        return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
 
     @DeleteMapping("/description")

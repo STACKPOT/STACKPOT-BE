@@ -127,21 +127,21 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
 
-    private void updateUserData(User user, UserRequestDto.JoinDto request) {
-
-        // 값이 존재하는 경우에만 업데이트
-        if (request.getKakaoId() != null) user.setKakaoId(request.getKakaoId());
-        if (request.getRole() != null) user.setRole(request.getRole());
-        if (request.getInterest() != null) user.setInterest(request.getInterest());
-
-        // 한 줄 소개 생성 (주석 해제 가능)
-        /*if (request.getRole() != null && user.getNickname() != null) {
-            user.setUserIntroduction(
-                    request.getRole().name().trim() + "에 관심있는 " +
-                            user.getNickname().trim() + getVegetableNameByRole(request.getRole().toString()).trim() + "입니다."
-            );
-        }*/
-    }
+//    private void updateUserData(User user, UserRequestDto.JoinDto request) {
+//
+//        // 값이 존재하는 경우에만 업데이트
+//        if (request.getKakaoId() != null) user.setKakaoId(request.getKakaoId());
+//        if (request.getRole() != null) user.setRole(request.getRole());
+//        if (request.getInterest() != null) user.setInterests(request.getInterest());
+//
+//        // 한 줄 소개 생성 (주석 해제 가능)
+//        /*if (request.getRole() != null && user.getNickname() != null) {
+//            user.setUserIntroduction(
+//                    request.getRole().name().trim() + "에 관심있는 " +
+//                            user.getNickname().trim() + getVegetableNameByRole(request.getRole().toString()).trim() + "입니다."
+//            );
+//        }*/
+//    }
 
     @Override
     public UserResponseDto.UserInfoDto getMyUsers() {
@@ -220,7 +220,7 @@ public class UserCommandServiceImpl implements UserCommandService {
             user.setRole(requestDto.getRole());
         }
         if (requestDto.getInterest() != null && !requestDto.getInterest().isEmpty()) {
-            user.setInterest(requestDto.getInterest());
+            user.setInterests(requestDto.getInterest());
         }
         if (requestDto.getUserIntroduction() != null && !requestDto.getUserIntroduction().isEmpty()) {
             user.setUserIntroduction(requestDto.getUserIntroduction());
@@ -270,7 +270,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 .email(tempUser.getEmail())
                 .nickname(nickname)
                 .userType(UserType.USER)
-                .interest(tempUser.getInterest())
+                .interests(tempUser.getInterest())
                 .userIntroduction(tempUser.getRole() + "에 관심있는 " + nickname + " " + Role.toVegetable(String.valueOf(tempUser.getRole())) + "입니다.")
                 .userTemperature(33)
                 .kakaoId(tempUser.getKakaoId())
@@ -617,11 +617,16 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Transactional
-    public void upsertDescription(MyDescriptionRequestDto dto) {
+    public MyDescriptionResponseDto upsertDescription(MyDescriptionRequestDto dto) {
         User user = authService.getCurrentUser();
+
         user.updateUserDescription(dto.getUserDescription());
+
         userRepository.save(user);
+
+        return new MyDescriptionResponseDto(user.getUserDescription());
     }
+
 
     @Transactional
     public void deleteDescription() {

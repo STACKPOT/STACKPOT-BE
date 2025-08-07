@@ -29,6 +29,6 @@ public interface UserCommandService {
 
     String logout(String aToken, String refreshToken);
 
-    void upsertDescription(MyDescriptionRequestDto dto);
+    MyDescriptionResponseDto upsertDescription(MyDescriptionRequestDto dto);
     void deleteDescription();
 }
