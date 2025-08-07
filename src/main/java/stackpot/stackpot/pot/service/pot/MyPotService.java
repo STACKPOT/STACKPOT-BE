@@ -2,9 +2,9 @@ package stackpot.stackpot.pot.service.pot;
 
 
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
-import stackpot.stackpot.pot.dto.AppliedPotResponseDto;
-import stackpot.stackpot.pot.dto.CompletedPotDetailResponseDto;
+import stackpot.stackpot.pot.dto.AppealContentDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
+import stackpot.stackpot.pot.dto.PotSummaryDto;
 
 import java.util.List;
 
@@ -12,11 +12,14 @@ public interface MyPotService {
 
     // 사용자의 진행 중인 팟 조회
     List<OngoingPotResponseDto> getMyPots();
-    CompletedPotDetailResponseDto getCompletedPotDetail(Long potId);
+    AppealContentDto getAppealContent(Long potId);
+    PotSummaryDto getPotSummary(Long potId);
     List<CompletedPotBadgeResponseDto> getCompletedPotsWithBadges();
     List<CompletedPotBadgeResponseDto> getUserCompletedPotsWithBadges(Long userId);
     List<OngoingPotResponseDto> getMyOngoingPots();
     boolean isOwner(Long potId);
     List<OngoingPotResponseDto> getMyAllInvolvedPots(String dataType);
+    List<OngoingPotResponseDto> getUserAllInvolvedPots(Long userId, String dataType);
+
     String patchDelegate(Long potId, Long memberId);
 }

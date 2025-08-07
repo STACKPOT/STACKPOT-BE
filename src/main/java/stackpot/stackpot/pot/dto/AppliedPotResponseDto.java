@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -14,9 +15,10 @@ public class AppliedPotResponseDto {
     private Long potId;
     private String potName;
     private String potStartDate;
+    private String potEndDate;
+    private LocalDate potRecruitmentDeadline;
     private String potStatus;
     private String potModeOfOperation;
-    private String potDuration;
     private String potContent;
     private String dDay;
     private List<String> recruitmentRoles;

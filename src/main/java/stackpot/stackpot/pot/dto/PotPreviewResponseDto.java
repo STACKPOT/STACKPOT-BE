@@ -20,4 +20,5 @@ public class PotPreviewResponseDto {
     private String dDay;
     private Boolean isSaved;
     private int potSaveCount;
+    private Boolean isMember;
 }

@@ -12,8 +12,8 @@ public interface UserCommandService {
 
     UserResponseDto.loginDto isnewUser(Provider provider, String providerId, String email);
 
-    UserResponseDto.Userdto getMyUsers();
-    UserResponseDto.Userdto getUsers(Long UserId);
+    UserResponseDto.UserInfoDto getMyUsers();
+    UserResponseDto.UserInfoDto getUsers(Long UserId);
 
     UserMyPageResponseDto getMypages(String dataType);
 

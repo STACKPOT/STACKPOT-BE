@@ -10,7 +10,6 @@ import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
 import stackpot.stackpot.pot.dto.RecruitingPotResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
-import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.user.entity.enums.Role;
 
 import java.util.List;
@@ -18,11 +17,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -31,7 +25,7 @@ import java.util.stream.Collectors;
 public class MyPotConverter{
 
     public AppliedPotResponseDto convertToAppliedPotResponseDto(Pot pot, List<String> recruitmentRoles) {
-        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
+        String dDay = DdayCounter.dDayCount(pot.getPotRecruitmentDeadline());
 
         Map<String, Integer> RecruitmentRoleCountMap = pot.getRecruitmentDetails().stream()
                 .collect(Collectors.groupingBy(
@@ -46,10 +40,11 @@ public class MyPotConverter{
         return AppliedPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
+                .potStartDate(pot.getPotStartDate())
+                .potEndDate(pot.getPotEndDate())
+                .potRecruitmentDeadline(pot.getPotRecruitmentDeadline())
                 .potStatus(pot.getPotStatus())
                 .potModeOfOperation(String.valueOf(pot.getPotModeOfOperation()))
-                .potDuration(pot.getPotDuration())
                 .potContent(pot.getPotContent())
                 .dDay(dDay)
                 .recruitmentRoles(koreanRoles)
@@ -58,7 +53,7 @@ public class MyPotConverter{
     }
 
     public OngoingPotResponseDto convertToOngoingPotResponseDto(Pot pot, Long userId) {
-        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
+        String dDay = DdayCounter.dDayCount(pot.getPotRecruitmentDeadline());
         Map<String, Integer> memberRoleCountMap = pot.getPotMembers().stream()
                 .collect(Collectors.groupingBy(
                         member -> member.getRoleName().name(),
@@ -69,14 +64,41 @@ public class MyPotConverter{
         return OngoingPotResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
+                .potStartDate(pot.getPotStartDate())
+                .potEndDate(pot.getPotEndDate())
+                .potRecruitmentDeadline(pot.getPotRecruitmentDeadline())
                 .potStatus(pot.getPotStatus())
                 .potModeOfOperation(String.valueOf(pot.getPotModeOfOperation()))
-                .potDuration(pot.getPotDuration())
                 .potContent(pot.getPotContent())
                 .dDay(dDay)
                 .isOwner(isOwnerCheck(userId, pot))
                 .members(memberRoleCountMap)
+                .isMember(null)
+                .build();
+    }
+
+    public OngoingPotResponseDto convertToMyPagePotResponseDto(Pot pot, Long userId, Boolean isMember) {
+        String dDay = DdayCounter.dDayCount(pot.getPotRecruitmentDeadline());
+        Map<String, Integer> memberRoleCountMap = pot.getPotMembers().stream()
+                .collect(Collectors.groupingBy(
+                        member -> member.getRoleName().name(),
+                        Collectors.reducing(0, e -> 1, Integer::sum)
+                ));
+
+
+        return OngoingPotResponseDto.builder()
+                .potId(pot.getPotId())
+                .potName(pot.getPotName())
+                .potStartDate(pot.getPotStartDate())
+                .potEndDate(pot.getPotEndDate())
+                .potRecruitmentDeadline(pot.getPotRecruitmentDeadline())
+                .potStatus(pot.getPotStatus())
+                .potModeOfOperation(String.valueOf(pot.getPotModeOfOperation()))
+                .potContent(pot.getPotContent())
+                .dDay(dDay)
+                .isOwner(isOwnerCheck(userId, pot))
+                .members(memberRoleCountMap)
+                .isMember(isMember)
                 .build();
     }
 
@@ -94,8 +116,9 @@ public class MyPotConverter{
         return CompletedPotBadgeResponseDto.builder()
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
-                .potStartDate(DateFormatter.dotFormatter(pot.getPotStartDate()))
-                .potEndDate(DateFormatter.dotFormatter(pot.getPotEndDate()))
+                .potStartDate(pot.getPotStartDate())
+                .potEndDate(pot.getPotEndDate())
+                .potRecruitmentDeadline(pot.getPotRecruitmentDeadline())
                 .potLan(pot.getPotLan())
                 .members(formattedMembers)
                 .userPotRole(RoleNameMapper.getKoreanRoleName(userPotRole.name()))
@@ -112,7 +135,7 @@ public class MyPotConverter{
                         Integer::sum
                 ));
 
-        String dDay = DdayCounter.dDayCount(pot.getRecruitmentDeadline());
+        String dDay = DdayCounter.dDayCount(pot.getPotRecruitmentDeadline());
 
         return RecruitingPotResponseDto.builder()
                 .potId(pot.getPotId())
