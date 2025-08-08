@@ -286,7 +286,7 @@ public class PotQueryServiceImpl implements PotQueryService {
         Set<Long> memberPotIds = (user != null && !potIds.isEmpty())
                 ? potMemberRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
                 : Collections.emptySet();
-
+  
         List<PotPreviewResponseDto> content = pots.stream()
                 .map(pot -> {
                     Long potId = pot.getPotId();
