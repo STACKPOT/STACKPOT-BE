@@ -4,11 +4,11 @@ import lombok.Getter;
 
 @Getter
 public enum Role {
-    DEFAULT("씨앗", "씨앗"),
     BACKEND("양파", "백엔드"),
     FRONTEND("버섯", "프론트엔드"),
     DESIGN("브로콜리", "디자인"),
     PLANNING("당근", "기획"),
+    DEFAULT("새싹", "새싹"),
     UNKNOWN("UNKNOWN", "알 수 없음");
 
     private final String vegetable;

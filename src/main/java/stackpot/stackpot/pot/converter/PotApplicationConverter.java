@@ -45,7 +45,7 @@ public class PotApplicationConverter {
                 .applicationId(entity.getApplicationId())
                 .potRole(roleInfo)
                 .userId(entity.getUser().getId())
-                .userNickname(entity.getUser().getNickname() + " 씨앗")
+                .userNickname(entity.getUser().getNickname() + " 새싹")
                 .build();
 
     }
