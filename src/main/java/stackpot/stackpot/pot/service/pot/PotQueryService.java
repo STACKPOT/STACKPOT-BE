@@ -15,7 +15,7 @@ public interface PotQueryService {
     List<AppliedPotResponseDto> getAppliedPots();
     PotSummaryResponseDTO getPotSummary(Long potId);
     CursorPageResponse<CompletedPotResponseDto> getUserCompletedPots(Long userId, Long cursor, int size);
-    Map<String, Object> getAllPotsWithPaging(Role role, int page, int size, Boolean onlyMine);
+    Map<String, Object> getAllPotsWithPaging(List<Role> roles, int page, int size, Boolean onlyMine);
     Map<String, Object> getMyRecruitingPotsWithPaging(Integer page, Integer size);
     Pot getPotByPotId(Long potId);
 }

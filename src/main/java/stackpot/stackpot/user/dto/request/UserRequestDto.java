@@ -20,9 +20,5 @@ public class UserRequestDto {
 
         @Schema(description = "관심사", example = "[\"사이드 프로젝트\", \"1인 개발\"]")
         List<String> interest;
-
-
-        @Schema(description = "카카오 아이디")
-        String kakaoId;
     }
 }

@@ -65,14 +65,16 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
             "ORDER BY COUNT(pa.applicationId) DESC, p.createdAt DESC")
     Page<Pot> findAllOrderByApplicantsCountDesc(Pageable pageable);
 
-    /// 특정 Role을 기준으로 지원자 수 많은 순 정렬
+    /// 여러 Role을 기준으로 지원자 수 많은 순 정렬
     @Query("SELECT p FROM Pot p " +
             "LEFT JOIN PotRecruitmentDetails prd ON p = prd.pot " +
             "LEFT JOIN PotApplication pa ON p = pa.pot " +
-            "WHERE prd.recruitmentRole = :recruitmentRole " +
+            "WHERE prd.recruitmentRole IN :roles " +
             "GROUP BY p " +
             "ORDER BY COUNT(pa.applicationId) DESC, p.createdAt DESC")
-    Page<Pot> findByRecruitmentRoleOrderByApplicantsCountDesc(@Param("recruitmentRole") Role recruitmentRole, Pageable pageable);
+    Page<Pot> findByRecruitmentRolesInOrderByApplicantsCountDesc(@Param("roles") List<Role> roles, Pageable pageable);
 
     List<Pot> findByPotMembers_UserIdOrderByCreatedAtDesc(Long userId);
+
+
 }

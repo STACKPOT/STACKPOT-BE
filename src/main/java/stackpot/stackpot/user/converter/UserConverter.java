@@ -18,7 +18,6 @@ public class UserConverter {
         List<String> interests = request.getInterest();
 
         return User.builder()
-                .kakaoId(request.getKakaoId())
                 .interests(interests)
                 .role(Role.valueOf(String.valueOf(request.getRole())))
                 .build();
@@ -37,10 +36,7 @@ public class UserConverter {
             throw new IllegalStateException("User ID is null");
         }
 
-        // 역할명을 변환하여 닉네임에 추가
-        String roleName = user.getRole() != null ? user.getRole().name() : "멤버";
-        String nicknameWithRole = user.getNickname() + " " + Role.toVegetable(roleName);
-
+        String nicknameWithRole = user.getNickname() + " 새싹";
 
         List<String> interests = user.getInterests();
 
@@ -65,9 +61,7 @@ public class UserConverter {
             throw new IllegalStateException("User ID is null");
         }
 
-        // 역할명을 변환하여 닉네임에 추가
-        String roleName = user.getRole() != null ? user.getRole().name() : "멤버";
-        String nicknameWithRole = user.getNickname() + " " + Role.toVegetable(roleName);
+        String nicknameWithRole = user.getNickname() + " 새싹";
 
         return UserResponseDto.UserInfoDto.builder()
                 .id(user.getId())

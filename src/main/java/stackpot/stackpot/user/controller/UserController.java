@@ -189,10 +189,10 @@ public class UserController {
     @GetMapping("/nickname")
     @Operation(
             summary = "닉네임 생성 API",
-            description = "닉네임 생성 시 역할별로 닉네임이 생성됩니다. 기존 유저와 중복되지 않는 닉네임이 생성됩니다."
+            description = "새싹 관련 닉네임이 생성됩니다. 기존 유저와 중복되지 않는 닉네임이 생성됩니다."
     )
-    public ResponseEntity<ApiResponse<NicknameResponseDto>> nickname(@RequestParam("role") Role role) {
-        NicknameResponseDto nickName = userCommandService.createNickname(role);
+    public ResponseEntity<ApiResponse<NicknameResponseDto>> nickname() {
+        NicknameResponseDto nickName = userCommandService.createNickname();
         return ResponseEntity.ok(ApiResponse.onSuccess(nickName));
     }
 
