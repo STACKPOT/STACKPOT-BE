@@ -1,6 +1,7 @@
 package stackpot.stackpot.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
+import stackpot.stackpot.feed.service.FeedQueryService;
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
 import stackpot.stackpot.pot.dto.PotResponseDto;
 import stackpot.stackpot.pot.service.pot.MyPotService;
@@ -26,7 +28,6 @@ import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
 import stackpot.stackpot.user.dto.response.*;
 import stackpot.stackpot.user.entity.enums.Provider;
-import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.user.service.UserCommandService;
 import stackpot.stackpot.user.service.UserQueryService;
 import stackpot.stackpot.user.service.oauth.GoogleService;
@@ -50,7 +51,7 @@ public class UserController {
     private final MyPotService myPotService;
     private final PotCommandService potCommandService;
     private final UserQueryService userQueryService;
-
+    private final FeedQueryService feedQueryService;
 
     @GetMapping("/login/token")
     @Operation(
@@ -399,37 +400,46 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    //삭제 예정
-    @GetMapping("/mypages")
+
+
+    @GetMapping("/{userId}/feeds")
     @Operation(
-            summary = "나의 마이페이지 조회 API",
-            description = "토큰을 통해 자신의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다. dataType = pot / feed / (null : pot + feed)"
+            summary = "사용자별 피드 조회 API",
+            description = "userId에 해당하는 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다."
     )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND,
-            ErrorStatus.USER_ALREADY_WITHDRAWN,
+            ErrorStatus.USER_ALREADY_WITHDRAWN
     })
-    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> usersMypages(
-            @RequestParam(name = "dataType", required = false) String dataType){
-        UserMyPageResponseDto userDetails = userCommandService.getMypages(dataType);
-        return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
+    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> getFeedsByUserId(
+            @Parameter(description = "사용자 ID", example = "1")
+            @PathVariable("userId") Long userId,
+
+            @Parameter(description = "커서", example = "100", required = false)
+            @RequestParam(value = "cursor", required = false) Long cursor,
+
+            @Parameter(description = "페이지 크기", example = "10")
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        UserMyPageResponseDto mypage = feedQueryService.getFeedsByUserId(userId, cursor, size);
+        return ResponseEntity.ok(ApiResponse.onSuccess(mypage));
     }
 
-    //삭제 예정
-    @GetMapping("/{userId}/mypages")
     @Operation(
-            summary = "사용자별 마이페이지 조회 API",
-            description = "userId를 통해 사용자의 [정보 조회 API + 피드 + 끓인 팟] 모두를 제공하는 API로 마이페이지 전체의 정보를 제공하는 API입니다.\n"+"dataType = pot / feed / (null : pot + feed)"
+            summary = "나의 피드 조회 API",
+            description = "로그인한 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다."
     )
+    @GetMapping("/feeds")
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND,
-            ErrorStatus.USER_ALREADY_WITHDRAWN,
-            ErrorStatus._BAD_REQUEST
+            ErrorStatus.USER_ALREADY_WITHDRAWN
     })
-    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> getUserMypage(
-            @PathVariable("userId") Long userId,
-            @RequestParam(name = "dataType", required = false) String dataType) {
-        UserMyPageResponseDto response = userCommandService.getUserMypage(userId, dataType);
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    public ResponseEntity<ApiResponse<UserMyPageResponseDto>> getFeeds(
+            @RequestParam(name = "cursor", required = false) Long cursor,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        UserMyPageResponseDto mypage = feedQueryService.getFeeds(cursor, size);
+        return ResponseEntity.ok(ApiResponse.onSuccess(mypage));
     }
+
 }

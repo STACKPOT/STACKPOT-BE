@@ -30,6 +30,7 @@ import stackpot.stackpot.feed.repository.FeedRepository;
 import stackpot.stackpot.feed.repository.SeriesRepository;
 import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.save.repository.FeedSaveRepository;
+import stackpot.stackpot.user.dto.response.UserMyPageResponseDto;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
 
@@ -179,7 +180,7 @@ public class FeedQueryServiceImpl implements FeedQueryService {
     }
 
     @Transactional
-    public FeedResponseDto.FeedPreviewList getFeedsByUserId(Long userId, Long nextCursor, int pageSize) {
+    public UserMyPageResponseDto getFeedsByUserId(Long userId, Long nextCursor, int pageSize) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAuthenticated = authentication != null
                 && !(authentication instanceof AnonymousAuthenticationToken)
@@ -201,13 +202,9 @@ public class FeedQueryServiceImpl implements FeedQueryService {
                 : List.of();
 
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
-        List<Feed> feeds;
-
-        if (nextCursor == null) {
-            feeds = feedRepository.findByUser_Id(userId, pageable);
-        } else {
-            feeds = feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
-        }
+        List<Feed> feeds = (nextCursor == null)
+                ? feedRepository.findByUser_Id(userId, pageable)
+                : feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
 
         List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
                 .map(feed -> {
@@ -220,18 +217,23 @@ public class FeedQueryServiceImpl implements FeedQueryService {
                 })
                 .collect(Collectors.toList());
 
-        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize)
-                ? feeds.get(feeds.size() - 1).getFeedId()
-                : null;
+        // 조회 대상 유저 정보
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        return FeedResponseDto.FeedPreviewList.builder()
+        List<String> seriesComments = targetUser.getSeriesList().stream()
+                .map(Series::getComment)
+                .collect(Collectors.toList());
+
+        return UserMyPageResponseDto.builder()
+                .id(targetUser.getId())
+                .seriesComments(seriesComments)
                 .feeds(feedDtos)
-                .nextCursor(nextCursorResult)
                 .build();
     }
 
     @Override
-    public FeedResponseDto.FeedPreviewList getFeeds(Long nextCursor, int pageSize) {
+    public UserMyPageResponseDto getFeeds(Long nextCursor, int pageSize) {
         User user = authService.getCurrentUser();
 
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
@@ -253,13 +255,14 @@ public class FeedQueryServiceImpl implements FeedQueryService {
                 })
                 .collect(Collectors.toList());
 
-        Long nextCursorResult = (!feeds.isEmpty() && feeds.size() >= pageSize)
-                ? feeds.get(feeds.size() - 1).getFeedId()
-                : null;
+        List<String> seriesComments = user.getSeriesList().stream()
+                .map(Series::getComment)
+                .collect(Collectors.toList());
 
-        return FeedResponseDto.FeedPreviewList.builder()
+        return UserMyPageResponseDto.builder()
+                .id(user.getId())
+                .seriesComments(seriesComments)
                 .feeds(feedDtos)
-                .nextCursor(nextCursorResult)
                 .build();
     }
 

@@ -10,8 +10,7 @@ import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.entity.mapping.FeedSave;
 import stackpot.stackpot.user.entity.User;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public interface FeedSaveRepository extends JpaRepository<FeedSave, Long> {
@@ -30,6 +29,23 @@ public interface FeedSaveRepository extends JpaRepository<FeedSave, Long> {
 
     @Query("SELECT COUNT(fs) FROM FeedSave fs WHERE fs.feed.feedId = :feedId")
     long countByFeedId(@Param("feedId") Long feedId);
+    @Query("""
+        SELECT fs.feed.feedId, COUNT(fs)
+        FROM FeedSave fs
+        WHERE fs.feed.feedId IN :feedIds
+        GROUP BY fs.feed.feedId
+    """)
+    List<Object[]> countByFeedIdsRaw(@Param("feedIds") List<Long> feedIds);
+
+    default Map<Long, Long> countByFeedIds(List<Long> feedIds) {
+        if (feedIds == null || feedIds.isEmpty()) return Collections.emptyMap();
+        Map<Long, Long> map = new HashMap<>();
+        for (Object[] row : countByFeedIdsRaw(feedIds)) {
+            map.put((Long) row[0], (Long) row[1]);
+        }
+        return map;
+    }
+
 
 }
 

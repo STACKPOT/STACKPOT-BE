@@ -40,7 +40,7 @@ public class PotDetailConverter{
         return PotDetailResponseDto.builder()
                 .userId(user.getId())
                 .userRole(user.getRole().name())
-                .userNickname(user.getNickname() + " 씨앗")
+                .userNickname(user.getNickname() + " 새싹")
                 .isOwner(isOwner)
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
