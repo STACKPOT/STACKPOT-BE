@@ -246,7 +246,7 @@ public class PotQueryServiceImpl implements PotQueryService {
     }
 
     @Override
-    public Map<String, Object> getAllPotsWithPaging(Role role, int page, int size, Boolean onlyMine) {
+    public Map<String, Object> getAllPotsWithPaging(List<Role> roles, int page, int size, Boolean onlyMine) {
         User user = null;
 
         // 로그인 여부와 무관하게 인증된 사용자인 경우 user 정보 가져오기
@@ -265,9 +265,11 @@ public class PotQueryServiceImpl implements PotQueryService {
         if (onlyMine != null && onlyMine && user != null) {
             potPage = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING", pageable);
         } else {
-            potPage = (role == null)
-                    ? potRepository.findAllOrderByApplicantsCountDesc(pageable)
-                    : potRepository.findByRecruitmentRoleOrderByApplicantsCountDesc(role, pageable);
+            if (roles == null || roles.isEmpty()) {
+                potPage = potRepository.findAllOrderByApplicantsCountDesc(pageable);
+            } else {
+                potPage = potRepository.findByRecruitmentRolesInOrderByApplicantsCountDesc(roles, pageable);
+            }
         }
 
         List<Pot> pots = potPage.getContent();
@@ -284,12 +286,11 @@ public class PotQueryServiceImpl implements PotQueryService {
         Set<Long> memberPotIds = (user != null && !potIds.isEmpty())
                 ? potMemberRepository.findPotIdsByUserIdAndPotIds(user.getId(), potIds)
                 : Collections.emptySet();
-
-
+  
         List<PotPreviewResponseDto> content = pots.stream()
                 .map(pot -> {
                     Long potId = pot.getPotId();
-                    List<String> roles = pot.getRecruitmentDetails().stream()
+                    List<String> potRoles = pot.getRecruitmentDetails().stream()
                             .map(rd -> String.valueOf(rd.getRecruitmentRole()))
                             .collect(Collectors.toList());
 
@@ -297,7 +298,7 @@ public class PotQueryServiceImpl implements PotQueryService {
                     int saveCount = potSaveCountMap.getOrDefault(potId, 0);
                     boolean isMember = memberPotIds.contains(potId);
 
-                    return potConverter.toPrviewDto(pot.getUser(), pot, roles, isSaved, saveCount, isMember);
+                    return potConverter.toPrviewDto(pot.getUser(), pot, potRoles, isSaved, saveCount, isMember);
                 })
                 .collect(Collectors.toList());
 
@@ -310,7 +311,6 @@ public class PotQueryServiceImpl implements PotQueryService {
 
         return response;
     }
-
     @Override
     public Pot getPotByPotId(Long potId) {
         return potRepository.findById(potId).orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));

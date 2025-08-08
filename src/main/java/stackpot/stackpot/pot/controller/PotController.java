@@ -21,6 +21,7 @@ import stackpot.stackpot.search.dto.CursorPageResponse;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Tag(name = "Pot  Management", description = "팟 관리 API")
 @RestController
@@ -69,13 +70,12 @@ public class PotController {
     @Operation(
             summary = "모든 팟 조회 API",
             description = """
-    - Role: FRONTEND / BACKEND / DESIGN / PLANNING / (NULL)
-    만약 null인 경우 모든 role에 대해서 조회합니다.
-    - onlyMine: true인 경우 로그인한 사용자가 만든 팟 중 모집 중(RECRUITING)인 팟만 조회합니다.
-      false 또는 null인 경우 전체 팟 목록에서 조건에 맞는 팟을 조회합니다."""
+- recruitmentRoles: 여러 역할(FRONTEND, BACKEND 등)을 리스트로 받습니다.
+  ex) /api/pots?recruitmentRoles=BACKEND&recruitmentRoles=FRONTEND
+- onlyMine: true인 경우 로그인한 사용자가 만든 팟 중 모집 중(RECRUITING)인 팟만 조회합니다."""
     )
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPots(
-            @RequestParam(required = false) String recruitmentRole,
+            @RequestParam(required = false) List<String> recruitmentRoles,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) Boolean onlyMine) {
@@ -84,12 +84,14 @@ public class PotController {
             throw new EnumHandler(ErrorStatus.INVALID_PAGE);
         }
 
-        Role roleEnum = null;
-        if (recruitmentRole != null && !recruitmentRole.isEmpty()) {
-            roleEnum = Role.valueOf(recruitmentRole.trim().toUpperCase());
+        List<Role> roleEnums = null;
+        if (recruitmentRoles != null && !recruitmentRoles.isEmpty()) {
+            roleEnums = recruitmentRoles.stream()
+                    .map(role -> Role.valueOf(role.trim().toUpperCase()))
+                    .collect(Collectors.toList());
         }
 
-        Map<String, Object> response = potQueryService.getAllPotsWithPaging(roleEnum, page, size, onlyMine);
+        Map<String, Object> response = potQueryService.getAllPotsWithPaging(roleEnums, page, size, onlyMine);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

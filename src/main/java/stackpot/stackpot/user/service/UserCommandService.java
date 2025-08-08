@@ -21,7 +21,7 @@ public interface UserCommandService {
 
     UserResponseDto.Userdto updateUserProfile(UserUpdateRequestDto requestDto);
 
-    NicknameResponseDto createNickname(Role role);
+    NicknameResponseDto createNickname();
 
     TokenServiceResponse saveNickname(String nickname);
 
