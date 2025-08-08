@@ -16,6 +16,7 @@ import stackpot.stackpot.feed.dto.SeriesRequestDto;
 import stackpot.stackpot.feed.entity.enums.Category;
 import stackpot.stackpot.feed.service.FeedQueryService;
 import stackpot.stackpot.feed.service.FeedCommandService;
+import stackpot.stackpot.user.dto.response.UserMyPageResponseDto;
 
 import java.util.Map;
 
@@ -137,37 +138,7 @@ public class FeedController {
                 "message", isLiked ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다."
         )));
     }
-    @GetMapping("/{userId}")
-    @Operation(
-            summary = "사용자별 Feed 조회 API",
-            description = "사용자의 feed를 조회합니다."
-    )
-    public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeedsByUserId(
-            @Parameter(description = "사용자 ID", example = "1")
-            @PathVariable("userId") Long userId,
 
-            @Parameter(description = "커서", example = "100", required = false)
-            @RequestParam(value = "cursor", required = false) Long cursor,
-
-            @Parameter(description = "페이지 크기", example = "10")
-            @RequestParam(value = "size", defaultValue = "10") int size
-    ) {
-        FeedResponseDto.FeedPreviewList feedPreviewList = feedQueryService.getFeedsByUserId(userId, cursor, size);
-        return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
-    }
-
-    @Operation(summary = "나의 Feed 조회 API")
-    @GetMapping("/my-feeds")
-    @ApiErrorCodeExamples({
-            ErrorStatus.USER_NOT_FOUND
-    })
-    public ResponseEntity<ApiResponse<FeedResponseDto.FeedPreviewList>> getFeeds(
-            @RequestParam(name = "cursor", required = false) Long cursor,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-
-        FeedResponseDto.FeedPreviewList feedPreviewList = feedQueryService.getFeeds(cursor, size);
-        return ResponseEntity.ok(ApiResponse.onSuccess(feedPreviewList));
-    }
 
     @PostMapping("/series")
     @Operation(summary = "시리즈 생성/삭제 동기화 API",
