@@ -53,23 +53,22 @@ public class SearchServiceImpl implements SearchService {
                 .map(Pot::getPotId)
                 .collect(Collectors.toList());
 
-        User user = null;
         Long userId = null;
         try {
-            user = authService.getCurrentUser();
+            User user = authService.getCurrentUser();
             userId = user.getId();
-        } catch (Exception e) {
-            // 비로그인
-        }
+        } catch (Exception ignored) { /* 비로그인 */ }
 
+        // 배치 집계(이미 배치 쿼리 사용 중이라 OK)
         Map<Long, Integer> potSaveCountMap = potSaveRepository.countSavesByPotIds(potIds);
+
+        // List -> Set (contains O(1))
         Set<Long> savedPotIds = (userId != null)
-                ? potSaveRepository.findPotIdsByUserIdAndPotIds(userId, potIds)
+                ? new HashSet<>(potSaveRepository.findPotIdsByUserIdAndPotIds(userId, potIds))
                 : Collections.emptySet();
 
-        // 참여 여부 isMember 확인
         Set<Long> memberPotIds = (userId != null)
-                ? potMemberRepository.findPotIdsByUserIdAndPotIds(userId, potIds)
+                ? new HashSet<>(potMemberRepository.findPotIdsByUserIdAndPotIds(userId, potIds))
                 : Collections.emptySet();
 
         return pots.map(pot -> {
@@ -86,47 +85,50 @@ public class SearchServiceImpl implements SearchService {
         });
     }
 
+
     @Override
     @Transactional(readOnly = true)
     public Page<FeedResponseDto.FeedDto> searchFeeds(String keyword, Pageable pageable) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = authentication != null &&
-                !(authentication instanceof AnonymousAuthenticationToken) &&
-                authentication.isAuthenticated();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = authentication != null
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.isAuthenticated();
 
-        User user;
-        Long userId = null;
-        if (isAuthenticated) {
-            user = authService.getCurrentUser();
-            userId = user.getId();
-        } else {
-            user = null;
-        }
+        User user = isAuthenticated ? authService.getCurrentUser() : null;
+        Long userId = (user != null) ? user.getId() : null;
 
-        // 키워드 기반 검색
+
         Page<Feed> feeds = feedRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(
                 keyword, keyword, pageable
         );
 
-        // 좋아요/저장 정보 조회
-        List<Long> likedFeedIds = (userId != null)
-                ? feedLikeRepository.findFeedIdsByUserId(userId)
-                : Collections.emptyList();
+        // === N+1 제거: 한 번에 집계/조회 ===
+        List<Long> feedIds = feeds.getContent().stream()
+                .map(Feed::getFeedId)
+                .collect(Collectors.toList());
 
-        List<Long> savedFeedIds = (userId != null)
-                ? feedSaveRepository.findFeedIdsByUserId(userId)
-                : Collections.emptyList();
+        // 저장 수 배치 집계
+        Map<Long, Long> saveCountMap = feedSaveRepository.countByFeedIds(feedIds);
 
-        // 각 Feed를 FeedDto로 변환
+        // List -> Set (contains O(1))
+        Set<Long> likedFeedIds = (userId != null)
+                ? new HashSet<>(feedLikeRepository.findFeedIdsByUserId(userId))
+                : Collections.emptySet();
+
+        Set<Long> savedFeedIds = (userId != null)
+                ? new HashSet<>(feedSaveRepository.findFeedIdsByUserId(userId))
+                : Collections.emptySet();
+
         return feeds.map(feed -> {
             boolean isOwner = user != null && Objects.equals(user.getId(), feed.getUser().getId());
-            Boolean isLiked = likedFeedIds.contains(feed.getFeedId());
-            Boolean isSaved = savedFeedIds.contains(feed.getFeedId());
-            int saveCount = feedSaveRepository.countByFeed(feed);
+            Boolean isLiked = (userId != null) ? likedFeedIds.contains(feed.getFeedId()) : null;
+            Boolean isSaved = (userId != null) ? savedFeedIds.contains(feed.getFeedId()) : null;
+            int saveCount = saveCountMap.getOrDefault(feed.getFeedId(), 0L).intValue();
 
             return feedConverter.feedDto(feed, isOwner, isLiked, isSaved, saveCount);
         });
     }
+
 
 }
 

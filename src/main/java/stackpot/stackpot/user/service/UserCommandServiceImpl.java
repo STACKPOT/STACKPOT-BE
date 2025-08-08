@@ -166,45 +166,35 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
 
-    public UserMyPageResponseDto getMypages(String dataType) {
+    public UserMyPageResponseDto getMypages() {
         User user = authService.getCurrentUser();
 
-        //탈퇴한 사용자
-        if(user.getRole() == Role.UNKNOWN){
-            log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
+        // 탈퇴한 사용자
+        if (user.getRole() == Role.UNKNOWN) {
+            log.error("탈퇴한 유저에 대한 요청입니다. {}", user.getUserId());
             throw new UserHandler(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
 
-        return getMypageByUser(user.getId(), dataType);
+        return getMypageByUser(user.getId());
     }
 
-    public UserMyPageResponseDto getUserMypage(Long userId, String dataType) {
-        return getMypageByUser(userId, dataType);
+    public UserMyPageResponseDto getUserMypage(Long userId) {
+        return getMypageByUser(userId);
     }
 
-    private UserMyPageResponseDto getMypageByUser(Long userId, String dataType) {
-        List<Pot> completedPots = List.of();
-        List<Feed> feeds = List.of();
-
+    private UserMyPageResponseDto getMypageByUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        if(user.getRole() == Role.UNKNOWN){
+        if (user.getRole() == Role.UNKNOWN) {
             throw new UserHandler(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
 
-        if (dataType == null || dataType.isBlank()) {
-            completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
-            feeds = feedRepository.findByUser_Id(userId);
-        } else if ("pot".equalsIgnoreCase(dataType)) {
-            completedPots = potRepository.findByUserIdAndPotStatus(userId, "COMPLETED");
-        } else if ("feed".equalsIgnoreCase(dataType)) {
-            feeds = feedRepository.findByUser_Id(userId);
-        } else {
-            log.error("pot, feed의 요청이 잘 못 되었습니다.");
-            throw new GeneralException(ErrorStatus._BAD_REQUEST);
-        }
-        return userMypageConverter.toDto(user, completedPots, feeds);
+        // Feed만 조회
+        List<Feed> feeds = feedRepository.findByUser_Id(userId);
+
+
+        return userMypageConverter.toDto(user, feeds);
     }
 
 
