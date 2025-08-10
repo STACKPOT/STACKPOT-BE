@@ -18,7 +18,6 @@ public class PotCommentResponseDto {
     public static class AllPotCommentDto {
         private Long userId;
         private String userName;
-        private Role role;
         private Boolean isCommentWriter;
         private Boolean isPotWriter;
         private Long commentId;
@@ -35,7 +34,6 @@ public class PotCommentResponseDto {
     public static class PotCommentCreateDto {
         private Long userId;
         private String userName;
-        private Role role;
         private Boolean isWriter;
         private Long commentId;
         private String comment;
@@ -49,7 +47,6 @@ public class PotCommentResponseDto {
     public static class PotReplyCommentCreateDto {
         private Long userId;
         private String userName;
-        private Role role;
         private Boolean isWriter;
         private Long commentId;
         private String comment;

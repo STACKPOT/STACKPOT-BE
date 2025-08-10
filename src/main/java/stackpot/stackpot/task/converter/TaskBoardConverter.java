@@ -15,6 +15,7 @@ import stackpot.stackpot.task.dto.MyPotTaskStatusResponseDto;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
+import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
 
 
@@ -22,13 +23,14 @@ import java.util.stream.Collectors;
 
 @Component
 public class TaskBoardConverter {
-    public Taskboard toTaskboard(Pot pot, MyPotTaskRequestDto.create requset) {
+    public Taskboard toTaskboard(Pot pot, MyPotTaskRequestDto.create request, User user) {
         return Taskboard.builder()
-                .title(requset.getTitle())
-                .description(requset.getDescription())
-                .deadLine(requset.getDeadline())
-                .status(requset.getTaskboardStatus())
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .deadLine(request.getDeadline())
+                .status(request.getTaskboardStatus())
                 .pot(pot)
+                .user(user)
                 .build();
     }
     public MyPotTaskResponseDto toDTO(Taskboard taskboard, List<PotMember> participants) {

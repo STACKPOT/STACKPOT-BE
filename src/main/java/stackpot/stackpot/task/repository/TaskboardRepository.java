@@ -42,4 +42,7 @@ public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
                 @Param("date") LocalDate date
         );
 
+        @Query("SELECT count(*) FROM Taskboard t WHERE t.pot.potId = :potId")
+        int countByPotId(@Param("potId") Long potId);
+
 }

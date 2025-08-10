@@ -18,8 +18,7 @@ public class NotificationConverter {
         return NotificationResponseDto.UnReadNotificationDto.builder()
                 .notificationId(unReadNotificationDto.getNotificationId())
                 .potOrFeedId(unReadNotificationDto.getPotOrFeedId())
-                .role(unReadNotificationDto.getRole())
-                .userName(unReadNotificationDto.getUserName() + " " + unReadNotificationDto.getRole().getVegetable())
+                .userName(unReadNotificationDto.getUserName() + " 새싹")
                 .type(unReadNotificationDto.getType())
                 .content(unReadNotificationDto.getContent())
                 .createdAt(unReadNotificationDto.getCreatedAt().format(DATE_FORMATTER))
@@ -27,12 +26,11 @@ public class NotificationConverter {
     }
 
     public NotificationResponseDto.UnReadNotificationDto toUnReadNotificationDto(
-            Long notificationId, Long potOrFeedId, Role role, String userName, String type, String content, LocalDateTime createdAt) {
+            Long notificationId, Long potOrFeedId, String userName, String type, String content, LocalDateTime createdAt) {
         return NotificationResponseDto.UnReadNotificationDto.builder()
                 .notificationId(notificationId)
                 .potOrFeedId(potOrFeedId)
-                .role(role)
-                .userName(userName + " " + role.getVegetable())
+                .userName(userName + " 새싹")
                 .type(type)
                 .content(content)
                 .createdAt(createdAt.format(DATE_FORMATTER))

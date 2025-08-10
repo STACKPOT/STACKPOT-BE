@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface PotApplicationNotificationRepository extends JpaRepository<PotApplicationNotification, Long> {
 
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
-            "pan.id, pan.potApplication.pot.potId, pan.potApplication.user.role, pan.potApplication.user.nickname, " +
+            "pan.id, pan.potApplication.pot.potId, pan.potApplication.user.nickname, " +
             "'PotApplication', null, pan.createdAt) " +
             "FROM PotApplicationNotification pan " +
             "WHERE pan.isRead = false AND pan.potApplication.pot.user.id = :userId")

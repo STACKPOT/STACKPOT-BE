@@ -39,7 +39,7 @@ public class Taskboard extends BaseEntity {
     @JoinColumn(name = "pot_id", nullable = false)
     private Pot pot;
 
-    @Setter
+    // TaskBoard 생성자
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

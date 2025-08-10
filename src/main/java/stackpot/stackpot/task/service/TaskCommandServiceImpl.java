@@ -36,7 +36,7 @@ public class TaskCommandServiceImpl implements TaskCommandService {
     private final AuthService authService;
 
     @Override
-    public MyPotTaskResponseDto creatTask(Long potId, MyPotTaskRequestDto.create request) {
+    public MyPotTaskResponseDto createTask(Long potId, MyPotTaskRequestDto.create request) {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
@@ -45,20 +45,16 @@ public class TaskCommandServiceImpl implements TaskCommandService {
         potMemberRepository.findByPotAndUser(pot, user)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
 
-        Taskboard taskboard = taskboardConverter.toTaskboard(pot, request);
-        taskboard.setUser(user);
+        Taskboard taskboard = taskboardConverter.toTaskboard(pot, request, user);
         taskboardRepository.save(taskboard);
 
         List<Long> requestedParticipantIds = request.getParticipants() != null ? request.getParticipants() : List.of();
-
-
         List<PotMember> validParticipants = potMemberRepository.findByPotId(potId);
-
         List<PotMember> participants = validParticipants.stream()
                 .filter(potMember -> requestedParticipantIds.contains(potMember.getPotMemberId()))
                 .collect(Collectors.toList());
 
-        createAndSaveTasks(taskboard, participants);
+        this.createAndSaveTasks(taskboard, participants);
 
         List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
         MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard, participants);
@@ -119,15 +115,14 @@ public class TaskCommandServiceImpl implements TaskCommandService {
         taskboardRepository.delete(taskboard);
     }
 
-    private List<Task> createAndSaveTasks(Taskboard taskboard, List<PotMember> participants) {
+    private void createAndSaveTasks(Taskboard taskboard, List<PotMember> participants) {
         List<Task> tasks = participants.stream()
                 .map(participant -> Task.builder()
                         .taskboard(taskboard)
                         .potMember(participant)
                         .build())
                 .collect(Collectors.toList());
-
-        return taskRepository.saveAll(tasks);
+        taskRepository.saveAll(tasks);
     }
 
     @Override

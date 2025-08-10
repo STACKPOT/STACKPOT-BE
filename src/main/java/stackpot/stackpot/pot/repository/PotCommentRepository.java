@@ -14,7 +14,7 @@ public interface PotCommentRepository extends JpaRepository<PotComment, Long> {
     @Query("select pc from PotComment pc where pc.id = :commentId")
     Optional<PotComment> findByCommentId(@Param("commentId") Long commentId);
 
-    @Query("select new stackpot.stackpot.pot.dto.PotCommentDto$PotCommentInfoDto(pc.user.id, pc.user.nickname, pc.user.role" +
+    @Query("select new stackpot.stackpot.pot.dto.PotCommentDto$PotCommentInfoDto(pc.user.id, pc.user.nickname" +
             ", pc.pot.user.id, pc.id, pc.comment, pc.parent.id, pc.createdAt) " +
             "from PotComment pc where pc.pot.potId = :potId")
     List<PotCommentDto.PotCommentInfoDto> findAllCommentInfoDtoByPotId(@Param("potId") Long potId);
