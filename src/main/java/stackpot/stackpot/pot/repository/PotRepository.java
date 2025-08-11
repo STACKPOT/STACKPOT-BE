@@ -56,7 +56,9 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
     @Modifying
     @Query("DELETE FROM Pot f WHERE f.user.id = :userId")
     void deleteByUserId(@Param("userId") Long userId);
-
+    @Modifying
+    @Query("DELETE FROM Pot p WHERE p.user.id = :userId AND p.potId IN :potIds AND p.potStatus = 'RECRUITING'")
+    void deleteByUserIdAndPotIds(@Param("userId") Long userId, @Param("potIds") List<Long> potIds);
     boolean existsByUserId(Long userId);
 
     // 지원자 수 기준으로 모든 Pot 정렬
@@ -76,5 +78,11 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
 
     List<Pot> findByPotMembers_UserIdOrderByCreatedAtDesc(Long userId);
 
+    @Query("select p.potId from Pot p where p.user.id = :userId and p.potStatus = :status")
+    List<Long> findIdsByUserIdAndStatus(@Param("userId") Long userId,
+                                        @Param("status") String status);
 
+    @Query("select p.potId from Pot p where p.user.id = :userId and p.potStatus not in :statuses")
+    List<Long> findIdsByUserIdAndStatusNotIn(@Param("userId") Long userId,
+                                             @Param("statuses") List<String> statuses);
 }

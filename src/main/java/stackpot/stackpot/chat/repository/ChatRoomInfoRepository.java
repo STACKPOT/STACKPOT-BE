@@ -27,4 +27,8 @@ public interface ChatRoomInfoRepository extends JpaRepository<ChatRoomInfo, Long
     @Modifying
     @Query("delete from ChatRoomInfo cri where cri.potMember.potMemberId in :potMemberIds")
     void deleteByPotMemberIdIn(@Param("potMemberIds") List<Long> potMemberIds);
+    @Modifying
+    @Query("DELETE FROM ChatRoomInfo cri WHERE cri.potMember.id = :potMemberId AND cri.chatRoom.id IN :chatRoomIds")
+    void deleteByPotMemberIdAndChatRoomId(@Param("potMemberId") Long potMemberId, @Param("chatRoomIds") List<Long> chatRoomIds);
+
 }

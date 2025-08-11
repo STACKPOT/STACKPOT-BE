@@ -39,7 +39,7 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
 
     boolean existsByPotAndUser(Pot pot, User user);
 
-    // ✅ 특정 Pot에 속한 사용자(userId)의 역할(Role) 찾기
+    // 특정 Pot에 속한 사용자(userId)의 역할(Role) 찾기
     @Query("SELECT pm.roleName FROM PotMember pm WHERE pm.pot.potId = :potId AND pm.user.id = :userId")
     Optional<Role> findRoleByUserId(@Param("potId") Long potId, @Param("userId") Long userId);
 
@@ -89,4 +89,16 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
 
     @Query("SELECT pm.pot.potId FROM PotMember pm WHERE pm.user.id = :userId AND pm.pot.potId IN :potIds")
     Set<Long> findPotIdsByUserIdAndPotIds(@Param("userId") Long userId, @Param("potIds") List<Long> potIds);
+
+    @Modifying
+    @Query("""
+    DELETE FROM PotMember pm
+     WHERE pm.pot.id IN :potIds
+       AND pm.user.id = :userId
+""")
+    void deleteByPotIdsAndUserId(@Param("potIds") List<Long> potIds,
+                                 @Param("userId") Long userId);
+    @Modifying
+    @Query("DELETE FROM PotMember pm WHERE pm.pot.potId IN :potIds AND pm.user.id = :userId")
+    void deleteByUserIdAndPotIdIn(@Param("userId") Long userId, @Param("potIds") List<Long> potIds);
 }

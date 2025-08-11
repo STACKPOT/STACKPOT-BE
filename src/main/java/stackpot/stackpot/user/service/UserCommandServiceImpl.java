@@ -3,15 +3,20 @@ package stackpot.stackpot.user.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.GeneralException;
+import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.apiPayload.exception.handler.TokenHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
+import stackpot.stackpot.chat.repository.ChatRoomInfoRepository;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.config.security.JwtTokenProvider;
+import stackpot.stackpot.pot.entity.mapping.PotSave;
+import stackpot.stackpot.pot.repository.*;
 import stackpot.stackpot.task.repository.TaskRepository;
 import stackpot.stackpot.task.repository.TaskboardRepository;
 import stackpot.stackpot.user.converter.UserConverter;
@@ -29,14 +34,10 @@ import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
-import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.service.pot.PotSummarizationService;
 import stackpot.stackpot.badge.repository.PotMemberBadgeRepository;
 import stackpot.stackpot.todo.repository.UserTodoRepository;
 import stackpot.stackpot.feed.repository.FeedRepository;
-import stackpot.stackpot.pot.repository.PotApplicationRepository;
-import stackpot.stackpot.pot.repository.PotRecruitmentDetailsRepository;
-import stackpot.stackpot.pot.repository.PotRepository;
 import stackpot.stackpot.user.entity.enums.UserType;
 import stackpot.stackpot.user.repository.BlacklistRepository;
 import stackpot.stackpot.user.repository.RefreshTokenRepository;
@@ -64,7 +65,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final TaskboardRepository taskboardRepository;
     private final PotRecruitmentDetailsRepository potRecruitmentDetailsRepository;
     private final PotMemberBadgeRepository potMemberBadgeRepository;
-
+    private final ChatRoomInfoRepository chatRoominfoRepository;
     private final UserMypageConverter userMypageConverter;
     private final TempUserRepository tempUserRepository;
     private final PotSummarizationService potSummarizationService;
@@ -72,8 +73,9 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
     private final AuthService authService;
-
+    private final PotSaveRepository potSaveRepository;
     private final EmailService emailService;
+    private final PotCommentRepository potCommentRepository;
 
     @Override
     @Transactional
@@ -311,13 +313,16 @@ public class UserCommandServiceImpl implements UserCommandService {
             blacklistRepository.addToBlacklist(token, jwtTokenProvider.getExpiration(token));
 
             // Feed 관련 데이터 삭제
-            deleteFeedRelatedData(user.getId());
+//            deleteFeedRelatedData(user.getId());
 
             // Todo 데이터 삭제
             userTodoRepository.deleteByUserId(user.getId());
 
             // Task 및 Taskboard 관련 데이터 삭제
             deleteTaskRelatedData(user.getId());
+
+            // 사용자가 저장한 Pot 삭제
+            deleteUserSavedPots(user);
 
             // Pot 관련 데이터 삭제
             boolean isCreator = potRepository.existsByUserId(user.getId());
@@ -339,7 +344,20 @@ public class UserCommandServiceImpl implements UserCommandService {
         feedLikeRepository.deleteByUserId(userId);
 
         // Feed 삭제
-        feedRepository.deleteByUserId(userId);
+//        feedRepository.deleteByUserId(userId);
+    }
+    @Transactional
+    public void deleteUserSavedPots(User user) {
+        // 사용자가 저장한 PotSave 목록을 조회
+        List<PotSave> userSavedPots = potSaveRepository.findByUser(user);
+
+        // 해당 PotSave 엔티티에서 Pot만 추출
+        List<Pot> potsToDelete = userSavedPots.stream()
+                .map(PotSave::getPot) // PotSave에서 Pot만 추출
+                .collect(Collectors.toList());
+
+        // 사용자가 저장한 PotSave만 삭제
+        potSaveRepository.deleteAllByUserAndPots(user, potsToDelete);
     }
 
     private void deleteTaskRelatedData(Long userId) {
@@ -372,23 +390,48 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
     }
 
-    private void handleCreatorPotDeletion(User user) {
-        List<Pot> userPots = potRepository.findByUserId(user.getId());
+    @Transactional
+    public void handleCreatorPotDeletion(User user) {
+        Long userId = user.getId();
 
-        for (Pot pot : userPots) {
-            if (pot.getPotStatus().equals("COMPLETED")) {
-                // 완료된 Pot의 경우 PotMember만 소프트 딜리트
-                PotMember potMember = potMemberRepository.findByPotIdAndUserId(pot.getPotId(), user.getId());
-                potMember.deletePotMember();
-                potMemberRepository.save(potMember);
-            } else {
-                // 진행 중인 Pot 처리
-                deletePotAndRelatedData(pot);
-            }
+
+        List<Long> completedPotIds = potRepository.findIdsByUserIdAndStatus(userId, "COMPLETED");
+        List<Long> recruitingPotIds = potRepository.findIdsByUserIdAndStatus(userId, "RECRUITING");
+        // 완료/모집중을 제외한 나머지(진행중 등)
+        List<Long> otherPotIds = potRepository.findIdsByUserIdAndStatusNotIn(
+                userId, List.of("COMPLETED", "RECRUITING")
+        );
+
+        // 2) 완료된 Pot → 현재 유저의 PotMember만 일괄 소프트 딜리트 (배치 UPDATE)
+//        if (!completedPotIds.isEmpty()) {
+//            potMemberRepository.softDeleteByPotIdsAndUserId(completedPotIds, userId);
+//        }
+        
+        // 3) 모집중 Pot → 연관 정리 후 배치 삭제
+        if (!recruitingPotIds.isEmpty()) {
+            potRecruitmentDetailsRepository.deleteByPotIds(recruitingPotIds);
+            // PotApplication 삭제
+            potApplicationRepository.deleteByPotIds(recruitingPotIds);
+            potRepository.deleteByUserIdAndPotIds(userId, recruitingPotIds);
         }
 
-        user.deleteUser();  // 소프트 딜리트
+
+        // 4) 진행 중(기타 상태) → 권한 위임 요구 에러
+        if (!otherPotIds.isEmpty()) {
+            throw new PotHandler(ErrorStatus.POT_OWNERSHIP_TRANSFER_REQUIRED);
+        }
+
+        // 5) 유저 소프트 딜리트
+        user.deleteUser();
         userRepository.save(user);
+    }
+
+    @Transactional
+    public void deletePotAndRelatedData(List<Long> potIds) {
+        List<Pot> pots = potRepository.findAllById(potIds);
+        for (Pot pot : pots) {
+            deletePotAndRelatedData(pot);
+        }
     }
 
     @Transactional
@@ -457,9 +500,24 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     private void handleNormalUserPotDeletion(User user) {
-        potMemberRepository.deleteByUserId(user.getId());
-        potApplicationRepository.deleteByUserId(user.getId());
-        userRepository.delete(user);
+        Long userId = user.getId();
+        // 1. 진행 중인 팟 IDs 조회
+        List<Long> ongoingPotIds = potRepository.findIdsByUserIdAndStatus(userId, "ONGOING");
+
+        // 2. 진행 중인 팟에 속한 PotMember만 삭제 (진행 중인 팟에 대해서만)
+        if (!ongoingPotIds.isEmpty()) {
+            // 해당 유저가 속한 진행 중인 팟에서 PotMember 삭제
+            potMemberRepository.deleteByUserIdAndPotIdIn(userId, ongoingPotIds);  // 진행 중인 팟에 해당하는 PotMember만 삭제
+        }
+
+        // 3. 진행 중인 팟에 해당하는 채팅방 기록 삭제
+        if (!ongoingPotIds.isEmpty()) {
+            chatRoominfoRepository.deleteByPotMemberIdAndChatRoomId(userId, ongoingPotIds);  // 진행 중인 팟에 해당하는 채팅방 삭제
+        }
+
+        // 4. PotApplication 삭제 (유저가 신청한 팟의 신청 내역 삭제)
+        potApplicationRepository.deleteByUserId(userId);
+
     }
 
     @Override
