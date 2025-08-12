@@ -17,7 +17,6 @@ public class NotificationDto {
     public static class UnReadNotificationDto {
         private Long notificationId;
         private Long potOrFeedId;
-        private Role role;
         private String userName;
         private String type;
         private String content;

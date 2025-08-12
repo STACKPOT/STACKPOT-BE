@@ -3,6 +3,8 @@ package stackpot.stackpot.task.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
@@ -40,12 +42,9 @@ public class TaskQueryServiceImpl implements TaskQueryService {
     @Override
     public Map<TaskboardStatus, List<MyPotTaskPreViewResponseDto>> preViewTask(Long potId) {
         User user = authService.getCurrentUser();
-
         potMemberRepository.findByPotPotIdAndUser(potId, user)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
-
         List<Taskboard> taskboards = taskboardRepository.findByPotPotId(potId);
-
         List<MyPotTaskPreViewResponseDto> taskboardDtos = taskboards.stream()
                 .map(taskboard -> {
                     List<Task> tasks = taskRepository.findByTaskboard(taskboard);
@@ -53,11 +52,9 @@ public class TaskQueryServiceImpl implements TaskQueryService {
                             .map(Task::getPotMember)
                             .distinct()
                             .collect(Collectors.toList());
-
                     return taskboardConverter.toDto(taskboard, participants);
                 })
-                .collect(Collectors.toList());
-
+                .toList();
 
         return taskboardDtos.stream()
                 .collect(Collectors.groupingBy(MyPotTaskPreViewResponseDto::getStatus));
@@ -66,23 +63,16 @@ public class TaskQueryServiceImpl implements TaskQueryService {
 
     @Override
     public MyPotTaskResponseDto viewDetailTask(Long potId, Long taskBoardId) {
-
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
-
         Taskboard taskboard = taskboardRepository.findByPotAndTaskboardId(pot, taskBoardId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.TASKBOARD_NOT_FOUND));
-
         List<Task> tasks = taskRepository.findByTaskboard(taskboard);
-
         List<PotMember> participants = tasks.stream()
                 .map(Task::getPotMember)
                 .distinct()
                 .collect(Collectors.toList());
-
-        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard,participants);
-
-        return response;
+        return taskboardConverter.toDTO(taskboard, participants);
     }
 
     @Override
@@ -137,5 +127,16 @@ public class TaskQueryServiceImpl implements TaskQueryService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public int getTaskBoardCountByPotId(Long potId) {
+        return taskboardRepository.countByPotId(potId);
+    }
+
+    @Override
+    public List<PotMember> getTop2TaskCountByPotMemberId(List<Long> potMemberIds) {
+        Pageable pageable = PageRequest.of(0, 2);
+        return taskRepository.getTop2TaskCountByPotMemberId(potMemberIds, pageable);
     }
 }

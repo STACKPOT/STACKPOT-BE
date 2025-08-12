@@ -49,11 +49,11 @@ public class PotCommentCommandService {
         Boolean isWriter = Objects.equals(user.getId(), pot.getUser().getUserId());
 
         NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createPotCommentNotification(
-                potId, potComment.getId(), user.getId(), user.getRole());
+                potId, potComment.getId(), user.getId());
 
         applicationEventPublisher.publishEvent(new PotCommentEvent(pot.getUser().getId(), null, dto));
 
-        return potCommentConverter.toPotCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
+        return potCommentConverter.toPotCommentCreateDto(user.getUserId(), user.getNickname(), isWriter,
                 potComment.getId(), comment, potComment.getCreatedAt());
     }
 
@@ -74,11 +74,11 @@ public class PotCommentCommandService {
         Boolean isWriter = Objects.equals(user.getId(), pot.getUser().getUserId());
 
         NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createPotCommentNotification(
-                potId, potComment.getId(), user.getId(), user.getRole());
+                potId, potComment.getId(), user.getId());
 
         applicationEventPublisher.publishEvent(new PotCommentEvent(pot.getUser().getId(), parent.getUser().getUserId(), dto));
 
-        return potCommentConverter.toPotReplyCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
+        return potCommentConverter.toPotReplyCommentCreateDto(user.getUserId(), user.getNickname(), isWriter,
                 potComment.getId(), comment, parent.getId(), potComment.getCreatedAt());
     }
 
