@@ -14,7 +14,7 @@ public interface FeedCommentRepository extends JpaRepository<FeedComment, Long> 
     @Query("select fc from FeedComment fc where fc.id = :commentId")
     Optional<FeedComment> findByCommentId(@Param("commentId") Long commentId);
 
-    @Query("select new stackpot.stackpot.feed.dto.FeedCommentInfoDto(fc.user.id, fc.user.nickname, fc.user.role, " +
+    @Query("select new stackpot.stackpot.feed.dto.FeedCommentDto$FeedCommentInfoDto(fc.user.id, fc.user.nickname, " +
             "fc.feed.user.id, fc.id, fc.comment, fc.parent.id, fc.createdAt) " +
             "from FeedComment fc where fc.feed.feedId = :feedId")
     List<FeedCommentDto.FeedCommentInfoDto> findAllCommentInfoDtoByFeedId(@Param("feedId") Long feedId);
@@ -22,3 +22,4 @@ public interface FeedCommentRepository extends JpaRepository<FeedComment, Long> 
     @Query("SELECT COUNT(fc) FROM FeedComment fc WHERE fc.feed.feedId = :feedId")
     Long countByFeedId(@Param("feedId") Long feedId);
 }
+

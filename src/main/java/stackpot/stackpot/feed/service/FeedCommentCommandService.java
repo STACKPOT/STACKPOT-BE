@@ -48,11 +48,11 @@ public class FeedCommentCommandService {
         Boolean isWriter = Objects.equals(user.getId(), feed.getUser().getUserId());
 
         NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createdFeedCommentNotification(
-                feedId, feedComment.getId(), user.getId(), user.getRole());
+                feedId, feedComment.getId(), user.getId());
 
         applicationEventPublisher.publishEvent(new FeedCommentEvent(feed.getUser().getUserId(), null, dto));
 
-        return feedCommentConverter.toFeedCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
+        return feedCommentConverter.toFeedCommentCreateDto(user.getUserId(), user.getNickname(), isWriter,
                 feedComment.getId(), comment, feedComment.getCreatedAt());
     }
 
@@ -73,11 +73,11 @@ public class FeedCommentCommandService {
         Boolean isWriter = Objects.equals(user.getId(), feed.getUser().getUserId());
 
         NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createdFeedCommentNotification(
-                feedId, feedComment.getId(), user.getId(), user.getRole());
+                feedId, feedComment.getId(), user.getId());
 
         applicationEventPublisher.publishEvent(new FeedCommentEvent(feed.getUser().getUserId(), parent.getUser().getUserId(), dto));
 
-        return feedCommentConverter.toFeedReplyCommentCreateDto(user.getUserId(), user.getNickname(), user.getRole(), isWriter,
+        return feedCommentConverter.toFeedReplyCommentCreateDto(user.getUserId(), user.getNickname(), isWriter,
                 feedComment.getId(), comment, parent.getId(), feedComment.getCreatedAt());
     }
 

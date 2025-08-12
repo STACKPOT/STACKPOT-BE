@@ -39,7 +39,7 @@ public class TaskController {
             ErrorStatus.POT_MEMBER_NOT_FOUND
     })
     public ResponseEntity<ApiResponse<MyPotTaskResponseDto>> createPotTask(@PathVariable("pot_id") Long potId, @RequestBody @Valid MyPotTaskRequestDto.create request) {
-        MyPotTaskResponseDto response = taskCommandService.creatTask(potId, request);
+        MyPotTaskResponseDto response = taskCommandService.createTask(potId, request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -94,7 +94,6 @@ public class TaskController {
             @PathVariable("pot_id") Long potId,
             @RequestParam("year") int year,
             @RequestParam("month") int month) {
-
         List<MonthlyTaskDto> response = taskQueryService.getMonthlyTasks(potId, year, month);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }

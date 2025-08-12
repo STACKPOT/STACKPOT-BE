@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface FeedCommentNotificationRepository extends JpaRepository<FeedCommentNotification, Long> {
 
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
-            "fcn.id, fcn.feedComment.feed.feedId, fcn.feedComment.user.role," +
+            "fcn.id, fcn.feedComment.feed.feedId, " +
             "fcn.feedComment.user.nickname, 'FeedComment', fcn.feedComment.comment, fcn.createdAt) " +
             "FROM FeedCommentNotification fcn " +
             "WHERE fcn.isRead = false AND (" +

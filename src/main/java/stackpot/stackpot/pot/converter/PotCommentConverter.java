@@ -15,12 +15,11 @@ public class PotCommentConverter {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy년 M월 d일 H:mm");
 
-    public PotCommentResponseDto.PotCommentCreateDto toPotCommentCreateDto(Long userId, String userName, Role role, Boolean isWriter,
+    public PotCommentResponseDto.PotCommentCreateDto toPotCommentCreateDto(Long userId, String userName, Boolean isWriter,
                                                                            Long commentId, String comment, LocalDateTime createdAt) {
         return PotCommentResponseDto.PotCommentCreateDto.builder()
                 .userId(userId)
-                .userName(userName)
-                .role(role)
+                .userName(userName + " 새싹")
                 .isWriter(isWriter)
                 .commentId(commentId)
                 .comment(comment)
@@ -28,13 +27,12 @@ public class PotCommentConverter {
                 .build();
     }
 
-    public PotCommentResponseDto.PotReplyCommentCreateDto toPotReplyCommentCreateDto(Long userId, String userName, Role role, Boolean isWriter,
+    public PotCommentResponseDto.PotReplyCommentCreateDto toPotReplyCommentCreateDto(Long userId, String userName, Boolean isWriter,
                                                                                      Long commentId, String comment, Long parentCommentId,
                                                                                      LocalDateTime createdAt) {
         return PotCommentResponseDto.PotReplyCommentCreateDto.builder()
                 .userId(userId)
-                .userName(userName)
-                .role(role)
+                .userName(userName + " 새싹")
                 .isWriter(isWriter)
                 .commentId(commentId)
                 .comment(comment)
@@ -52,8 +50,7 @@ public class PotCommentConverter {
     public PotCommentResponseDto.AllPotCommentDto toAllPotCommentDto(PotCommentDto.PotCommentInfoDto dto, Long currentUserId) {
         return PotCommentResponseDto.AllPotCommentDto.builder()
                 .userId(dto.getUserId())
-                .userName(dto.getUserName() + " " + dto.getRole().getVegetable())
-                .role(dto.getRole())
+                .userName(dto.getUserName() + " 새싹")
                 .isCommentWriter(Objects.equals(dto.getUserId(), currentUserId))
                 .isPotWriter(Objects.equals(dto.getPotWriterId(), dto.getUserId()))
                 .commentId(dto.getCommentId())

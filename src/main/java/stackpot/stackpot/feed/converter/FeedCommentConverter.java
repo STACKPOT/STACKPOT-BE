@@ -18,8 +18,7 @@ public class FeedCommentConverter {
     public FeedCommentResponseDto.AllFeedCommentDto toAllFeedCommentDto(FeedCommentDto.FeedCommentInfoDto dto, Long currentUserId) {
         return FeedCommentResponseDto.AllFeedCommentDto.builder()
                 .userId(dto.getUserId())
-                .userName(dto.getUserName() + " " + dto.getRole().getVegetable())
-                .role(dto.getRole())
+                .userName(dto.getUserName() + " 새싹")
                 .isCommentWriter(Objects.equals(dto.getUserId(), currentUserId))
                 .isFeedWriter(Objects.equals(dto.getFeedWriterId(), dto.getUserId()))
                 .commentId(dto.getCommentId())
@@ -30,12 +29,11 @@ public class FeedCommentConverter {
                 .build();
     }
 
-    public FeedCommentResponseDto.FeedCommentCreateDto toFeedCommentCreateDto(Long userId, String userName, Role role, Boolean isWriter,
+    public FeedCommentResponseDto.FeedCommentCreateDto toFeedCommentCreateDto(Long userId, String userName, Boolean isWriter,
                                                                               Long commentId, String comment, LocalDateTime createdAt) {
         return FeedCommentResponseDto.FeedCommentCreateDto.builder()
                 .userId(userId)
-                .userName(userName)
-                .role(role)
+                .userName(userName + " 새싹")
                 .isWriter(isWriter)
                 .commentId(commentId)
                 .comment(comment)
@@ -43,13 +41,12 @@ public class FeedCommentConverter {
                 .build();
     }
 
-    public FeedCommentResponseDto.FeedReplyCommentCreateDto toFeedReplyCommentCreateDto(Long userId, String userName, Role role, Boolean isWriter,
+    public FeedCommentResponseDto.FeedReplyCommentCreateDto toFeedReplyCommentCreateDto(Long userId, String userName, Boolean isWriter,
                                                                                         Long commentId, String comment, Long parentCommentId,
                                                                                         LocalDateTime createdAt) {
         return FeedCommentResponseDto.FeedReplyCommentCreateDto.builder()
                 .userId(userId)
-                .userName(userName)
-                .role(role)
+                .userName(userName + " 새싹")
                 .isWriter(isWriter)
                 .commentId(commentId)
                 .comment(comment)

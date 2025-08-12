@@ -12,6 +12,7 @@ import stackpot.stackpot.badge.repository.BadgeRepository;
 import stackpot.stackpot.badge.repository.PotMemberBadgeRepository;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
+import stackpot.stackpot.task.service.TaskQueryService;
 import stackpot.stackpot.todo.entity.enums.TodoStatus;
 import stackpot.stackpot.todo.repository.UserTodoRepository;
 
@@ -29,12 +30,11 @@ public class BadgeServiceImpl implements BadgeService {
     private final PotMemberRepository potMemberRepository;
     private final PotMemberBadgeRepository potMemberBadgeRepository;
     private final PotBadgeMemberConverter potBadgeMemberConverter;
-
-    private static final Long DEFAULT_BADGE_ID = 1L;
+    private final TaskQueryService taskQueryService;
 
     @Override
-    public Badge getDefaultBadge() {
-        return badgeRepository.findBadgeByBadgeId(DEFAULT_BADGE_ID)
+    public Badge getBadge(Long badgeId) {
+        return badgeRepository.findBadgeByBadgeId(badgeId)
                 .orElseThrow(() -> new PotHandler(BADGE_NOT_FOUND));
     }
 
@@ -57,16 +57,39 @@ public class BadgeServiceImpl implements BadgeService {
         List<PotMember> topPotMembers = topUserIds.stream()
                 .map(userId -> potMemberRepository.findByPot_PotIdAndUser_Id(potId, userId)
                         .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND)))
-                .collect(Collectors.toList());
+                .toList();
 
-        // 4. 기본 배지 부여
-        Badge badge = getDefaultBadge();
+        // 4. Todo 배지 부여
+        Badge badge = getBadge(1L);
         for (PotMember potMember : topPotMembers) {
             PotMemberBadge potMemberBadge = PotMemberBadge.builder()
                     .badge(badge)
                     .potMember(potMember)
                     .build();
             potMemberBadgeRepository.save(potMemberBadge);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void assignTaskBadgeToTopMembers(Long potId) {
+        List<Long> potMemberIds = potMemberRepository.selectPotMemberIdsByPotId(potId);
+        if (potMemberIds.isEmpty()) {
+            throw new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND);
+        }
+
+        List<PotMember> top2PotMembers = taskQueryService.getTop2TaskCountByPotMemberId(potMemberIds);
+        if (top2PotMembers.size() < 2) {
+            throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TOP_MEMBERS);
+        }
+
+        Badge badge = getBadge(2L);
+        List<PotMemberBadge> newBadges = top2PotMembers.stream()
+                .filter(pm -> !potMemberBadgeRepository.existsByBadgeAndPotMember(pm.getPotMemberId(),badge.getBadgeId()))
+                .map(pm -> PotMemberBadge.builder().badge(badge).potMember(pm).build())
+                .collect(Collectors.toList());
+        if (!newBadges.isEmpty()) {
+            potMemberBadgeRepository.saveAll(newBadges);
         }
     }
 }

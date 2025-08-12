@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 public class FeedCommentInfoDto {
     private Long userId;
     private String userName;
-    private Role role;
     private Long feedWriterId;
     private Long commentId;
     private String comment;
