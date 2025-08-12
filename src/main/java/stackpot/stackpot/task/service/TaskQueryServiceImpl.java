@@ -130,11 +130,6 @@ public class TaskQueryServiceImpl implements TaskQueryService {
     }
 
     @Override
-    public int getTaskBoardCountByPotId(Long potId) {
-        return taskboardRepository.countByPotId(potId);
-    }
-
-    @Override
     public List<PotMember> getTop2TaskCountByPotMemberId(List<Long> potMemberIds) {
         Pageable pageable = PageRequest.of(0, 2);
         return taskRepository.getTop2TaskCountByPotMemberId(potMemberIds, pageable);

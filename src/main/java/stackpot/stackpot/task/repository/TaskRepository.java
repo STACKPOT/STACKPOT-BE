@@ -30,6 +30,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             "FROM Task t " +
             "WHERE t.potMember.potMemberId IN :potMemberIds " +
             "GROUP BY t.potMember.potMemberId " +
-            "ORDER BY count(*) DESC")
+            "ORDER BY count(t) DESC")
     List<PotMember> getTop2TaskCountByPotMemberId(@Param("potMemberIds") List<Long> potMemberIds, Pageable pageable);
 }

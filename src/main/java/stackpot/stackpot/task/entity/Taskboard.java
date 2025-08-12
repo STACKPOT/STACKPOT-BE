@@ -40,7 +40,7 @@ public class Taskboard extends BaseEntity {
     private Pot pot;
 
     // TaskBoard 생성자
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }

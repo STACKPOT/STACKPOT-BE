@@ -70,6 +70,7 @@ public class BadgeServiceImpl implements BadgeService {
         }
     }
 
+    @Transactional
     @Override
     public void assignTaskBadgeToTopMembers(Long potId) {
         List<Long> potMemberIds = potMemberRepository.selectPotMemberIdsByPotId(potId);
@@ -83,12 +84,12 @@ public class BadgeServiceImpl implements BadgeService {
         }
 
         Badge badge = getBadge(2L);
-        for (PotMember potMember : top2PotMembers) {
-            PotMemberBadge potMemberBadge = PotMemberBadge.builder()
-                    .badge(badge)
-                    .potMember(potMember)
-                    .build();
-            potMemberBadgeRepository.save(potMemberBadge);
+        List<PotMemberBadge> newBadges = top2PotMembers.stream()
+                .filter(pm -> !potMemberBadgeRepository.existsByBadgeAndPotMember(pm.getPotMemberId(),badge.getBadgeId()))
+                .map(pm -> PotMemberBadge.builder().badge(badge).potMember(pm).build())
+                .collect(Collectors.toList());
+        if (!newBadges.isEmpty()) {
+            potMemberBadgeRepository.saveAll(newBadges);
         }
     }
 }

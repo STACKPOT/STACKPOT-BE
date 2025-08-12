@@ -18,6 +18,7 @@ public interface PotMemberBadgeRepository extends JpaRepository<PotMemberBadge, 
     @Query("DELETE FROM PotMemberBadge b WHERE b.potMember.potMemberId IN :potMemberIds")
     void deleteByPotMemberIds(@Param("potMemberIds") List<Long> potMemberIds);
 
-
+    @Query("SELECT CASE WHEN count(b) > 0 THEN true ELSE false END FROM PotMemberBadge b WHERE b.potMember.potMemberId = :potMemberId AND b.badge.badgeId = :badgeId")
+    boolean existsByBadgeAndPotMember(@Param("potMemberId") Long potMemberId, @Param("badgeId") Long badgeId);
 }
 

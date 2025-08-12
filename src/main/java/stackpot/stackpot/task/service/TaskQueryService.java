@@ -13,6 +13,5 @@ public interface TaskQueryService {
     MyPotTaskResponseDto viewDetailTask(Long potId, Long taskBoardId);
     List<MyPotTaskPreViewResponseDto> getTasksFromDate(Long potId, LocalDate date);
     List<MonthlyTaskDto> getMonthlyTasks(Long potId, int year, int month);
-    int getTaskBoardCountByPotId(Long potId);
     List<PotMember> getTop2TaskCountByPotMemberId(List<Long> potMemberIds);
 }
