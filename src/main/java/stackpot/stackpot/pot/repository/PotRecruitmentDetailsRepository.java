@@ -17,6 +17,7 @@ public interface PotRecruitmentDetailsRepository extends JpaRepository<PotRecrui
 
 
     @Modifying
+    @Transactional
     @Query("DELETE FROM PotRecruitmentDetails prd WHERE prd.pot.potId IN :potIds")
     void deleteByPotIds(@Param("potIds") List<Long> potIds);
 }

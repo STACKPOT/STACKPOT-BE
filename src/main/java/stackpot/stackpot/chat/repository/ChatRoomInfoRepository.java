@@ -1,9 +1,10 @@
 package stackpot.stackpot.chat.repository;
 
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.chat.entity.ChatRoomInfo;
 
 import java.util.List;
@@ -27,8 +28,10 @@ public interface ChatRoomInfoRepository extends JpaRepository<ChatRoomInfo, Long
     @Modifying
     @Query("delete from ChatRoomInfo cri where cri.potMember.potMemberId in :potMemberIds")
     void deleteByPotMemberIdIn(@Param("potMemberIds") List<Long> potMemberIds);
+
     @Modifying
-    @Query("DELETE FROM ChatRoomInfo cri WHERE cri.potMember.id = :potMemberId AND cri.chatRoom.id IN :chatRoomIds")
-    void deleteByPotMemberIdAndChatRoomId(@Param("potMemberId") Long potMemberId, @Param("chatRoomIds") List<Long> chatRoomIds);
+    @Transactional
+    @Query("DELETE FROM ChatRoomInfo cri WHERE cri.potMember.potMemberId = :potMemberId AND cri.chatRoom.id IN :chatRoomIds")
+    void deleteByPotMemberIdAndChatRoomIds(@Param("potMemberId") Long potMemberId, @Param("chatRoomIds") List<Long> chatRoomIds);
 
 }

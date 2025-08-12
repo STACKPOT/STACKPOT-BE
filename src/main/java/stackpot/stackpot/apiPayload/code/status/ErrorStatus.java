@@ -40,7 +40,7 @@ public enum ErrorStatus implements BaseErrorCode {
     // Pot 관련 에러
     POT_NOT_FOUND(HttpStatus.NOT_FOUND, "POT4004", "팟이 존재하지 않습니다."),
     POT_FORBIDDEN(HttpStatus.FORBIDDEN, "POT4003", "팟 생성자가 아닙니다."),
-    POT_OWNERSHIP_TRANSFER_REQUIRED(HttpStatus.BAD_REQUEST, "POT4005", "권한을 위임하세요"),
+    POT_OWNERSHIP_TRANSFER_REQUIRED(HttpStatus.CONFLICT,    "POT4005", "권한을 위임해 주세요."),
 
     // Pot Comment 관련 에러
     POT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POTCOMMENT4001", "Pot Comment를 찾을 수 없습니다"),
