@@ -28,4 +28,8 @@ public class ChatCommandService {
 
         return chatRepository.save(chat);
     }
+
+    public void deleteChatMessage(Long userId, Long chatRoomId) {
+        chatRepository.deleteByUserIdAndChatRoomId(userId, chatRoomId);
+    }
 }

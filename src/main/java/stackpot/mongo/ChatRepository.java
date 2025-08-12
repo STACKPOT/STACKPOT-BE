@@ -25,4 +25,6 @@ public interface ChatRepository extends MongoRepository<Chat, String> {
     int countByChatRoomId(Long chatRoomId);
 
     int countByChatRoomIdAndIdGreaterThan(Long chatRoomId, Long lastReadChatId);
+
+    void deleteByUserIdAndChatRoomId(Long userId, Long chatRoomId);
 }
