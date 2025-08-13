@@ -17,7 +17,6 @@ public class PotCommentDto {
     public static class PotCommentInfoDto {
         private Long userId;
         private String userName;
-        private Role role;
         private Long potWriterId; // Pot 작성자
         private Long commentId;
         private String comment;

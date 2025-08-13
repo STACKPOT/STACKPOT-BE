@@ -145,7 +145,6 @@ public class PotCommandServiceImpl implements PotCommandService {
             throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
-        //
         recruitmentDetailsRepository.deleteByPot_PotId(potId);
         potRepository.delete(pot);
     }

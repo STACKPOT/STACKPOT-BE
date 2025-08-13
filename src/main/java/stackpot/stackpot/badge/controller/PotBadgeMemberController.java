@@ -30,24 +30,32 @@ public class PotBadgeMemberController {
     @GetMapping("/pots/{pot_id}")
     public ResponseEntity<ApiResponse<List<PotBadgeMemberDto>>> getBadgeMembersByPotId(
             @PathVariable("pot_id") Long potId) {
-
         List<PotBadgeMemberDto> badgeMembers = potBadgeMemberService.getBadgeMembersByPotId(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(badgeMembers));
     }
 
-    @Operation(summary = "팟에서 가장 많은 `투두를 완료한' 멤버에게 뱃지 부여")
+    @Operation(summary = "팟에서 가장 많은 `투두를 완료한' 멤버에게 '할 일 정복자' 뱃지 부여")
     @PostMapping("/{potId}")
     @ApiErrorCodeExamples({
             ErrorStatus.BADGE_NOT_FOUND,
             ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS,
             ErrorStatus.POT_MEMBER_NOT_FOUND
     })
-    public ResponseEntity<ApiResponse<Void>> assignBadgeToTopMembers(
-            @PathVariable Long potId) {
+    public ResponseEntity<ApiResponse<Void>> assignBadgeToTopMembers(@PathVariable Long potId) {
         badgeService.assignBadgeToTopMembers(potId);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
-
+    @Operation(summary = "전체 프로젝트 업무 수 대비 개인이 담당한 업무 수 비율이 큰 사람에게 '없어서는 안 될 능력자' 뱃지 부여")
+    @PostMapping("/{potId}/task-badge")
+    @ApiErrorCodeExamples({
+            ErrorStatus.BADGE_NOT_FOUND,
+            ErrorStatus.BADGE_INSUFFICIENT_TOP_MEMBERS,
+            ErrorStatus.POT_MEMBER_NOT_FOUND
+    })
+    public ResponseEntity<ApiResponse<Void>> assignTaskBadgeToTopMembers(@PathVariable Long potId) {
+        badgeService.assignTaskBadgeToTopMembers(potId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(null));
+    }
 }
 

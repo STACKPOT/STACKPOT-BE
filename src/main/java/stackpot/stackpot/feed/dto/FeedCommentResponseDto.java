@@ -18,7 +18,6 @@ public class FeedCommentResponseDto {
     public static class AllFeedCommentDto {
         private Long userId;
         private String userName;
-        private Role role;
         private Boolean isCommentWriter;
         private Boolean isFeedWriter;
         private Long commentId;
@@ -35,7 +34,6 @@ public class FeedCommentResponseDto {
     public static class FeedCommentCreateDto {
         private Long userId;
         private String userName;
-        private Role role;
         private Boolean isWriter;
         private Long commentId;
         private String comment;
@@ -49,7 +47,6 @@ public class FeedCommentResponseDto {
     public static class FeedReplyCommentCreateDto {
         private Long userId;
         private String userName;
-        private Role role;
         private Boolean isWriter;
         private Long commentId;
         private String comment;

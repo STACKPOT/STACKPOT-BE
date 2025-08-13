@@ -211,7 +211,7 @@ public class FeedCommandServiceImpl implements FeedCommandService {
             FeedLike savedFeedLike = feedLikeRepository.save(feedLike);
 
             NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createFeedLikeNotification(
-                    feed.getFeedId(), savedFeedLike.getLikeId(), user.getId(), user.getRole());
+                    feed.getFeedId(), savedFeedLike.getLikeId(), user.getId());
 
             applicationEventPublisher.publishEvent(new FeedLikeEvent(feed.getUser().getUserId(), dto));
 
