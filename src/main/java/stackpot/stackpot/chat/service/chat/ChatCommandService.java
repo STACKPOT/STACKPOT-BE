@@ -4,9 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import stackpot.mongo.Chat;
 import stackpot.mongo.ChatRepository;
+import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
+import stackpot.stackpot.apiPayload.exception.handler.ChatHandler;
 import stackpot.stackpot.chat.util.SequenceGenerator;
 import stackpot.stackpot.chat.dto.request.ChatRequestDto;
 import stackpot.stackpot.user.entity.enums.Role;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,4 +32,15 @@ public class ChatCommandService {
 
         return chatRepository.save(chat);
     }
+
+    // 채팅 메시지 삭제
+    public void deleteChatMessage(Long chatId) {
+        Optional<Chat> chat = chatRepository.findById(chatId);
+        if (chat.isPresent()) {
+            chatRepository.delete(chat.get());  // 메시지 삭제
+        } else {
+            throw new ChatHandler(ErrorStatus.CHAT_NOT_FOUND);
+        }
+    }
+
 }

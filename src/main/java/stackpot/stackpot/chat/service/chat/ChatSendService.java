@@ -18,4 +18,7 @@ public class ChatSendService {
     public void sendMessage(Chat chat, Long chatRoomId) {
         messagingTemplate.convertAndSend(CHAT_SUB_URL + chatRoomId, chatConverter.toChatDto(chat));
     }
+    public void deleteMessage(Long chatRoomId, Long chatId) {
+        messagingTemplate.convertAndSend(CHAT_SUB_URL + chatRoomId, "DELETE_" + chatId); // DELETE_<chatId> 형식으로 클라이언트에게 삭제 알림
+    }
 }

@@ -14,7 +14,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Query("select cr.pot.potId from ChatRoom cr where cr.id = :chatRoomId")
     Optional<Long> findPotIdByChatRoomId(@Param("chatRoomId") Long chatRoomId);
 
-    @Query("select new stackpot.stackpot.chat.dto.ChatRoomDto.ChatRoomNameDto(cr.id, cr.chatRoomName) from ChatRoom cr where cr.pot.potId = :potId")
+    @Query("select new stackpot.stackpot.chat.dto.ChatRoomDto$ChatRoomNameDto(cr.id, cr.chatRoomName) from ChatRoom cr where cr.pot.potId = :potId")
     Optional<ChatRoomDto.ChatRoomNameDto> findChatRoomNameDtoIdByPotId(@Param("potId") Long potId);
 
     @Query("select cr.id from ChatRoom cr where cr.pot.potId = :potId")

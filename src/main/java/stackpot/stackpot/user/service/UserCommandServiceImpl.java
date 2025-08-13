@@ -13,6 +13,9 @@ import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.apiPayload.exception.handler.TokenHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.chat.repository.ChatRoomInfoRepository;
+import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
+import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
+import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
 import stackpot.stackpot.common.util.AuthService;
 import stackpot.stackpot.config.security.JwtTokenProvider;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;
@@ -77,6 +80,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final PotSaveRepository potSaveRepository;
     private final EmailService emailService;
     private final PotCommentRepository potCommentRepository;
+    private final ChatRoomInfoCommandService chatRoomInfoCommandService;
 
     @Override
     @Transactional
@@ -323,7 +327,7 @@ public class UserCommandServiceImpl implements UserCommandService {
             deleteTaskRelatedData(user.getId());
 
             // 사용자가 저장한 Pot 삭제
-            deleteUserSavedPots(user);
+            potSaveRepository.deleteByUser(user);
 
             // Pot 관련 데이터 삭제
             boolean isCreator = potRepository.existsByUserId(user.getId());
@@ -346,19 +350,6 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         // Feed 삭제
 //        feedRepository.deleteByUserId(userId);
-    }
-    @Transactional
-    public void deleteUserSavedPots(User user) {
-        // 사용자가 저장한 PotSave 목록을 조회
-        List<PotSave> userSavedPots = potSaveRepository.findByUser(user);
-
-        // 해당 PotSave 엔티티에서 Pot만 추출
-        List<Pot> potsToDelete = userSavedPots.stream()
-                .map(PotSave::getPot) // PotSave에서 Pot만 추출
-                .collect(Collectors.toList());
-
-        // 사용자가 저장한 PotSave만 삭제
-        potSaveRepository.deleteAllByUserAndPots(user, potsToDelete);
     }
 
     private void deleteTaskRelatedData(Long userId) {
@@ -509,24 +500,15 @@ public class UserCommandServiceImpl implements UserCommandService {
         // 2. 진행 중인 팟에 속한 PotMember만 삭제 (진행 중인 팟에 대해서만)
         if (!ongoingPotIds.isEmpty()) {
             // 해당 유저가 속한 진행 중인 팟에서 PotMember 삭제
-            // 1) 유저의 potMemberId 목록 조회
-            List<UserMemberIdDto> userMemberDtos = potMemberRepository.selectPotMemberIdsByUserId(userId);
-            // 2) 진행 중인 팟 ID와 매칭되는 potMemberId마다 삭제 호출
-                    userMemberDtos.stream()
-                    .filter(dto -> ongoingPotIds.contains(dto.getPotId()))
-                    .forEach(dto ->
-                    chatRoominfoRepository.deleteByPotMemberIdAndChatRoomId(
-                    dto.getPotMemberId(),
-                    dto.getPotId()  // 채팅방 ID가 potId와 동일하다고 가정
-                    )
-                    );
+            potMemberRepository.deleteByUserIdAndPotIdIn(userId, ongoingPotIds);
+
 
         }
 
         // 3. 진행 중인 팟에 해당하는 채팅방 기록 삭제
-        if (!ongoingPotIds.isEmpty()) {
-            chatRoominfoRepository.deleteByPotMemberIdAndChatRoomIds(userId, ongoingPotIds);  // 진행 중인 팟에 해당하는 채팅방 삭제
-        }
+//        if (!ongoingPotIds.isEmpty()) {
+////            chatRoominfoRepository.deleteByPotMemberIdAndChatRoomIds(userId, ongoingPotIds);  // 진행 중인 팟에 해당하는 채팅방 삭제
+//        }
 
         // 4. PotApplication 삭제 (유저가 신청한 팟의 신청 내역 삭제)
         potApplicationRepository.deleteByUserId(userId);
