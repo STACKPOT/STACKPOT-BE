@@ -111,6 +111,9 @@ public class User extends BaseEntity implements UserDetails{
         }
         this.interests = new ArrayList<>();  // 새로운 관심사 목록 생성
         this.interests.add("UNKNOWN");  // "UNKNOWN"을 관심사 목록에 추가
+        if (this.seriesList != null) {
+            this.seriesList.clear(); // 연관된 시리즈 비우기
+        }
 
         this.userTemperature = null;
         this.email = null;

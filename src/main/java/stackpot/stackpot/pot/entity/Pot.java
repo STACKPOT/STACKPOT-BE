@@ -29,7 +29,7 @@ public class Pot extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "pot")
+    @OneToMany(mappedBy = "pot",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PotRecruitmentDetails> recruitmentDetails;
 
     @OneToMany(mappedBy = "pot", cascade = CascadeType.REMOVE, orphanRemoval = true)

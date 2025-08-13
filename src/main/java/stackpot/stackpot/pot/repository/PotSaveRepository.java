@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import stackpot.stackpot.pot.entity.Pot;
-import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.pot.entity.mapping.PotSave;
 import stackpot.stackpot.user.entity.User;
 
@@ -47,4 +46,12 @@ public interface PotSaveRepository extends JpaRepository<PotSave, Long> {
 
     @Query("SELECT ps.pot FROM PotSave ps WHERE ps.user.id = :userId")
     Page<Pot> findSavedPotsByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM PotSave ps WHERE ps.user = :user AND ps.pot IN :pots")
+    void deleteAllByUserAndPots(@Param("user") User user, @Param("pots") List<Pot> pots);
+
+    List<PotSave> findByUser(User user);
+    void deleteByUser(User user);
 }
