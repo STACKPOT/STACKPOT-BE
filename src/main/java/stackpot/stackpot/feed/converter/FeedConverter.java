@@ -4,6 +4,7 @@ package stackpot.stackpot.feed.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.common.util.DateFormatter;
+import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.feed.dto.FeedCacheDto;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
@@ -30,10 +31,12 @@ public class FeedConverter{
     public FeedResponseDto.FeedDto feedDto(Feed feed, Boolean isOwner, Boolean isLiked, Boolean isSaved, long saveCount) {
 
         Long commentCount = feedCommentRepository.countByFeedId(feed.getFeedId());
+        String writerNickname = RoleNameMapper.getWriterNickname(feed.getUser());
+
         return FeedResponseDto.FeedDto.builder()
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUser().getId())
-                .writer(feed.getUser().getNickname() + " 새싹")
+                .writer(writerNickname)
                 .writerRole(feed.getUser().getRole())
                 .title(feed.getTitle())
                 .content(feed.getContent())
@@ -55,6 +58,8 @@ public class FeedConverter{
                     "comment", feed.getSeries().getComment()
             );
         }
+        Long commentCount = feedCommentRepository.countByFeedId(feed.getFeedId());
+
 
         return FeedResponseDto.CreatedFeedDto.builder()
                 .feedId(feed.getFeedId())
@@ -106,11 +111,11 @@ public class FeedConverter{
                     "comment", feed.getSeries().getComment()
             );
         }
-
+        String writerNickname = RoleNameMapper.getWriterNickname(feed.getUser());
         FeedResponseDto.CreatedFeedDto createdDto = FeedResponseDto.CreatedFeedDto.builder()
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUser().getId())
-                .writer(feed.getUser().getNickname()+" 새싹")
+                .writer(writerNickname)
                 .writerRole(feed.getUser().getRole())
                 .title(feed.getTitle())
                 .content(feed.getContent())
@@ -163,6 +168,7 @@ public class FeedConverter{
                 .createdAt(feed.getCreatedAt().toString())
                 .build();
     }
+
 
 
 }

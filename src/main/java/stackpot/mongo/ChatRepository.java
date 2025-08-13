@@ -1,6 +1,7 @@
 package stackpot.mongo;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -25,4 +26,8 @@ public interface ChatRepository extends MongoRepository<Chat, String> {
     int countByChatRoomId(Long chatRoomId);
 
     int countByChatRoomIdAndIdGreaterThan(Long chatRoomId, Long lastReadChatId);
+
+    void deleteByUserIdAndChatRoomId(Long userId, Long chatRoomId);
+
+
 }

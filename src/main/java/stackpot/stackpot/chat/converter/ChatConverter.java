@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static stackpot.stackpot.user.entity.enums.Role.UNKNOWN;
+
 @Component
 public class ChatConverter {
 
@@ -21,10 +23,18 @@ public class ChatConverter {
     }
 
     public ChatResponseDto.ChatDto toChatDto(Chat chat) {
+
+        String userNameWithRole;
+
+        if (chat.getUserName() == null || chat.getUserName().equals("(알 수 없음)") || chat.getRole() == null) {
+            userNameWithRole = chat.getUserName();
+        } else {
+            userNameWithRole = chat.getUserName() + " " + chat.getRole().getVegetable();
+        }
         return ChatResponseDto.ChatDto.builder()
                 .userId(chat.getUserId())
                 .chatId(chat.getId())
-                .userName(chat.getUserName() + " " + chat.getRole().getVegetable())
+                .userName(userNameWithRole)
                 .role(chat.getRole())
                 .message(chat.getMessage())
                 .fileUrl(chat.getFileUrl())
