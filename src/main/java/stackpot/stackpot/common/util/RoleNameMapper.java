@@ -1,5 +1,7 @@
 package stackpot.stackpot.common.util;
 
+import stackpot.stackpot.user.entity.User;
+
 import java.util.Map;
 
 public final class RoleNameMapper {
@@ -25,5 +27,17 @@ public final class RoleNameMapper {
 
     public static String mapRoleName(String potRole) {
         return roleMap.getOrDefault(potRole, "멤버");
+    }
+    public static String getWriterNickname(User user) {
+        String writerNickname = user.getNickname();
+
+        // 사용자가 탈퇴한 경우 "새싹"을 제거
+        if (user.isDeleted()) {
+            writerNickname = writerNickname;  // 탈퇴한 경우 "새싹" 제거
+        } else {
+            writerNickname += " 새싹";  // 탈퇴하지 않은 경우 "새싹" 추가
+        }
+
+        return writerNickname;
     }
 }

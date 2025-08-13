@@ -4,6 +4,7 @@ package stackpot.stackpot.feed.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.common.util.DateFormatter;
+import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.feed.dto.FeedCacheDto;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
@@ -30,7 +31,7 @@ public class FeedConverter{
     public FeedResponseDto.FeedDto feedDto(Feed feed, Boolean isOwner, Boolean isLiked, Boolean isSaved, long saveCount) {
 
         Long commentCount = feedCommentRepository.countByFeedId(feed.getFeedId());
-        String writerNickname = getWriterNickname(feed.getUser());
+        String writerNickname = RoleNameMapper.getWriterNickname(feed.getUser());
 
         return FeedResponseDto.FeedDto.builder()
                 .feedId(feed.getFeedId())
@@ -110,7 +111,7 @@ public class FeedConverter{
                     "comment", feed.getSeries().getComment()
             );
         }
-        String writerNickname = getWriterNickname(feed.getUser());
+        String writerNickname = RoleNameMapper.getWriterNickname(feed.getUser());
         FeedResponseDto.CreatedFeedDto createdDto = FeedResponseDto.CreatedFeedDto.builder()
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUser().getId())
@@ -167,18 +168,7 @@ public class FeedConverter{
                 .createdAt(feed.getCreatedAt().toString())
                 .build();
     }
-    public String getWriterNickname(User user) {
-        String writerNickname = user.getNickname();
 
-        // 사용자가 탈퇴한 경우 "새싹"을 제거
-        if (user.isDeleted()) {
-            writerNickname = writerNickname;  // 탈퇴한 경우 "새싹" 제거
-        } else {
-            writerNickname += " 새싹";  // 탈퇴하지 않은 경우 "새싹" 추가
-        }
-
-        return writerNickname;
-    }
 
 
 }
