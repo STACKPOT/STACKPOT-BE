@@ -39,7 +39,16 @@ public class PotMemberConverter{
 
     public PotMemberAppealResponseDto toDto(PotMember entity) {
         String roleName = entity.getRoleName() != null ? entity.getRoleName().name() : "멤버";
-        String nicknameWithRole = entity.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(roleName);
+        String nicknameWithRole;
+
+        if (entity.getUser() == null || entity.getUser().isDeleted()) {
+            // 탈퇴한 사용자라면 roleName 제외
+            nicknameWithRole = entity.getUser() != null ? entity.getUser().getNickname() : "(알 수 없음)";
+        } else {
+            // 정상 사용자
+            nicknameWithRole = entity.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(roleName);
+        }
+
 
         return PotMemberAppealResponseDto.builder()
                 .potMemberId(entity.getPotMemberId())
@@ -69,7 +78,17 @@ public class PotMemberConverter{
         String roleName = entity.getPotApplication() != null
                 ? entity.getPotApplication().getPotRole().name()
                 : "멤버";
-        String nicknameWithRole = entity.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(roleName);
+
+
+        String nicknameWithRole;
+
+        if (entity.getUser() == null || entity.getUser().isDeleted()) {
+            // 탈퇴한 사용자라면 roleName 제외
+            nicknameWithRole = entity.getUser() != null ? entity.getUser().getNickname() : "(알 수 없음)";
+        } else {
+            // 정상 사용자
+            nicknameWithRole = entity.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(roleName);
+        }
 
         return PotMemberInfoResponseDto.builder()
                 .potMemberId(entity.getPotMemberId())

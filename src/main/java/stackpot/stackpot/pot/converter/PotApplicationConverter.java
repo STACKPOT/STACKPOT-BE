@@ -36,7 +36,7 @@ public class PotApplicationConverter {
 
     public PotApplicationResponseDto toDto(PotApplication entity) {
         String roleName = entity.getPotRole().name();
-
+        String userNickname = RoleNameMapper.getWriterNickname(entity.getUser());
         Map<String, String> roleInfo = new HashMap<>();
         roleInfo.put("name", roleName);
         roleInfo.put("koreanName", Role.toKoreanName(roleName));
@@ -45,8 +45,9 @@ public class PotApplicationConverter {
                 .applicationId(entity.getApplicationId())
                 .potRole(roleInfo)
                 .userId(entity.getUser().getId())
-                .userNickname(entity.getUser().getNickname() + " 새싹")
+                .userNickname(userNickname)
                 .build();
 
     }
+
 }

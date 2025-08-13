@@ -1,8 +1,10 @@
 package stackpot.stackpot.pot.converter;
 
 import org.springframework.stereotype.Component;
+import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.dto.PotCommentDto;
 import stackpot.stackpot.pot.dto.PotCommentResponseDto;
+import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDateTime;
@@ -48,9 +50,20 @@ public class PotCommentConverter {
     }
 
     public PotCommentResponseDto.AllPotCommentDto toAllPotCommentDto(PotCommentDto.PotCommentInfoDto dto, Long currentUserId) {
+
+        String finalUserName;
+
+        if ("(알 수 없음)".equals(dto.getUserName())) {
+
+            finalUserName = dto.getUserName();
+        } else {
+            finalUserName = dto.getUserName() + " 새싹";
+        }
+
+
         return PotCommentResponseDto.AllPotCommentDto.builder()
                 .userId(dto.getUserId())
-                .userName(dto.getUserName() + " 새싹")
+                .userName(finalUserName)
                 .isCommentWriter(Objects.equals(dto.getUserId(), currentUserId))
                 .isPotWriter(Objects.equals(dto.getPotWriterId(), dto.getUserId()))
                 .commentId(dto.getCommentId())
@@ -60,4 +73,5 @@ public class PotCommentConverter {
                 .children(new ArrayList<>())
                 .build();
     }
+
 }
