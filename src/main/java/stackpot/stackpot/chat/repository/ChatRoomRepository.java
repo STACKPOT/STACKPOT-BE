@@ -6,7 +6,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import stackpot.stackpot.chat.dto.ChatRoomDto;
 import stackpot.stackpot.chat.entity.ChatRoom;
+import stackpot.stackpot.user.entity.User;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
@@ -26,4 +28,11 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Modifying
     @Query("delete from ChatRoom c where c.pot.potId = :potId")
     void deleteByPotId(@Param("potId") Long potId);
+
+
+
+    @Query("select cr.id from ChatRoom cr where cr.pot.potId in :potIds")
+    List<Long> findIdsByPotIdIn(@Param("potIds") List<Long> potIds);
+
+
 }

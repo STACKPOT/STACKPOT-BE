@@ -13,6 +13,8 @@ import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.apiPayload.exception.handler.TokenHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
 import stackpot.stackpot.chat.repository.ChatRoomInfoRepository;
+import stackpot.stackpot.chat.repository.ChatRoomRepository;
+import stackpot.stackpot.chat.service.chat.ChatCommandService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
@@ -79,8 +81,9 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final AuthService authService;
     private final PotSaveRepository potSaveRepository;
     private final EmailService emailService;
-    private final PotCommentRepository potCommentRepository;
-    private final ChatRoomInfoCommandService chatRoomInfoCommandService;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatCommandService chatCommandService;
+
 
     @Override
     @Transactional
@@ -497,20 +500,19 @@ public class UserCommandServiceImpl implements UserCommandService {
         // 1. 진행 중인 팟 IDs 조회
         List<Long> ongoingPotIds = potRepository.findIdsByUserIdAndStatus(userId, "ONGOING");
 
-        // 2. 진행 중인 팟에 속한 PotMember만 삭제 (진행 중인 팟에 대해서만)
+        // 2. 진행 중인 팟에서 PotMember 삭제
         if (!ongoingPotIds.isEmpty()) {
-            // 해당 유저가 속한 진행 중인 팟에서 PotMember 삭제
             potMemberRepository.deleteByUserIdAndPotIdIn(userId, ongoingPotIds);
 
+            // 3. 진행 중인 팟에 해당하는 채팅방 ID들 조회
+            List<Long> chatRoomIds = chatRoomRepository.findIdsByPotIdIn(ongoingPotIds);
 
+            // 4. 각 채팅방에 대해 해당 유저의 채팅 메시지 삭제
+            for (Long chatRoomId : chatRoomIds) {
+                chatCommandService.deleteChatMessage(userId, chatRoomId);
+            }
         }
-
-        // 3. 진행 중인 팟에 해당하는 채팅방 기록 삭제
-//        if (!ongoingPotIds.isEmpty()) {
-////            chatRoominfoRepository.deleteByPotMemberIdAndChatRoomIds(userId, ongoingPotIds);  // 진행 중인 팟에 해당하는 채팅방 삭제
-//        }
-
-        // 4. PotApplication 삭제 (유저가 신청한 팟의 신청 내역 삭제)
+        // 4. PotApplication 삭제
         potApplicationRepository.deleteByUserId(userId);
 
     }
