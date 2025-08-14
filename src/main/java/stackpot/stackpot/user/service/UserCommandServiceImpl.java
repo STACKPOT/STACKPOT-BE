@@ -514,7 +514,8 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
         // 4. PotApplication 삭제
         potApplicationRepository.deleteByUserId(userId);
-
+        user.deleteUser();
+        userRepository.save(user);
     }
 
     @Override
