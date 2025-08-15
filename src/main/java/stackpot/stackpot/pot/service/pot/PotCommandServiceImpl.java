@@ -197,7 +197,7 @@ public class PotCommandServiceImpl implements PotCommandService {
         Map<String, Object> updateValues = new LinkedHashMap<>();
         updateValues.put("potName", requestDto.getPotName());
         updateValues.put("potStartDate", requestDto.getPotStartDate());
-        updateValues.put("potEndDate", LocalDate.now());
+        updateValues.put("potEndDate", String.valueOf(LocalDate.now()));
         updateValues.put("potStatus", "COMPLETED");
         updateValues.put("potLan", requestDto.getPotLan());
         updateValues.put("potSummary", requestDto.getPotSummary());
