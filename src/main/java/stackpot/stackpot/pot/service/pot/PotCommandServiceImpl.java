@@ -19,10 +19,7 @@ import stackpot.stackpot.pot.converter.MyPotConverter;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.pot.converter.PotMemberConverter;
 import stackpot.stackpot.pot.converter.PotDetailConverter;
-import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
-import stackpot.stackpot.pot.dto.PotRequestDto;
-import stackpot.stackpot.pot.dto.PotResponseDto;
-import stackpot.stackpot.pot.dto.RecruitingPotResponseDto;
+import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.pot.entity.mapping.PotApplication;
@@ -41,6 +38,7 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -197,7 +195,7 @@ public class PotCommandServiceImpl implements PotCommandService {
         Map<String, Object> updateValues = new LinkedHashMap<>();
         updateValues.put("potName", requestDto.getPotName());
         updateValues.put("potStartDate", requestDto.getPotStartDate());
-        updateValues.put("potEndDate", LocalDate.now());
+        updateValues.put("potEndDate", String.valueOf(LocalDate.now()));
         updateValues.put("potStatus", "COMPLETED");
         updateValues.put("potLan", requestDto.getPotLan());
         updateValues.put("potSummary", requestDto.getPotSummary());
@@ -271,5 +269,20 @@ public class PotCommandServiceImpl implements PotCommandService {
                 .collect(Collectors.toList());
 
         return potConverter.toDto(pot, recruitmentDetails);
+    }
+
+    @Override
+    @Transactional
+    public String updatePotName(Long potId, PotNameUpdateRequestDto request) {
+        User user = authService.getCurrentUser();
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        if (!pot.getUser().equals(user)) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
+        }
+        pot.setPotName(request.getPotName());
+
+        return  pot.getPotName();
     }
 }

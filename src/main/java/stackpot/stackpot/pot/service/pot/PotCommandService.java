@@ -1,6 +1,7 @@
 package stackpot.stackpot.pot.service.pot;
 
 import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
+import stackpot.stackpot.pot.dto.PotNameUpdateRequestDto;
 import stackpot.stackpot.pot.dto.PotRequestDto;
 import stackpot.stackpot.pot.dto.PotResponseDto;
 
@@ -19,4 +20,6 @@ public interface PotCommandService {
     void patchLikes(Long potId, Long applicationId, Boolean liked);
 
     PotResponseDto updateCompletedPot(Long potId, CompletedPotRequestDto requestDto);
+
+    String updatePotName(Long potId, PotNameUpdateRequestDto request);
 }
