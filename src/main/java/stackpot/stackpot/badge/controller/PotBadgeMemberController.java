@@ -37,7 +37,6 @@ public class PotBadgeMemberController {
     @Operation(summary = "팟에서 가장 많은 `투두를 완료한' 멤버에게 '할 일 정복자' 뱃지 부여")
     @PostMapping("/{potId}")
     @ApiErrorCodeExamples({
-            ErrorStatus.BADGE_NOT_FOUND,
             ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS,
             ErrorStatus.POT_MEMBER_NOT_FOUND
     })

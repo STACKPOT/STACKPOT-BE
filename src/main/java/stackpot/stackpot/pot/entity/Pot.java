@@ -38,6 +38,7 @@ public class Pot extends BaseEntity {
     @OneToMany(mappedBy = "pot", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PotMember> potMembers;
 
+    @Setter
     @Column(nullable = false, length = 255)
     private String potName;
 

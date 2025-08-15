@@ -51,8 +51,6 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     @Query("DELETE FROM PotMember pm WHERE pm.pot.potId = :potId")
     void deleteByPotId(@Param("potId") Long potId);
 
-    Optional<PotMember> findByPot_PotIdAndUser_Id(Long potId, Long userId);
-
     @Query("SELECT pm FROM PotMember pm WHERE pm.pot.potId = :potId AND pm.user.id = :userId")
     PotMember findByPotIdAndUserId(Long potId, Long userId);
 
@@ -94,4 +92,8 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
     @Modifying
     @Query("DELETE FROM PotMember pm WHERE pm.pot.potId IN :potIds AND pm.user.id = :userId")
     void deleteByUserIdAndPotIdIn(@Param("userId") Long userId, @Param("potIds") List<Long> potIds);
+
+    long countByPot_PotId(Long potId);
+    Optional<PotMember> findByPot_PotIdAndUser_Id(Long potId, Long userId);
+
 }

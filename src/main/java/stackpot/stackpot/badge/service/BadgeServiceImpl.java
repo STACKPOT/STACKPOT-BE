@@ -41,32 +41,36 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     @Override
     public void assignBadgeToTopMembers(Long potId) {
-        // 1. 완료된 Todo 개수가 0이면 예외
-        long completedTodoCount = userTodoRepository.countByPot_PotIdAndStatus(potId, TodoStatus.COMPLETED);
-        if (completedTodoCount == 0) {
+        // case [2] 총 팀 멤버가 2명 이하 -> 배지 부여 X (아무 동작 안 함)
+        long memberCount = potMemberRepository.countByPot_PotId(potId);
+        if (memberCount <= 2) return;
+
+        // 완료한 '서로 다른 사용자 수' 집계
+        long completedUserCount =
+                userTodoRepository.countDistinctUserIdsByPotAndStatus(potId, TodoStatus.COMPLETED);
+
+        // case [3] 팀 멤버 2명 이상 && 완료 사용자 수 < 2 -> 에러
+        if (completedUserCount < 2) {
             throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TODO_COUNTS);
         }
 
-        // 2. Todo를 많이 완료한 상위 2명의 userId 조회
+        // case [1] 팀 멤버 2명 이상 && 완료 사용자 수 >= 2 -> 정상 (상위 2명 배지 부여)
         List<Long> topUserIds = userTodoRepository.findTop2UserIds(potId, TodoStatus.COMPLETED);
         if (topUserIds.size() < 2) {
             throw new PotHandler(ErrorStatus.BADGE_INSUFFICIENT_TOP_MEMBERS);
         }
 
-        // 3. PotMember 조회
-        List<PotMember> topPotMembers = topUserIds.stream()
-                .map(userId -> potMemberRepository.findByPot_PotIdAndUser_Id(potId, userId)
-                        .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND)))
-                .toList();
-
-        // 4. Todo 배지 부여
         Badge badge = getBadge(1L);
-        for (PotMember potMember : topPotMembers) {
-            PotMemberBadge potMemberBadge = PotMemberBadge.builder()
-                    .badge(badge)
-                    .potMember(potMember)
-                    .build();
-            potMemberBadgeRepository.save(potMemberBadge);
+        for (Long userId : topUserIds) {
+            PotMember pm = potMemberRepository.findByPot_PotIdAndUser_Id(potId, userId)
+                    .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+
+            potMemberBadgeRepository.save(
+                    PotMemberBadge.builder()
+                            .badge(badge)
+                            .potMember(pm)
+                            .build()
+            );
         }
     }
 

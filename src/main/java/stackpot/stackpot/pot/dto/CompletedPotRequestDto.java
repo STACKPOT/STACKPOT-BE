@@ -15,7 +15,7 @@ public class CompletedPotRequestDto {
     @NotBlank(message = "팟 이름은 필수입니다.")
     private String potName;
 
-    private LocalDate potStartDate;
+    private String potStartDate;
 
     @NotBlank(message = "사용 언어는 필수입니다.")
     private String potLan;
