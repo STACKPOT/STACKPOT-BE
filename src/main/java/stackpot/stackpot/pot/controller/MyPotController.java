@@ -2,6 +2,7 @@ package stackpot.stackpot.pot.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +10,7 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.badge.dto.CompletedPotBadgeResponseDto;
 import stackpot.stackpot.pot.dto.AppealContentDto;
 import stackpot.stackpot.pot.dto.OngoingPotResponseDto;
+import stackpot.stackpot.pot.dto.PotNameUpdateRequestDto;
 import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.pot.service.pot.PotCommandService;
 import java.util.List;
@@ -80,4 +82,15 @@ public class MyPotController {
         String responseMessage = myPotService.patchDelegate(potId, memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseMessage));
     }
+
+    @Operation(summary = "팟 이름 수정 API")
+    @PatchMapping("/{pot_id}/rename")
+    public ResponseEntity<ApiResponse<String>> updatePotName(
+            @PathVariable Long pot_id,
+            @Valid @RequestBody PotNameUpdateRequestDto request
+    ) {
+        String res = potCommandService.updatePotName(pot_id, request);
+        return ResponseEntity.ok(ApiResponse.onSuccess(res));
+    }
+
 }

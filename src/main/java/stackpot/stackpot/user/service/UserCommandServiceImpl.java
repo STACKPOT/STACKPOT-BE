@@ -253,7 +253,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 log.debug("사용중인 닉네임 입니다.{}", nickname);
             }
         }
-        return new NicknameResponseDto(nickname);
+        return new NicknameResponseDto(nickname+" 새싹");
     }
 
     @Override

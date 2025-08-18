@@ -153,14 +153,5 @@ public class PotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "팟 이름 수정 API")
-    @PatchMapping("/{pot_id}/rename")
-    public ResponseEntity<ApiResponse<String>> updatePotName(
-            @PathVariable Long pot_id,
-            @Valid @RequestBody PotNameUpdateRequestDto request
-    ) {
-        String res = potCommandService.updatePotName(pot_id, request);
-        return ResponseEntity.ok(ApiResponse.onSuccess(res));
-    }
 
 }
