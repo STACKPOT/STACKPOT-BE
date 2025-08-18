@@ -253,7 +253,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 log.debug("사용중인 닉네임 입니다.{}", nickname);
             }
         }
-        return new NicknameResponseDto(nickname);
+        return new NicknameResponseDto(nickname+" 새싹");
     }
 
     @Override
@@ -292,7 +292,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         nickname = nickname.trim();
 
         // 채소 이름 리스트
-        String[] vegetables = {"버섯", "양파", "브로콜리", "당근"};
+        String[] vegetables = {"버섯", "양파", "브로콜리", "당근", "새싹"};
 
         for (String vegetable : vegetables) {
             if (nickname.contains(" " + vegetable)) {

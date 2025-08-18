@@ -25,7 +25,7 @@ public class PotMemberController {
     private final PotMemberCommandService potMemberCommandService;
     private final PotMemberQueryService potMemberQueryService;
 
-    @Operation(summary = "팟 멤버 정보 (KAKAOID, 닉네임) 조회 API")
+    @Operation(summary = "팟 멤버 정보 조회 API")
     @GetMapping
     public ResponseEntity<ApiResponse<List<PotMemberInfoResponseDto>>> getPotMembers(
             @PathVariable("pot_id") Long potId) {

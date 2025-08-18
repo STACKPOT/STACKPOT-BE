@@ -36,6 +36,7 @@ public class PotController {
 
     @Operation(summary = "팟 생성 API", description = """
         - potStatus: RECRUITING / ONGOING / COMPLETED
+        - potStartDate, potEndDate: yyyy.MM 형식 (예: 2025.08)
         - potModeOfOperation: ONLINE / OFFLINE / HYBRID
         - Role: FRONTEND / BACKEND / DESIGN / PLANNING
     """)
@@ -152,14 +153,5 @@ public class PotController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "팟 이름 수정 API")
-    @PatchMapping("/{pot_id}/rename")
-    public ResponseEntity<ApiResponse<String>> updatePotName(
-            @PathVariable Long pot_id,
-            @Valid @RequestBody PotNameUpdateRequestDto request
-    ) {
-        String res = potCommandService.updatePotName(pot_id, request);
-        return ResponseEntity.ok(ApiResponse.onSuccess(res));
-    }
 
 }

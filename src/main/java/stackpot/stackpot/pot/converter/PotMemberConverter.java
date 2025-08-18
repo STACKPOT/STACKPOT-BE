@@ -10,9 +10,6 @@ import stackpot.stackpot.pot.dto.PotMemberInfoResponseDto;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.user.entity.enums.Role;
 
-
-import java.util.Map;
-
 @Component
 public class PotMemberConverter{
 
@@ -23,16 +20,6 @@ public class PotMemberConverter{
                 .potApplication(application)
                 .roleName(application != null ? application.getPotRole() : user.getRole()) // PotRole Enum 그대로 사용
                 .owner(isOwner)
-                .appealContent(null)
-                .build();
-    }
-    public PotMember toCreatorEntity(User user, Pot pot, Role role) {
-        return PotMember.builder()
-                .user(user)
-                .pot(pot)
-                .potApplication(null)
-                .roleName(role)
-                .owner(true)
                 .appealContent(null)
                 .build();
     }
@@ -57,7 +44,6 @@ public class PotMemberConverter{
                 .roleName(roleName)
                 .nickname(nicknameWithRole)
                 .appealContent(entity.getAppealContent())
-                .kakaoId(entity.getUser().getKakaoId())
                 .build();
     }
 
@@ -69,7 +55,6 @@ public class PotMemberConverter{
                 .potMemberId(entity.getPotMemberId())
                 .nickname(nicknameWithRole)
                 .potRole(entity.getRoleName().name())
-                .kakaoId(null)
                 .owner(true)
                 .build();
     }
@@ -93,7 +78,6 @@ public class PotMemberConverter{
         return PotMemberInfoResponseDto.builder()
                 .potMemberId(entity.getPotMemberId())
                 .nickname(nicknameWithRole)
-                .kakaoId(entity.getUser().getKakaoId())
                 .owner(false)
                 .potRole(roleName)
                 .build();
