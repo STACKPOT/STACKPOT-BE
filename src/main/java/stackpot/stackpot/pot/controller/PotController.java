@@ -36,6 +36,7 @@ public class PotController {
 
     @Operation(summary = "팟 생성 API", description = """
         - potStatus: RECRUITING / ONGOING / COMPLETED
+        - potStartDate, potEndDate: yyyy.MM 형식 (예: 2025.08)
         - potModeOfOperation: ONLINE / OFFLINE / HYBRID
         - Role: FRONTEND / BACKEND / DESIGN / PLANNING
     """)
