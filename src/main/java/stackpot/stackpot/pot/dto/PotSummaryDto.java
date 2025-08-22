@@ -11,5 +11,7 @@ import java.util.List;
 public class PotSummaryDto {
     private String summary;
     private List<String> potLan;
+    private String potName;
+    private Boolean isMember;
 }
 
