@@ -315,6 +315,21 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
+    @GetMapping("/potAppealContent/{pot_id}/{user_id}")
+    @Operation(
+            summary = "다른 사람 마이페이지 '여기서 저는요' 모달 조회 API",
+            description = "'끓인 팟 상세보기 모달'에 쓰이는 Role, Badge, Appeal Content를 반환합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+    })
+    public ResponseEntity<ApiResponse<AppealContentDto>> getAppealContent(
+            @PathVariable(name = "pot_id") Long potId,
+            @PathVariable(name = "user_id") Long userId) {
+        AppealContentDto response = myPotService.getUserAppealContent(potId, userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
     @GetMapping("/potSummary{pot_id}")
     @Operation(
             summary = "끓인 팟 AI 요약 모달 조회 API",

@@ -13,6 +13,7 @@ public interface MyPotService {
     // 사용자의 진행 중인 팟 조회
     List<OngoingPotResponseDto> getMyPots();
     AppealContentDto getAppealContent(Long potId);
+    AppealContentDto getUserAppealContent(Long potId, Long targetUserId);
     PotSummaryDto getPotSummary(Long potId);
     List<CompletedPotBadgeResponseDto> getCompletedPotsWithBadges();
     List<CompletedPotBadgeResponseDto> getUserCompletedPotsWithBadges(Long userId);

@@ -74,6 +74,45 @@ public class MyPotServiceImpl implements MyPotService {
 
     @Transactional
     @Override
+    public AppealContentDto getUserAppealContent(Long potId, Long targetUserId) {
+        // 1) 팟 조회
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        // 2) 상태 체크
+        if (!"COMPLETED".equals(pot.getPotStatus())) {
+            log.error("해당 팟은 COMPLETED 상태가 아닙니다.");
+            throw new GeneralException(ErrorStatus._BAD_REQUEST);
+        }
+
+        // 3) 대상 유저의 PotMember 조회
+        PotMember potMember = potMemberRepository
+                .findByPot_PotIdAndUser_Id(potId, targetUserId)
+                .orElse(null);
+
+        String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
+
+        // 4) 역할 조회 (한글명 매핑)
+        String userPotRole = potMemberRepository.findRoleByUserId(potId, targetUserId)
+                .map(role -> RoleNameMapper.getKoreanRoleName(role.name()))
+                .orElse(null);
+
+        // 5) 뱃지 조회
+        List<BadgeDto> myBadges = potMemberBadgeRepository
+                .findByPotMember_Pot_PotIdAndPotMember_User_Id(potId, targetUserId)
+                .stream()
+                .map(pmb -> new BadgeDto(
+                        pmb.getBadge().getBadgeId(),
+                        pmb.getBadge().getName()
+                ))
+                .collect(Collectors.toList());
+
+        // 6) DTO 변환
+        return potDetailConverter.toCompletedPotDetailDto(appealContent, userPotRole, myBadges);
+    }
+
+    @Transactional
+    @Override
     public AppealContentDto getAppealContent(Long potId) {
         User user = authService.getCurrentUser();
 
