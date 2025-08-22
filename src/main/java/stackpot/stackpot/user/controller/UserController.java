@@ -330,7 +330,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @GetMapping("/potSummary{pot_id}")
+    @GetMapping("/potSummary/{pot_id}")
     @Operation(
             summary = "끓인 팟 AI 요약 모달 조회 API",
             description = "끓인 팟을 상세보기할 때 쓰이는 PotSummary, potLan을 반환합니다."

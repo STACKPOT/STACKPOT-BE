@@ -155,8 +155,10 @@ public class MyPotServiceImpl implements MyPotService {
     public PotSummaryDto getPotSummary(Long potId) {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+        User user = authService.getCurrentUser();
+        boolean isMember = potMemberRepository.existsByPotAndUser(pot, user);
 
-        return potConverter.toDto(pot);
+        return potConverter.toDto(pot, isMember);
     }
 
     @Transactional
