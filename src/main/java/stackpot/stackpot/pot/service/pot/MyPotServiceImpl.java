@@ -307,34 +307,31 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public String patchDelegate(Long potId, Long memberId) {
+    public String patchDelegate(Long potId, Long potMemberId) {
         User user = authService.getCurrentUser();
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        // 기존 Owner PotMember 찾기
         PotMember prevOwner = potMemberRepository.findByPot_PotIdAndOwnerTrue(potId);
-        if (!prevOwner.getUser().equals(user)) {
-            throw new PotHandler(ErrorStatus.POT_FORBIDDEN); // 권한 없음
+        if (prevOwner == null) {
+            throw new PotHandler(ErrorStatus.POT_NOT_FOUND);
+        }
+        if (!prevOwner.getUser().getId().equals(user.getId())) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
-        // 기존 Owner PotMember의 owner = false
+        PotMember newOwner = potMemberRepository.findById(potMemberId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.INVALID_MEMBER));
+
+        // 안전장치: 같은 팟인지 확인
+        if (!newOwner.getPot().getPotId().equals(potId)) {
+            throw new PotHandler(ErrorStatus.INVALID_MEMBER);
+        }
+
         prevOwner.updateOwner(false);
-
-        // 새로운 Owner PotMember의 owner = true
-        PotMember newOwner = potMemberRepository.findByPotIdAndUserId(potId, memberId);
-        if (newOwner == null) {
-            throw new PotHandler(ErrorStatus.INVALID_MEMBER); // 존재하지 않는 멤버
-        }
-
-        // 새로운 오너 PotMember의 owner = true
         newOwner.updateOwner(true);
-
-        // Pot의 user 외래키 수정
         pot.setUser(newOwner.getUser());
 
-        // 저장
         potMemberRepository.save(prevOwner);
         potMemberRepository.save(newOwner);
         potRepository.save(pot);
