@@ -131,10 +131,12 @@ public class PotConverter{
                 .build();
     }
 
-    public PotSummaryDto toDto(Pot pot) {
+    public PotSummaryDto toDto(Pot pot, Boolean isMember) {
         return PotSummaryDto.builder()
                 .summary(pot.getPotSummary())
                 .potLan(splitLanguages(pot.getPotLan()))
+                .potName(pot.getPotName())
+                .isMember(isMember)
                 .build();
     }
 

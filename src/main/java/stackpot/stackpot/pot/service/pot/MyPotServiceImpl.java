@@ -74,6 +74,45 @@ public class MyPotServiceImpl implements MyPotService {
 
     @Transactional
     @Override
+    public AppealContentDto getUserAppealContent(Long potId, Long targetUserId) {
+        // 1) 팟 조회
+        Pot pot = potRepository.findById(potId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+
+        // 2) 상태 체크
+        if (!"COMPLETED".equals(pot.getPotStatus())) {
+            log.error("해당 팟은 COMPLETED 상태가 아닙니다.");
+            throw new GeneralException(ErrorStatus._BAD_REQUEST);
+        }
+
+        // 3) 대상 유저의 PotMember 조회
+        PotMember potMember = potMemberRepository
+                .findByPot_PotIdAndUser_Id(potId, targetUserId)
+                .orElse(null);
+
+        String appealContent = (potMember != null) ? potMember.getAppealContent() : null;
+
+        // 4) 역할 조회 (한글명 매핑)
+        String userPotRole = potMemberRepository.findRoleByUserId(potId, targetUserId)
+                .map(role -> RoleNameMapper.getKoreanRoleName(role.name()))
+                .orElse(null);
+
+        // 5) 뱃지 조회
+        List<BadgeDto> myBadges = potMemberBadgeRepository
+                .findByPotMember_Pot_PotIdAndPotMember_User_Id(potId, targetUserId)
+                .stream()
+                .map(pmb -> new BadgeDto(
+                        pmb.getBadge().getBadgeId(),
+                        pmb.getBadge().getName()
+                ))
+                .collect(Collectors.toList());
+
+        // 6) DTO 변환
+        return potDetailConverter.toCompletedPotDetailDto(appealContent, userPotRole, myBadges);
+    }
+
+    @Transactional
+    @Override
     public AppealContentDto getAppealContent(Long potId) {
         User user = authService.getCurrentUser();
 
@@ -116,8 +155,10 @@ public class MyPotServiceImpl implements MyPotService {
     public PotSummaryDto getPotSummary(Long potId) {
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
+        User user = authService.getCurrentUser();
+        boolean isMember = potMemberRepository.existsByPotAndUser(pot, user);
 
-        return potConverter.toDto(pot);
+        return potConverter.toDto(pot, isMember);
     }
 
     @Transactional
@@ -266,34 +307,31 @@ public class MyPotServiceImpl implements MyPotService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public String patchDelegate(Long potId, Long memberId) {
+    public String patchDelegate(Long potId, Long potMemberId) {
         User user = authService.getCurrentUser();
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        // 기존 Owner PotMember 찾기
         PotMember prevOwner = potMemberRepository.findByPot_PotIdAndOwnerTrue(potId);
-        if (!prevOwner.getUser().equals(user)) {
-            throw new PotHandler(ErrorStatus.POT_FORBIDDEN); // 권한 없음
+        if (prevOwner == null) {
+            throw new PotHandler(ErrorStatus.POT_NOT_FOUND);
+        }
+        if (!prevOwner.getUser().getId().equals(user.getId())) {
+            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
         }
 
-        // 기존 Owner PotMember의 owner = false
+        PotMember newOwner = potMemberRepository.findById(potMemberId)
+                .orElseThrow(() -> new PotHandler(ErrorStatus.INVALID_MEMBER));
+
+        // 안전장치: 같은 팟인지 확인
+        if (!newOwner.getPot().getPotId().equals(potId)) {
+            throw new PotHandler(ErrorStatus.INVALID_MEMBER);
+        }
+
         prevOwner.updateOwner(false);
-
-        // 새로운 Owner PotMember의 owner = true
-        PotMember newOwner = potMemberRepository.findByPotIdAndUserId(potId, memberId);
-        if (newOwner == null) {
-            throw new PotHandler(ErrorStatus.INVALID_MEMBER); // 존재하지 않는 멤버
-        }
-
-        // 새로운 오너 PotMember의 owner = true
         newOwner.updateOwner(true);
-
-        // Pot의 user 외래키 수정
         pot.setUser(newOwner.getUser());
 
-        // 저장
         potMemberRepository.save(prevOwner);
         potMemberRepository.save(newOwner);
         potRepository.save(pot);

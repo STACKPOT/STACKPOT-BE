@@ -48,22 +48,21 @@ public class PotMemberConverter{
     }
 
     public PotMemberInfoResponseDto toKaKaoCreatorDto(PotMember entity) {
-        String creatorRole = RoleNameMapper.mapRoleName(entity.getUser().getRole().name());
+        String creatorRole = RoleNameMapper.mapRoleName(entity.getRoleName().name());
         String nicknameWithRole = entity.getUser().getNickname() + " " + creatorRole;
 
         return PotMemberInfoResponseDto.builder()
                 .potMemberId(entity.getPotMemberId())
                 .nickname(nicknameWithRole)
                 .potRole(entity.getRoleName().name())
-                .owner(true)
+                .owner(entity.isOwner()) // true 고정 대신 실제 owner 여부 반영 추천
                 .build();
     }
 
     public PotMemberInfoResponseDto toKaKaoMemberDto(PotMember entity) {
-        String roleName = entity.getPotApplication() != null
-                ? entity.getPotApplication().getPotRole().name()
+        String roleName = entity.getRoleName() != null
+                ? entity.getRoleName().name()
                 : "멤버";
-
 
         String nicknameWithRole;
 
