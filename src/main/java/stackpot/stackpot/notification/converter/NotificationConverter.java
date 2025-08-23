@@ -3,9 +3,7 @@ package stackpot.stackpot.notification.converter;
 import org.springframework.stereotype.Component;
 import stackpot.stackpot.notification.dto.NotificationDto;
 import stackpot.stackpot.notification.dto.NotificationResponseDto;
-import stackpot.stackpot.user.entity.enums.Role;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -19,7 +17,7 @@ public class NotificationConverter {
                 .notificationId(unReadNotificationDto.getNotificationId())
                 .potId(unReadNotificationDto.getPotId())
                 .feedId(unReadNotificationDto.getFeedId())
-                .userName(unReadNotificationDto.getUserName() + " 새싹")
+                .userName(unReadNotificationDto.getUserName() == null ? " " : unReadNotificationDto.getUserName() + " 새싹")
                 .type(unReadNotificationDto.getType())
                 .content(unReadNotificationDto.getContent())
                 .createdAt(unReadNotificationDto.getCreatedAt().format(DATE_FORMATTER))

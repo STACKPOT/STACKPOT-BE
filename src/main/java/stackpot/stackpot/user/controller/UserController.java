@@ -418,7 +418,8 @@ public class UserController {
     @GetMapping("/{userId}/feeds")
     @Operation(
             summary = "사용자별 피드 조회 API",
-            description = "userId에 해당하는 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다."
+            description = "userId에 해당하는 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다. \n" +
+                    "시리즈가 '전체보기' 일 때는 seriesId = 0"
     )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND,
@@ -442,7 +443,8 @@ public class UserController {
 
     @Operation(
             summary = "나의 피드 조회 API",
-            description = "로그인한 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다."
+            description = "로그인한 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다. \n" +
+                    "시리즈가 '전체보기' 일 때는 seriesId = 0"
     )
     @GetMapping("/feeds")
     @ApiErrorCodeExamples({
