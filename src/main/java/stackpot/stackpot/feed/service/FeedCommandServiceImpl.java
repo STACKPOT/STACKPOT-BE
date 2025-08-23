@@ -200,7 +200,7 @@ public class FeedCommandServiceImpl implements FeedCommandService {
             feedLikeRepository.delete(existingLike.get());
             feed.setLikeCount(feed.getLikeCount() - 1);
             feedRepository.save(feed);
-
+            // todo 좋아요 알림 삭제
             return false; // 좋아요 취소
         } else {
             // 좋아요 추가

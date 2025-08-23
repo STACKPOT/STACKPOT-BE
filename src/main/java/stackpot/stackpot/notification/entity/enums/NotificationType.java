@@ -36,6 +36,14 @@ public enum NotificationType {
                     .orElseThrow(() -> new NotificationHandler(ErrorStatus.NOTIFICATION_NOT_FOUND))
                     .updateIsRead(true);
         }
+    },
+    POT_END {
+      @Override
+      public void read(Long id, NotificationCommandService service){
+            service.getPotEndNotificationRepository().findById(id)
+                    .orElseThrow(() -> new NotificationHandler(ErrorStatus.NOTIFICATION_NOT_FOUND))
+                    .updateIsRead(true);
+      }
     };
 
     public abstract void read(Long id, NotificationCommandService service);
@@ -46,6 +54,7 @@ public enum NotificationType {
             case "PotComment" -> POT_COMMENT;
             case "FeedLike" -> FEED_LIKE;
             case "FeedComment" -> FEED_COMMENT;
+            case "PotEnd" -> POT_END;
             default -> throw new NotificationHandler(ErrorStatus.INVALID_NOTIFICATION_TYPE);
         };
     }

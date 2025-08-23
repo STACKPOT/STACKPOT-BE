@@ -15,7 +15,7 @@ import stackpot.stackpot.notification.service.NotificationQueryService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
 

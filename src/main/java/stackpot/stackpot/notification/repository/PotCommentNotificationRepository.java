@@ -13,8 +13,11 @@ import java.util.Optional;
 public interface PotCommentNotificationRepository extends JpaRepository<PotCommentNotification, Long> {
 
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
-            "pcn.id, pcn.potComment.pot.potId, " +
-            "pcn.potComment.user.nickname, 'PotComment', pcn.potComment.comment, pcn.createdAt) " +
+            "pcn.id, pcn.potComment.pot.potId, null, " +
+            "CONCAT(pcn.potComment.user.nickname, '새싹'), " +
+            "'팟 댓글 알림', " +
+            "CONCAT(pcn.potComment.user.nickname, '새싹님의 댓글이 달렸어요.', pcn.potComment.comment), " +
+            "pcn.createdAt) " +
             "FROM PotCommentNotification pcn " +
             "WHERE pcn.isRead = false AND (" +
             "     (pcn.potComment.parent is null AND pcn.potComment.pot.user.id = :userId) OR " +
