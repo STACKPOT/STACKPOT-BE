@@ -206,7 +206,7 @@ public class FeedQueryServiceImpl implements FeedQueryService {
 //                ? feedRepository.findByUser_Id(userId, pageable)
 //                : feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
         List<Feed> feeds;
-        if (seriesId == 0) {
+        if (seriesId == 0L) {
             feeds = (nextCursor == null)
                     ? feedRepository.findByUser_Id(userId, pageable)
                     : feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
@@ -248,7 +248,7 @@ public class FeedQueryServiceImpl implements FeedQueryService {
 
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
         List<Feed> feeds;
-        if (seriesId == 0) {
+        if (seriesId == 0L) {
             feeds = (nextCursor == null)
                     ? feedRepository.findByUser_Id(user.getId(), pageable)
                     : feedRepository.findByUserIdAndFeedIdBefore(user.getId(), nextCursor, pageable);

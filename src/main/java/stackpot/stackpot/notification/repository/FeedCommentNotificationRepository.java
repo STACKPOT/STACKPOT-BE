@@ -8,7 +8,6 @@ import stackpot.stackpot.notification.dto.NotificationDto;
 import stackpot.stackpot.notification.entity.FeedCommentNotification;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface FeedCommentNotificationRepository extends JpaRepository<FeedCommentNotification, Long> {
 
@@ -28,7 +27,7 @@ public interface FeedCommentNotificationRepository extends JpaRepository<FeedCom
             "WHERE fcn.isRead = false AND " +
             "((fc.parent is null AND f.user.id = :userId) OR " +
             " (fc.parent is not null AND (fcp.user.id = :userId OR f.user.id = :userId)))")
-    List<NotificationDto.UnReadNotificationDto> findAllUnReadNotificationsByUserId(Long userId);
+    List<NotificationDto.UnReadNotificationDto> findAllUnReadNotificationsByUserId(@Param("userId") Long userId);
 
     @Modifying
     @Query("DELETE FROM FeedCommentNotification fcn WHERE fcn.feedComment.id = :feedCommentId")
