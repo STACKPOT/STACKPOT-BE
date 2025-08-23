@@ -16,9 +16,9 @@ public interface PotApplicationNotificationRepository extends JpaRepository<PotA
             "pan.id, " +
             "pan.potApplication.pot.potId, " +
             "null, " +
-            "CONCAT(pan.potApplication.user.nickname, '새싹'), " +
+            "pan.potApplication.user.nickname, " +
             "'팟 지원 알림', " +
-            "CONCAT(pan.potApplication.user.nickname, '새싹님이 내 팟에 지원했어요. 확인해 보세요!'), " +
+            "CONCAT(pan.potApplication.user.nickname, ' 새싹님이 내 팟에 지원했어요. 확인해 보세요!'), " +
             "pan.createdAt) " +
             "FROM PotApplicationNotification pan " +
             "WHERE pan.isRead = false AND pan.potApplication.pot.user.id = :userId")

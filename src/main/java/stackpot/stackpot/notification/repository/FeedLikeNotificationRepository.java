@@ -15,9 +15,9 @@ public interface FeedLikeNotificationRepository extends JpaRepository<FeedLikeNo
             "fln.id, " +
             "null, " +
             "fln.feedLike.feed.feedId, " +
-            "CONCAT(fln.feedLike.user.nickname, '새싹'), " +
+            "fln.feedLike.user.nickname, " +
             "'피드 좋아요 알림', " +
-            "CONCAT(fln.feedLike.user.nickname, '새싹님이 내 피드에 좋아요를 눌렀어요. 확인해 보세요!'), " +
+            "CONCAT(fln.feedLike.user.nickname, ' 새싹님이 내 피드에 좋아요를 눌렀어요. 확인해 보세요!'), " +
             "fln.createdAt) " +
             "FROM FeedLikeNotification fln " +
             "WHERE fln.isRead = false and fln.feedLike.feed.user.id = :userId ")

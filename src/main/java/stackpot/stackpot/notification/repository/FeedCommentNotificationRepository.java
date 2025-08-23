@@ -15,17 +15,19 @@ public interface FeedCommentNotificationRepository extends JpaRepository<FeedCom
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
             "fcn.id, " +
             "null, " +
-            "fcn.feedComment.feed.feedId, " +
-            "CONCAT(fcn.feedComment.user.nickname, '새싹'), " +
+            "f.feedId, " +
+            "u.nickname, " +
             "'피드 댓글 알림', " +
-            "CONCAT(fcn.feedComment.user.nickname, '새싹님의 댓글이 달렸어요.', fcn.feedComment.comment), " +
+            "CONCAT(u.nickname, ' 새싹님의 댓글이 달렸어요. ', fc.comment), " +
             "fcn.createdAt) " +
             "FROM FeedCommentNotification fcn " +
-            "WHERE fcn.isRead = false AND (" +
-            "     (fcn.feedComment.parent is null AND fcn.feedComment.feed.user.id = :userId) OR " +
-            "     (fcn.feedComment.parent is not null AND " +
-            "         (fcn.feedComment.parent.user.id = :userId OR fcn.feedComment.feed.user.id = :userId)" +
-            "     ))")
+            "JOIN fcn.feedComment fc " +
+            "JOIN fc.user u " +
+            "JOIN fc.feed f " +
+            "LEFT JOIN fc.parent fcp " +
+            "WHERE fcn.isRead = false AND " +
+            "((fc.parent is null AND f.user.id = :userId) OR " +
+            " (fc.parent is not null AND (fcp.user.id = :userId OR f.user.id = :userId)))")
     List<NotificationDto.UnReadNotificationDto> findAllUnReadNotificationsByUserId(Long userId);
 
     @Modifying

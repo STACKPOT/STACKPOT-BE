@@ -15,7 +15,7 @@ public interface PotEndNotificationRepository extends JpaRepository<PotEndNotifi
             "pen.id, " +
             "pen.pot.potId, " +
             "null, " +
-            "pen.pot.potName, " +
+            "null, " +
             "'팟 종료 알림', " +
             "CONCAT(pen.pot.potName, '이 다 끓었어요. 내 역할을 소개해 보세요!'), " +
             "pen.createdAt) " +
@@ -23,6 +23,20 @@ public interface PotEndNotificationRepository extends JpaRepository<PotEndNotifi
             "JOIN pen.pot.potMembers pm " +
             "WHERE pen.isRead = false AND pm.user.id = :userId")
     List<NotificationDto.UnReadNotificationDto> findAllUnReadPotEndNotificationsByUserId(@Param("userId") Long userId);
+
+//    @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
+//            "pen.id, " +
+//            "pen.pot.potId, " +
+//            "null, " +
+//            "pen.pot.potName, " +
+//            "'팟 종료 알림', " +
+//            "CONCAT(pen.pot.potName, '이 다 끓었어요. 내 역할을 소개해 보세요!'), " +
+//            "pen.createdAt) " +
+//            "FROM PotEndNotification pen " +
+//            "JOIN pen.pot p " +
+//            "JOIN p.potMembers pm " +
+//            "WHERE pen.isRead = false AND pm.user.id = :userId")
+//    List<NotificationDto.UnReadNotificationDto> findAllUnReadPotEndNotificationsByUserId(@Param("userId") Long userId);
 
     @Modifying
     @Query("DELETE FROM PotEndNotification pen WHERE pen.pot.potId = :potId")
