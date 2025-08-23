@@ -13,8 +13,13 @@ import java.util.Optional;
 public interface PotApplicationNotificationRepository extends JpaRepository<PotApplicationNotification, Long> {
 
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
-            "pan.id, pan.potApplication.pot.potId, pan.potApplication.user.nickname, " +
-            "'PotApplication', null, pan.createdAt) " +
+            "pan.id, " +
+            "pan.potApplication.pot.potId, " +
+            "null, " +
+            "CONCAT(pan.potApplication.user.nickname, '새싹'), " +
+            "'팟 지원 알림', " +
+            "CONCAT(pan.potApplication.user.nickname, '새싹님이 내 팟에 지원했어요. 확인해 보세요!'), " +
+            "pan.createdAt) " +
             "FROM PotApplicationNotification pan " +
             "WHERE pan.isRead = false AND pan.potApplication.pot.user.id = :userId")
     List<NotificationDto.UnReadNotificationDto> findAllUnReadNotificationsByUserId(@Param("userId") Long userId);
