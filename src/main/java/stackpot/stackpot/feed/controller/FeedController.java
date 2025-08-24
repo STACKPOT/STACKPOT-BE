@@ -168,6 +168,16 @@ public class FeedController {
         return ResponseEntity.ok(ApiResponse.onSuccess(seriesMap));
     }
 
+    @GetMapping("/series/{user_id}")
+    @Operation(summary = "다른 사람 Series 조회 API", description = "다른 사람의 Series List를 조회합니다.")
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND
+    })
+    public ResponseEntity<ApiResponse<Map<Long, String>>> getSeries(@PathVariable("user_id") Long userId) {
+        Map<Long, String> seriesMap = feedQueryService.getOtherSeries(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(seriesMap));
+    }
+
     @GetMapping("/likes")
     @Operation(summary = "좋아요(공감)한 피드 조회", description = "현재 사용자가 공감한 Feed 리스트를 페이징으로 조회합니다.")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getSavedFeeds(

@@ -312,6 +312,21 @@ public class FeedQueryServiceImpl implements FeedQueryService {
     }
 
     @Override
+    public Map<Long, String> getOtherSeries(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        List<Series> userSeriesList = seriesRepository.findAllByUser(user);
+
+        return userSeriesList.stream()
+                .collect(Collectors.toMap(
+                        Series::getSeriesId,
+                        Series::getComment
+                ));
+    }
+
+
+    @Override
     public Map<String, Object> getLikedFeedsWithPaging(int page, int size) {
         User user = authService.getCurrentUser(); // 인증 필요
 

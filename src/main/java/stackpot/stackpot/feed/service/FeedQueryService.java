@@ -13,6 +13,7 @@ public interface FeedQueryService {
 //     FeedResponseDto.FeedPreviewList searchByUserIdByKeyword(Long userId, Long nextCursor, int pageSize);
 UserMyPageResponseDto getFeeds(Long nextCursor, int pageSize, Long seriesId);
      Map<Long, String> getMySeries();
+     Map<Long, String> getOtherSeries(Long userId);
      Long getLikeCount(Long feedId);
      Feed getFeedByFeedId(Long feedId);
      Map<String, Object> getLikedFeedsWithPaging(int page, int size);
