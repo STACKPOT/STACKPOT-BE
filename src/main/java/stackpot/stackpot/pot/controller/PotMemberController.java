@@ -45,7 +45,7 @@ public class PotMemberController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "팟 어필 API")
+    @Operation(summary = "여기서 저는요 작성 및 수정 API")
     @PatchMapping("/appeal")
     public ResponseEntity<ApiResponse<String>> updateAppealContent(
             @PathVariable("pot_id") Long potId,

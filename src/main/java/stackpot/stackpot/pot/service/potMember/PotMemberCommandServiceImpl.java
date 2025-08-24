@@ -96,9 +96,9 @@ public class PotMemberCommandServiceImpl implements PotMemberCommandService {
     @Transactional
     @Override
     public void updateAppealContent(Long potId, String appealContent) {
-        String email = authService.getCurrentUserEmail();
+        User user = authService.getCurrentUser();
 
-        PotMember potMember = potMemberRepository.findByPot_PotIdAndUser_Email(potId, email)
+        PotMember potMember = potMemberRepository.findByPotPotIdAndUser(potId, user)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
 
         potMember.setAppealContent(appealContent);
