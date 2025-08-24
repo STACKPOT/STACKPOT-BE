@@ -9,9 +9,9 @@ import java.util.Map;
 public interface FeedQueryService {
      FeedResponseDto.FeedPreviewList getPreViewFeeds(String category, String sort, Long cursor, int limit);
      FeedResponseDto.AuthorizedFeedDto getFeed(Long feedId);
-     UserMyPageResponseDto getFeedsByUserId(Long userId, Long nextCursor, int pageSize);
+     UserMyPageResponseDto getFeedsByUserId(Long userId, Long nextCursor, int pageSize, Long seriesId);
 //     FeedResponseDto.FeedPreviewList searchByUserIdByKeyword(Long userId, Long nextCursor, int pageSize);
-UserMyPageResponseDto getFeeds(Long nextCursor, int pageSize);
+UserMyPageResponseDto getFeeds(Long nextCursor, int pageSize, Long seriesId);
      Map<Long, String> getMySeries();
      Long getLikeCount(Long feedId);
      Feed getFeedByFeedId(Long feedId);

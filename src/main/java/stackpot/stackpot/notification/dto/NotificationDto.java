@@ -16,10 +16,11 @@ public class NotificationDto {
     @AllArgsConstructor
     public static class UnReadNotificationDto {
         private Long notificationId;
-        private Long potOrFeedId;
+        private Long potId;
+        private Long feedId;
         private String userName;
-        private String type;
-        private String content;
+        private String type; // 알림 종류
+        private String content; // 알림 내용
         private LocalDateTime createdAt;
     }
 }

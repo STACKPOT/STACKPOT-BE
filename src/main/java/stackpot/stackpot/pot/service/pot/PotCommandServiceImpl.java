@@ -2,33 +2,32 @@ package stackpot.stackpot.pot.service.pot;
 
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
-import stackpot.stackpot.apiPayload.exception.handler.MemberHandler;
 import stackpot.stackpot.apiPayload.exception.handler.PotHandler;
 import stackpot.stackpot.badge.service.BadgeService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomCommandService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoCommandService;
 import stackpot.stackpot.common.util.AuthService;
-import stackpot.stackpot.badge.service.BadgeService;
-import stackpot.stackpot.pot.converter.MyPotConverter;
+import stackpot.stackpot.notification.dto.NotificationResponseDto;
+import stackpot.stackpot.notification.event.PotEndEvent;
+import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.pot.converter.PotConverter;
 import stackpot.stackpot.pot.converter.PotMemberConverter;
-import stackpot.stackpot.pot.converter.PotDetailConverter;
-import stackpot.stackpot.pot.dto.*;
+import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
+import stackpot.stackpot.pot.dto.PotNameUpdateRequestDto;
+import stackpot.stackpot.pot.dto.PotRequestDto;
+import stackpot.stackpot.pot.dto.PotResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.pot.entity.mapping.PotApplication;
 import stackpot.stackpot.pot.entity.mapping.PotMember;
-import stackpot.stackpot.pot.repository.PotApplicationRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotRecruitmentDetailsRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
-import stackpot.stackpot.pot.service.pot.PotCommandService;
 import stackpot.stackpot.todo.service.UserTodoService;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
@@ -38,7 +37,6 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -58,7 +56,8 @@ public class PotCommandServiceImpl implements PotCommandService {
     private final AuthService authService;
     private final BadgeService badgeService;
     private final PotMemberConverter potMemberConverter;
-
+    private final NotificationCommandService notificationCommandService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
@@ -213,6 +212,9 @@ public class PotCommandServiceImpl implements PotCommandService {
 
         badgeService.assignBadgeToTopMembers(potId);
 
+        NotificationResponseDto.UnReadNotificationDto dto = notificationCommandService.createdPotEndNotification(potId);
+        applicationEventPublisher.publishEvent(new PotEndEvent(potId, dto));
+
         return potConverter.toDto(pot, recruitmentDetails);
     }
 
@@ -283,6 +285,6 @@ public class PotCommandServiceImpl implements PotCommandService {
         }
         pot.setPotName(request.getPotName());
 
-        return  pot.getPotName();
+        return pot.getPotName();
     }
 }

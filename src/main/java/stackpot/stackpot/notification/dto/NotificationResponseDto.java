@@ -16,7 +16,8 @@ public class NotificationResponseDto {
     @AllArgsConstructor
     public static class UnReadNotificationDto {
         private Long notificationId;
-        private Long potOrFeedId;
+        private Long potId;
+        private Long feedId;
         private String userName;
         private String type;
         private String content;

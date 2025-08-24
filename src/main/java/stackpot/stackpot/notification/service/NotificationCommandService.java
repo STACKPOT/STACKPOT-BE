@@ -13,20 +13,15 @@ import stackpot.stackpot.feed.service.FeedLikeQueryService;
 import stackpot.stackpot.notification.converter.NotificationConverter;
 import stackpot.stackpot.notification.dto.NotificationRequestDto;
 import stackpot.stackpot.notification.dto.NotificationResponseDto;
-import stackpot.stackpot.notification.entity.FeedCommentNotification;
-import stackpot.stackpot.notification.entity.FeedLikeNotification;
-import stackpot.stackpot.notification.entity.PotApplicationNotification;
-import stackpot.stackpot.notification.entity.PotCommentNotification;
+import stackpot.stackpot.notification.entity.*;
 import stackpot.stackpot.notification.entity.enums.NotificationType;
-import stackpot.stackpot.notification.repository.FeedCommentNotificationRepository;
-import stackpot.stackpot.notification.repository.FeedLikeNotificationRepository;
-import stackpot.stackpot.notification.repository.PotApplicationNotificationRepository;
-import stackpot.stackpot.notification.repository.PotCommentNotificationRepository;
+import stackpot.stackpot.notification.repository.*;
+import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.mapping.PotApplication;
 import stackpot.stackpot.pot.entity.mapping.PotComment;
+import stackpot.stackpot.pot.service.pot.PotQueryService;
 import stackpot.stackpot.pot.service.potApplication.PotApplicationQueryService;
 import stackpot.stackpot.pot.service.potComment.PotCommentQueryService;
-import stackpot.stackpot.user.entity.enums.Role;
 
 @Service
 @RequiredArgsConstructor
@@ -39,11 +34,13 @@ public class NotificationCommandService {
     private final PotCommentQueryService potCommentQueryService;
     private final FeedCommentQueryService feedCommentQueryService;
     private final FeedLikeQueryService feedLikeQueryService;
+    private final PotQueryService potQueryService;
 
     private final PotApplicationNotificationRepository potApplicationNotificationRepository;
     private final PotCommentNotificationRepository potCommentNotificationRepository;
     private final FeedLikeNotificationRepository feedLikeNotificationRepository;
     private final FeedCommentNotificationRepository feedCommentNotificationRepository;
+    private final PotEndNotificationRepository potEndNotificationRepository;
 
     private final NotificationConverter notificationConverter;
     private final AuthService authService;
@@ -67,7 +64,8 @@ public class NotificationCommandService {
 
         // Pot의 생성자에게 실시간 알림 전송 필요
         return notificationConverter.toUnReadNotificationDto(
-                newPan.getId(), potId, userName, "PotApplication", null, newPan.getCreatedAt());
+                newPan.getId(), potId, null, userName + "새싹", "팟 지원 알림",
+                userName + "새싹님이 내 팟에 지원했어요. 확인해 보세요!", newPan.getCreatedAt());
     }
 
     @Transactional
@@ -91,8 +89,8 @@ public class NotificationCommandService {
         PotCommentNotification newPcn = potCommentNotificationRepository.save(pcn);
 
         return notificationConverter.toUnReadNotificationDto(
-                newPcn.getId(), potId, potComment.getUser().getNickname(),
-                "PotComment", potComment.getComment(), newPcn.getCreatedAt());
+                newPcn.getId(), potId, null, potComment.getUser().getNickname() + "새싹",
+                "팟 댓글 알림", potComment.getUser().getNickname() + "새싹님의 댓글이 달렸어요." + potComment.getComment(), newPcn.getCreatedAt());
     }
 
     @Transactional
@@ -112,10 +110,11 @@ public class NotificationCommandService {
         FeedLikeNotification newFln = feedLikeNotificationRepository.save(fln);
 
         return notificationConverter.toUnReadNotificationDto(
-                newFln.getId(), feedId, feedLike.getUser().getNickname(),
-                "FeedLike", null, newFln.getCreatedAt());
+                newFln.getId(), null, feedId, feedLike.getUser().getNickname() + "새싹",
+                "피드 좋아요 알림", feedLike.getUser().getNickname() + "새싹님이 내 피드에 좋아요를 눌렀어요. 확인해 보세요!", newFln.getCreatedAt());
     }
 
+    // todo toggleLike 메서드에 구현해야
     @Transactional
     public void deleteFeedLikeNotification(Long feedLikeId) {
         feedLikeNotificationRepository.deleteByFeedLikeId(feedLikeId);
@@ -136,12 +135,30 @@ public class NotificationCommandService {
         FeedCommentNotification newFcn = feedCommentNotificationRepository.save(fcn);
 
         return notificationConverter.toUnReadNotificationDto(
-                newFcn.getId(), feedId, feedComment.getUser().getNickname(),
-                "FeedComment", feedComment.getComment(), newFcn.getCreatedAt());
+                newFcn.getId(), null, feedId, feedComment.getUser().getNickname() + "새싹",
+                "피드 댓글 알림", feedComment.getUser().getNickname() + "새싹님의 댓글이 달렸어요." + feedComment.getComment(), newFcn.getCreatedAt());
     }
 
     @Transactional
     public void deleteFeedCommentNotification(Long feedCommentId) {
         feedCommentNotificationRepository.deleteByFeedCommentId(feedCommentId);
+    }
+
+    public NotificationResponseDto.UnReadNotificationDto createdPotEndNotification(Long potId) {
+        Pot pot = potQueryService.getPotByPotId(potId);
+        PotEndNotification pen = PotEndNotification.builder()
+                .isRead(false)
+                .pot(pot)
+                .build();
+        PotEndNotification newPen = potEndNotificationRepository.save(pen);
+        return notificationConverter.toUnReadNotificationDto(
+                newPen.getId(), potId, null, pot.getUser().getNickname() + "새싹",
+                "팟 종료 알림", pot.getUser().getNickname() + "이 다 끓었어요. 내 역할을 소개해 보세요!", newPen.getCreatedAt());
+    }
+
+    // 삭제할 일은 없네
+    @Transactional
+    public void deletePotEndNotification(Long potId) {
+        potEndNotificationRepository.deleteByPotId(potId);
     }
 }

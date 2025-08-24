@@ -13,14 +13,21 @@ import java.util.Optional;
 public interface PotCommentNotificationRepository extends JpaRepository<PotCommentNotification, Long> {
 
     @Query("SELECT new stackpot.stackpot.notification.dto.NotificationDto$UnReadNotificationDto(" +
-            "pcn.id, pcn.potComment.pot.potId, " +
-            "pcn.potComment.user.nickname, 'PotComment', pcn.potComment.comment, pcn.createdAt) " +
+            "pcn.id, " +
+            "p.potId, " +
+            "null, " +
+            "u.nickname, " +
+            "'팟 댓글 알림', " +
+            "CONCAT(u.nickname, ' 새싹님의 댓글이 달렸어요. ', pc.comment), " +
+            "pcn.createdAt) " +
             "FROM PotCommentNotification pcn " +
-            "WHERE pcn.isRead = false AND (" +
-            "     (pcn.potComment.parent is null AND pcn.potComment.pot.user.id = :userId) OR " +
-            "     (pcn.potComment.parent is not null AND " +
-            "         (pcn.potComment.parent.user.id = :userId OR pcn.potComment.pot.user.id = :userId)" +
-            "     ))")
+            "JOIN pcn.potComment pc " +
+            "JOIN pc.user u " +
+            "JOIN pc.pot p " +
+            "LEFT JOIN pc.parent pcp " +
+            "WHERE pcn.isRead = false AND " +
+            "((pc.parent is null AND p.user.id = :userId) OR " +
+            " (pc.parent is not null AND (pcp.user.id = :userId OR p.user.id = :userId)))")
     List<NotificationDto.UnReadNotificationDto> findAllUnReadNotificationsByUserId(@Param("userId") Long userId);
 
     @Modifying

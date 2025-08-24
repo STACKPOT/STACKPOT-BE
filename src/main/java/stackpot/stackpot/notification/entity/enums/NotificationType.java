@@ -36,16 +36,25 @@ public enum NotificationType {
                     .orElseThrow(() -> new NotificationHandler(ErrorStatus.NOTIFICATION_NOT_FOUND))
                     .updateIsRead(true);
         }
+    },
+    POT_END {
+      @Override
+      public void read(Long id, NotificationCommandService service){
+            service.getPotEndNotificationRepository().findById(id)
+                    .orElseThrow(() -> new NotificationHandler(ErrorStatus.NOTIFICATION_NOT_FOUND))
+                    .updateIsRead(true);
+      }
     };
 
     public abstract void read(Long id, NotificationCommandService service);
 
     public static NotificationType from(String type) {
         return switch (type) {
-            case "PotApplication" -> POT_APPLICATION;
-            case "PotComment" -> POT_COMMENT;
-            case "FeedLike" -> FEED_LIKE;
-            case "FeedComment" -> FEED_COMMENT;
+            case "팟 지원 알림" -> POT_APPLICATION;
+            case "팟 댓글 알림" -> POT_COMMENT;
+            case "피드 좋아요 알림" -> FEED_LIKE;
+            case "피드 댓글 알림" -> FEED_COMMENT;
+            case "팟 종료 알림" -> POT_END;
             default -> throw new NotificationHandler(ErrorStatus.INVALID_NOTIFICATION_TYPE);
         };
     }
