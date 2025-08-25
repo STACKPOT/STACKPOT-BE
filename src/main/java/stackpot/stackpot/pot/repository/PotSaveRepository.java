@@ -53,5 +53,12 @@ public interface PotSaveRepository extends JpaRepository<PotSave, Long> {
     void deleteAllByUserAndPots(@Param("user") User user, @Param("pots") List<Pot> pots);
 
     List<PotSave> findByUser(User user);
+
+    @Modifying
+    @Transactional
     void deleteByUser(User user);
+
+    @Modifying @Transactional
+    @Query("delete from PotSave ps where ps.pot.potId in :potIds")
+    int deleteByPotIds(@Param("potIds") List<Long> potIds);
 }
