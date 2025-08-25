@@ -54,6 +54,10 @@ ORDER BY
     // 커서 기반 페이징 조회
     List<Feed> findByUserIdAndFeedIdBefore(Long userId, Long cursorFeedId, Pageable pageable);
 
+    // 시리즈 필터링 추가된 페이징 조회
+    List<Feed> findByUser_IdAndSeries_SeriesId(Long userId, Long seriesId, Pageable pageable);
+    List<Feed> findByUser_IdAndSeries_SeriesIdAndFeedIdBefore(Long userId, Long seriesId, Long cursorFeedId, Pageable pageable);
+
     @Modifying
     @Query("DELETE FROM Feed f WHERE f.user.id = :userId")
     void deleteByUserId(@Param("userId") Long userId);

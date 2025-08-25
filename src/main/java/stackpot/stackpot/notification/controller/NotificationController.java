@@ -15,7 +15,7 @@ import stackpot.stackpot.notification.service.NotificationQueryService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -31,7 +31,10 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.onSuccess(notificationQueryService.getAllUnReadNotifications()));
     }
 
-    @Operation(summary = "알림 읽음 처리 API")
+    @Operation(
+            summary = "알림 읽음 처리 API",
+            description = "NotificationType은 알림 조회 응답의 type 필드를 그대로 보내면 됩니다"
+    )
     @ApiErrorCodeExamples({
             ErrorStatus.NOTIFICATION_NOT_FOUND,
             ErrorStatus.INVALID_NOTIFICATION_TYPE

@@ -1,6 +1,5 @@
 package stackpot.stackpot.feed.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +12,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.apiPayload.exception.handler.FeedHandler;
 import stackpot.stackpot.apiPayload.exception.handler.UserHandler;
@@ -200,7 +200,7 @@ public class FeedCommandServiceImpl implements FeedCommandService {
             feedLikeRepository.delete(existingLike.get());
             feed.setLikeCount(feed.getLikeCount() - 1);
             feedRepository.save(feed);
-
+            // todo 좋아요 알림 삭제
             return false; // 좋아요 취소
         } else {
             // 좋아요 추가

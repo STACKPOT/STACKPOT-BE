@@ -15,10 +15,7 @@ import stackpot.stackpot.chat.service.chat.ChatQueryService;
 import stackpot.stackpot.chat.service.chatroom.ChatRoomQueryService;
 import stackpot.stackpot.chat.service.chatroominfo.ChatRoomInfoQueryService;
 import stackpot.stackpot.common.util.AuthService;
-import stackpot.stackpot.notification.event.FeedCommentEvent;
-import stackpot.stackpot.notification.event.FeedLikeEvent;
-import stackpot.stackpot.notification.event.PotApplicationEvent;
-import stackpot.stackpot.notification.event.PotCommentEvent;
+import stackpot.stackpot.notification.event.*;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;
 import stackpot.stackpot.pot.service.potMember.PotMemberQueryService;
 
@@ -34,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class SseService {
 
+    // user 마다 SseEmitter 객체 저장
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     private final ChatRoomQueryService chatRoomQueryService;
@@ -169,6 +167,28 @@ public class SseService {
                         .data(event.getUnReadNotificationDto(), MediaType.APPLICATION_JSON));
             } catch (Exception e) {
                 emitters.remove(event.getFeedWriterId());
+            }
+        }
+    }
+
+    /**
+     * PotEndNotification
+     * 팟을 끓인 후 팟 멤버들에게 실시간 알림 전송
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendPotEndNotification(PotEndEvent event) {
+        Long potId = event.getPotId();
+        List<Long> userIds = potMemberQueryService.selectUserIdsAboutPotMembersByPotId(potId);
+        for (Long userId : userIds) {
+            SseEmitter emitter = userId != null ? emitters.get(userId) : null;
+            if (emitter != null) {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name("Notification")
+                            .data(event.getUnReadNotificationDto(), MediaType.APPLICATION_JSON));
+                } catch (Exception e) {
+                    emitters.remove(userId);
+                }
             }
         }
     }

@@ -180,7 +180,7 @@ public class FeedQueryServiceImpl implements FeedQueryService {
     }
 
     @Transactional
-    public UserMyPageResponseDto getFeedsByUserId(Long userId, Long nextCursor, int pageSize) {
+    public UserMyPageResponseDto getFeedsByUserId(Long userId, Long nextCursor, int pageSize, Long seriesId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAuthenticated = authentication != null
                 && !(authentication instanceof AnonymousAuthenticationToken)
@@ -202,9 +202,19 @@ public class FeedQueryServiceImpl implements FeedQueryService {
                 : List.of();
 
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
-        List<Feed> feeds = (nextCursor == null)
-                ? feedRepository.findByUser_Id(userId, pageable)
-                : feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
+//        List<Feed> feeds = (nextCursor == null)
+//                ? feedRepository.findByUser_Id(userId, pageable)
+//                : feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
+        List<Feed> feeds;
+        if (seriesId == 0L) {
+            feeds = (nextCursor == null)
+                    ? feedRepository.findByUser_Id(userId, pageable)
+                    : feedRepository.findByUserIdAndFeedIdBefore(userId, nextCursor, pageable);
+        } else {
+            feeds = (nextCursor == null)
+                    ? feedRepository.findByUser_IdAndSeries_SeriesId(userId, seriesId, pageable)
+                    : feedRepository.findByUser_IdAndSeries_SeriesIdAndFeedIdBefore(userId, seriesId, nextCursor, pageable);
+        }
 
         List<FeedResponseDto.FeedDto> feedDtos = feeds.stream()
                 .map(feed -> {
@@ -233,13 +243,20 @@ public class FeedQueryServiceImpl implements FeedQueryService {
     }
 
     @Override
-    public UserMyPageResponseDto getFeeds(Long nextCursor, int pageSize) {
+    public UserMyPageResponseDto getFeeds(Long nextCursor, int pageSize, Long seriesId) {
         User user = authService.getCurrentUser();
 
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "feedId"));
-        List<Feed> feeds = (nextCursor == null)
-                ? feedRepository.findByUser_Id(user.getId(), pageable)
-                : feedRepository.findByUserIdAndFeedIdBefore(user.getId(), nextCursor, pageable);
+        List<Feed> feeds;
+        if (seriesId == 0L) {
+            feeds = (nextCursor == null)
+                    ? feedRepository.findByUser_Id(user.getId(), pageable)
+                    : feedRepository.findByUserIdAndFeedIdBefore(user.getId(), nextCursor, pageable);
+        } else {
+            feeds = (nextCursor == null)
+                    ? feedRepository.findByUser_IdAndSeries_SeriesId(user.getId(), seriesId, pageable)
+                    : feedRepository.findByUser_IdAndSeries_SeriesIdAndFeedIdBefore(user.getId(), seriesId, nextCursor, pageable);
+        }
 
         List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserId(user.getId());
         List<Long> savedFeedIds = feedSaveRepository.findFeedIdsByUserId(user.getId());
@@ -293,6 +310,21 @@ public class FeedQueryServiceImpl implements FeedQueryService {
                         Series::getComment
                 ));
     }
+
+    @Override
+    public Map<Long, String> getOtherSeries(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        List<Series> userSeriesList = seriesRepository.findAllByUser(user);
+
+        return userSeriesList.stream()
+                .collect(Collectors.toMap(
+                        Series::getSeriesId,
+                        Series::getComment
+                ));
+    }
+
 
     @Override
     public Map<String, Object> getLikedFeedsWithPaging(int page, int size) {

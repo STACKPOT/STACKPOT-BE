@@ -17,11 +17,9 @@ import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
 import stackpot.stackpot.feed.service.FeedQueryService;
-import stackpot.stackpot.pot.dto.CompletedPotRequestDto;
-import stackpot.stackpot.pot.dto.PotResponseDto;
+import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.pot.service.pot.PotCommandService;
-import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.user.dto.request.MyDescriptionRequestDto;
 import stackpot.stackpot.user.dto.request.TokenRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
@@ -179,7 +177,7 @@ public class UserController {
     @PatchMapping("/profile")
     @Operation(
             summary = "회원가입 API",
-            description = "신규 User 회원가입 시 필요한 정보를 저장합니다.\n"+
+            description = "신규 User 회원가입 시 필요한 정보를 저장합니다.\n" +
                     "- interests: 다중 선택 가능하며 string입니다. [사이드 프로젝트, 1인 개발, 공모전, 창업, 네트워킹 행사]\n"
     )
     public ResponseEntity<ApiResponse<UserSignUpResponseDto>> signup(@Valid @RequestBody UserRequestDto.JoinDto request) {
@@ -253,7 +251,7 @@ public class UserController {
             ErrorStatus.USER_NOT_FOUND
     })
     public ResponseEntity<ApiResponse<UserResponseDto.UserInfoDto>> usersPages(
-            @PathVariable(name = "userId") Long userId){
+            @PathVariable(name = "userId") Long userId) {
         UserResponseDto.UserInfoDto userDetails = userCommandService.getUsers(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
@@ -267,7 +265,7 @@ public class UserController {
             ErrorStatus.USER_NOT_FOUND,
             ErrorStatus.USER_ALREADY_WITHDRAWN,
     })
-    public ResponseEntity<ApiResponse<UserResponseDto.UserInfoDto>> usersMyPages(){
+    public ResponseEntity<ApiResponse<UserResponseDto.UserInfoDto>> usersMyPages() {
         UserResponseDto.UserInfoDto userDetails = userCommandService.getMyUsers();
         return ResponseEntity.ok(ApiResponse.onSuccess(userDetails));
     }
@@ -275,7 +273,7 @@ public class UserController {
     @PatchMapping("/profile/update")
     @Operation(
             summary = "나의 프로필 수정 API",
-            description = "사용자의 역할, 관심사, 한 줄 소개, 카카오 아이디를 수정합니다.\n"+
+            description = "사용자의 역할, 관심사, 한 줄 소개, 카카오 아이디를 수정합니다.\n" +
                     "- interests: 다중 선택 가능하며 string입니다. [사이드 프로젝트, 1인 개발, 공모전, 창업, 네트워킹 행사]\n"
     )
     @ApiErrorCodeExamples({
@@ -315,7 +313,22 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @GetMapping("/potSummary{pot_id}")
+    @GetMapping("/potAppealContent/{pot_id}/{user_id}")
+    @Operation(
+            summary = "다른 사람 마이페이지 '여기서 저는요' 모달 조회 API",
+            description = "'끓인 팟 상세보기 모달'에 쓰이는 Role, Badge, Appeal Content를 반환합니다."
+    )
+    @ApiErrorCodeExamples({
+            ErrorStatus.USER_NOT_FOUND,
+    })
+    public ResponseEntity<ApiResponse<AppealContentDto>> getAppealContent(
+            @PathVariable(name = "pot_id") Long potId,
+            @PathVariable(name = "user_id") Long userId) {
+        AppealContentDto response = myPotService.getUserAppealContent(potId, userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @GetMapping("/potSummary/{pot_id}")
     @Operation(
             summary = "끓인 팟 AI 요약 모달 조회 API",
             description = "끓인 팟을 상세보기할 때 쓰이는 PotSummary, potLan을 반환합니다."
@@ -358,6 +371,7 @@ public class UserController {
         MyDescriptionResponseDto responseDto = userQueryService.getMyDescription();
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
+
     @GetMapping("/description/{userId}")
     @Operation(
             summary = "특정 사용자의 소개 조회 API",
@@ -401,11 +415,11 @@ public class UserController {
     }
 
 
-
     @GetMapping("/{userId}/feeds")
     @Operation(
             summary = "사용자별 피드 조회 API",
-            description = "userId에 해당하는 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다."
+            description = "userId에 해당하는 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다. \n" +
+                    "시리즈가 '전체보기' 일 때는 seriesId = 0"
     )
     @ApiErrorCodeExamples({
             ErrorStatus.USER_NOT_FOUND,
@@ -419,15 +433,18 @@ public class UserController {
             @RequestParam(value = "cursor", required = false) Long cursor,
 
             @Parameter(description = "페이지 크기", example = "10")
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+
+            @RequestParam(value = "seriesId", required = false, defaultValue = "0") Long seriesId
     ) {
-        UserMyPageResponseDto mypage = feedQueryService.getFeedsByUserId(userId, cursor, size);
+        UserMyPageResponseDto mypage = feedQueryService.getFeedsByUserId(userId, cursor, size, seriesId);
         return ResponseEntity.ok(ApiResponse.onSuccess(mypage));
     }
 
     @Operation(
             summary = "나의 피드 조회 API",
-            description = "로그인한 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다."
+            description = "로그인한 사용자의 시리즈 코멘트와 피드를 반환합니다. 피드는 커서 기반 페이지네이션을 지원합니다. \n" +
+                    "시리즈가 '전체보기' 일 때는 seriesId = 0"
     )
     @GetMapping("/feeds")
     @ApiErrorCodeExamples({
@@ -436,9 +453,10 @@ public class UserController {
     })
     public ResponseEntity<ApiResponse<UserMyPageResponseDto>> getFeeds(
             @RequestParam(name = "cursor", required = false) Long cursor,
-            @RequestParam(name = "size", defaultValue = "10") int size
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(value = "seriesId", required = false, defaultValue = "0") Long seriesId
     ) {
-        UserMyPageResponseDto mypage = feedQueryService.getFeeds(cursor, size);
+        UserMyPageResponseDto mypage = feedQueryService.getFeeds(cursor, size, seriesId);
         return ResponseEntity.ok(ApiResponse.onSuccess(mypage));
     }
 

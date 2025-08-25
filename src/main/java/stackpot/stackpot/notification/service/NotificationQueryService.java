@@ -13,10 +13,7 @@ import stackpot.stackpot.notification.entity.FeedCommentNotification;
 import stackpot.stackpot.notification.entity.FeedLikeNotification;
 import stackpot.stackpot.notification.entity.PotApplicationNotification;
 import stackpot.stackpot.notification.entity.PotCommentNotification;
-import stackpot.stackpot.notification.repository.FeedCommentNotificationRepository;
-import stackpot.stackpot.notification.repository.FeedLikeNotificationRepository;
-import stackpot.stackpot.notification.repository.PotApplicationNotificationRepository;
-import stackpot.stackpot.notification.repository.PotCommentNotificationRepository;
+import stackpot.stackpot.notification.repository.*;
 
 import java.util.Comparator;
 import java.util.List;
@@ -34,6 +31,7 @@ public class NotificationQueryService {
 
     private final NotificationConverter notificationConverter;
     private final AuthService authService;
+    private final PotEndNotificationRepository potEndNotificationRepository;
 
     public List<NotificationResponseDto.UnReadNotificationDto> getAllUnReadNotifications() {
         Long userId = authService.getCurrentUserId();
@@ -54,11 +52,16 @@ public class NotificationQueryService {
         List<NotificationDto.UnReadNotificationDto> feedCommentNotifications =
                 feedCommentNotificationRepository.findAllUnReadNotificationsByUserId(userId);
 
+        // 6. 팟 종료 알림 : 팟을 끓이면 팟 멤버들에게 팟 종료 알림을 보낸다.
+        List<NotificationDto.UnReadNotificationDto> potEndNotifications =
+                potEndNotificationRepository.findAllUnReadPotEndNotificationsByUserId(userId);
+
         List<NotificationDto.UnReadNotificationDto> temp = Stream.of(
                         potApplicationNotifications,
                         potCommentNotifications,
                         feedLikeNotifications,
-                        feedCommentNotifications)
+                        feedCommentNotifications,
+                        potEndNotifications)
                 .flatMap(List::stream)
                 .toList();
 
