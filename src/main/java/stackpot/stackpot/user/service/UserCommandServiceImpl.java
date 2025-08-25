@@ -407,7 +407,6 @@ public class UserCommandServiceImpl implements UserCommandService {
             potRecruitmentDetailsRepository.deleteByPotIds(recruitingPotIds);
             // PotApplication 삭제
             potApplicationRepository.deleteByPotIds(recruitingPotIds);
-            potRepository.deleteByUserIdAndPotIds(userId, recruitingPotIds);
             potSaveRepository.deleteByPotIds(recruitingPotIds);
 
             potRepository.deleteByUserIdAndPotIds(userId, recruitingPotIds);
