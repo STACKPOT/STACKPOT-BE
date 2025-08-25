@@ -408,6 +408,9 @@ public class UserCommandServiceImpl implements UserCommandService {
             // PotApplication 삭제
             potApplicationRepository.deleteByPotIds(recruitingPotIds);
             potRepository.deleteByUserIdAndPotIds(userId, recruitingPotIds);
+            potSaveRepository.deleteByPotIds(recruitingPotIds);
+
+            potRepository.deleteByUserIdAndPotIds(userId, recruitingPotIds);
         }
 
 
@@ -470,7 +473,7 @@ public class UserCommandServiceImpl implements UserCommandService {
             potApplicationRepository.deleteByPotId(pot.getPotId());
 
             potRecruitmentDetailsRepository.deleteByPot_PotId(pot.getPotId());
-
+            potSaveRepository.deleteByPotIds(List.of(pot.getPotId()));
             // Pot 삭제
             potRepository.delete(pot);
 
