@@ -23,6 +23,7 @@ import stackpot.stackpot.todo.entity.mapping.UserTodo;
 import stackpot.stackpot.todo.repository.UserTodoRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.user.entity.User;
+import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -43,69 +44,81 @@ public class UserTodoServiceImpl implements UserTodoService {
     @Transactional
     @Override
     public Page<MyPotTodoResponseDTO> getTodo(Long potId, PageRequest pageRequest) {
-        User user = authService.getCurrentUser();
+        User current = authService.getCurrentUser();
 
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        boolean isOwner = pot.getUser().equals(user);
-        boolean isMember = potMemberRepository.existsByPotAndUser(pot, user);
+        boolean isOwner = pot.getUser().equals(current);
+        boolean isMember = potMemberRepository.existsByPotAndUser(pot, current);
+        if (!isOwner && !isMember) throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
 
-        if (!isOwner && !isMember) {
-            throw new PotHandler(ErrorStatus.POT_FORBIDDEN);
-        }
+        // PotMember 기준으로 전체 멤버 확보
+        List<PotMember> allMembers = potMemberRepository.findByPotId(pot.getPotId());
 
-        List<User> allPotMembers = potMemberRepository.findByPotId(pot.getPotId())
-                .stream()
+        // 현재 사용자 우선 정렬
+        allMembers.sort((m1, m2) -> {
+            boolean a = m1.getUser().equals(current);
+            boolean b = m2.getUser().equals(current);
+            return a == b ? 0 : (a ? -1 : 1);
+        });
+
+        int total = allMembers.size();
+        int start = (int) pageRequest.getOffset();
+        int end = Math.min(start + pageRequest.getPageSize(), total);
+        if (start >= total) return new PageImpl<>(List.of(), pageRequest, total);
+
+        // 페이징된 PotMember
+        List<PotMember> pageMembers = allMembers.subList(start, end);
+
+        // 쿼리용 사용자 리스트
+        List<User> pageUsers = pageMembers.stream()
                 .map(PotMember::getUser)
                 .collect(Collectors.toList());
 
-        allPotMembers.sort((u1, u2) -> u1.equals(user) ? -1 : (u2.equals(user) ? 1 : 0));
+        // 사용자별 역할(Role) 매핑 (멤버 역할)
+        Map<User, Role> roleMap = pageMembers.stream()
+                .collect(Collectors.toMap(PotMember::getUser,
+                        pm -> pm.getRoleName() != null ? pm.getRoleName() : Role.UNKNOWN));
 
-        int totalUsers = allPotMembers.size();
-        int startIndex = (int) pageRequest.getOffset();
-        int endIndex = Math.min(startIndex + pageRequest.getPageSize(), totalUsers);
+        // Todo 조회
+        List<UserTodo> todos = myPotRepository.findByPotAndUsers(pot, pageUsers);
 
-        if (startIndex >= totalUsers) {
-            return new PageImpl<>(List.of(), pageRequest, totalUsers);
-        }
-
-        List<User> pagedUsers = allPotMembers.subList(startIndex, endIndex);
-
-        List<UserTodo> todos = myPotRepository.findByPotAndUsers(pot, pagedUsers);
-
+        // 5AM 컷 필터
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime todayAt5AM = LocalDateTime.of(now.toLocalDate(), LocalTime.of(5, 0));
         LocalDateTime yesterdayAt5AM = todayAt5AM.minusDays(1);
 
-        List<UserTodo> filteredTodos = todos.stream()
-                .filter(todo -> todo.getCreatedAt().isAfter(yesterdayAt5AM))
+        List<UserTodo> filtered = todos.stream()
+                .filter(t -> t.getCreatedAt().isAfter(yesterdayAt5AM))
                 .collect(Collectors.toList());
 
-        Map<User, List<UserTodo>> groupedByUser = filteredTodos.stream()
+        Map<User, List<UserTodo>> grouped = filtered.stream()
                 .collect(Collectors.groupingBy(UserTodo::getUser));
 
-        List<MyPotTodoResponseDTO> responseList = pagedUsers.stream()
-                .map(member -> userTodoConverter.toDto(
-                        member,
+        // Converter에 멤버 역할(Role) 전달
+        List<MyPotTodoResponseDTO> response = pageMembers.stream()
+                .map(pm -> userTodoConverter.toDto(
+                        pm.getUser(),
+                        roleMap.getOrDefault(pm.getUser(), Role.UNKNOWN),
                         pot,
-                        groupedByUser.getOrDefault(member, List.of()),
-                        user))
+                        grouped.getOrDefault(pm.getUser(), List.of()),
+                        current))
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(responseList, pageRequest, totalUsers);
+        return new PageImpl<>(response, pageRequest, total);
     }
 
 
     @Transactional
     @Override
     public List<MyPotTodoResponseDTO> updateTodos(Long potId, List<MyPotTodoUpdateRequestDTO> reqs) {
-        User user = authService.getCurrentUser();
+        User current = authService.getCurrentUser();
 
         Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
-        List<UserTodo> existing = myPotRepository.findByPot_PotIdAndUser(potId, user);
+        List<UserTodo> existing = myPotRepository.findByPot_PotIdAndUser(potId, current);
         Map<Long, UserTodo> existMap = existing.stream()
                 .collect(Collectors.toMap(UserTodo::getTodoId, t -> t));
 
@@ -122,7 +135,7 @@ public class UserTodoServiceImpl implements UserTodoService {
                 toSave.add(e);
             } else {
                 toSave.add(UserTodo.builder()
-                        .user(user).pot(pot)
+                        .user(current).pot(pot)
                         .content(r.getContent())
                         .status(r.getStatus() != null ? r.getStatus() : TodoStatus.NOT_STARTED)
                         .build());
@@ -135,27 +148,54 @@ public class UserTodoServiceImpl implements UserTodoService {
         myPotRepository.saveAll(toSave);
         myPotRepository.deleteAll(toDelete);
 
-        return userTodoConverter.toListDto(pot, toSave);
+        // ✅ current 사용자의 멤버 역할(Role) 구해 전달
+        Role currentRole = potMemberRepository.findByPotId(potId).stream()
+                .filter(pm -> pm.getUser().equals(current))
+                .map(PotMember::getRoleName)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(Role.UNKNOWN);
+
+        Map<User, List<UserTodo>> grouped = toSave.stream()
+                .collect(Collectors.groupingBy(UserTodo::getUser));
+
+        return grouped.entrySet().stream()
+                .map(e -> userTodoConverter.toDto(
+                        e.getKey(),
+                        currentRole,    // ← 멤버 역할 전달
+                        pot,
+                        e.getValue(),
+                        current))
+                .collect(Collectors.toList());
     }
 
     @Transactional
     @Override
     public List<MyPotTodoResponseDTO> completeTodo(Long potId, Long todoId) {
-        User user = authService.getCurrentUser();
+        User current = authService.getCurrentUser();
 
-        potRepository.findById(potId)
+        Pot pot = potRepository.findById(potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_NOT_FOUND));
 
         UserTodo todo = myPotRepository.findByTodoIdAndPot_PotId(todoId, potId)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.USER_TODO_NOT_FOUND));
-        if (!todo.getUser().equals(user)) throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED);
+
+        if (!todo.getUser().equals(current)) {
+            throw new PotHandler(ErrorStatus.USER_TODO_UNAUTHORIZED);
+        }
 
         todo.setStatus(todo.getStatus() == TodoStatus.COMPLETED
                 ? TodoStatus.NOT_STARTED : TodoStatus.COMPLETED);
         myPotRepository.save(todo);
 
         List<UserTodo> all = myPotRepository.findByPot_PotId(potId);
-        return userTodoConverter.toListDto(todo.getPot(), all);
+
+        // ✅ User → Role 매핑 (멤버 역할)
+        Map<User, Role> roleMap = potMemberRepository.findByPotId(potId).stream()
+                .collect(Collectors.toMap(PotMember::getUser,
+                        pm -> pm.getRoleName() != null ? pm.getRoleName() : Role.UNKNOWN));
+
+        return userTodoConverter.toListDtoWithRoles(pot, all, roleMap, current);
     }
 
 }
