@@ -270,7 +270,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 .nickname(nickname)
                 .userType(UserType.USER)
                 .interests(tempUser.getInterest())
-                .userIntroduction(tempUser.getRole() + "에 관심있는 " + nickname + " " + Role.toVegetable(String.valueOf(tempUser.getRole())) + "입니다.")
+                .userIntroduction(tempUser.getRole() + "에 관심있는 " + nickname + " " + "새싹입니다.")
                 .userTemperature(33)
                 .kakaoId(tempUser.getKakaoId())
                 .provider(tempUser.getProvider())
