@@ -4,6 +4,7 @@ package stackpot.stackpot.event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -19,6 +20,7 @@ import stackpot.stackpot.notification.event.*;
 import stackpot.stackpot.pot.dto.UserMemberIdDto;
 import stackpot.stackpot.pot.service.potMember.PotMemberQueryService;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,9 +51,24 @@ public class SseService {
         try {
             emitter.send(SseEmitter.event().name("connect").data("연결 완료!"));
         } catch (Exception e) {
+            log.error("SSE 연결 중 에러 발생: {}", e.getMessage());
             emitters.remove(userId);
         }
         return emitter;
+    }
+
+    @Scheduled(fixedRate = 30000) // 30초마다 실행
+    public void sendHeartbeat() {
+        emitters.forEach((userId, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("heartbeat")
+                        .data("keep-alive at " + System.currentTimeMillis()));
+            } catch (IOException e) {
+                log.warn("Failed to send heartbeat to user {}, removing emitter.", userId);
+                emitters.remove(userId);
+            }
+        });
     }
 
     public void sendChatRoomList(Long chatRoomId) {
