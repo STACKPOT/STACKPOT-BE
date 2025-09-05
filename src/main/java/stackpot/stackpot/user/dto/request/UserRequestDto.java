@@ -16,7 +16,7 @@ public class UserRequestDto {
     @NoArgsConstructor
     public static class JoinDto {
         @Schema(description = "역할")
-        Role role;
+        private List<Role> roles;
 
         @Schema(description = "관심사", example = "[\"사이드 프로젝트\", \"1인 개발\"]")
         List<String> interest;

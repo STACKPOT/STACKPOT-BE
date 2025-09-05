@@ -7,8 +7,11 @@ import stackpot.stackpot.common.BaseEntity;
 import stackpot.stackpot.user.entity.enums.Provider;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -28,9 +31,11 @@ public class TempUser extends BaseEntity{
     @Column(nullable = false)
     private String providerId;
 
+    @ElementCollection(targetClass = Role.class)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = true, length = 255)
-    private Role role; // 역할
+    @CollectionTable(name = "temp_user_roles", joinColumns = @JoinColumn(name = "temp_user_id"))
+    @Column(name = "role")
+    private List<Role> roles = new ArrayList<>();
 
     @Column(nullable = true)
     @ElementCollection
@@ -41,6 +46,12 @@ public class TempUser extends BaseEntity{
 
     @Column(nullable = true)
     private String kakaoId;
+
+    public List<String> getRoleNames() {
+        return roles != null
+                ? roles.stream().map(Enum::name).collect(Collectors.toList())
+                : Collections.emptyList();
+    }
 
 }
 

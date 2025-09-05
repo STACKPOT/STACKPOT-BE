@@ -38,7 +38,7 @@ public class FeedResponseDto {
         private Long feedId;
         private Long writerId;
         private String writer;
-        private Role writerRole;
+        private List<String> writerRoles;
         private String title;
         private String content;
         private Long likeCount;
@@ -59,7 +59,7 @@ public class FeedResponseDto {
         private Long feedId;
         private Long writerId;
         private String writer;
-        private Role writerRole;
+        private List<String> writerRoles;
         private String title;
         private String content;
         private String createdAt;

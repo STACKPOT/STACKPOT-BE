@@ -75,6 +75,8 @@ public class PotCommandServiceImpl implements PotCommandService {
         pot.setPotStatus("RECRUITING");
         Pot savedPot = potRepository.save(pot);
 
+        PotMember creator = potMemberConverter.toCreatorEntity(user, savedPot, String.valueOf(requestDto.getPotRole()));
+        potMemberRepository.save(creator);
 
         List<PotRecruitmentDetails> recruitmentDetails = requestDto.getRecruitmentDetails().stream()
                 .map(dto -> PotRecruitmentDetails.builder()

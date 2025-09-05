@@ -12,6 +12,7 @@ import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -95,5 +96,14 @@ public interface PotMemberRepository extends JpaRepository<PotMember, Long> {
 
     long countByPot_PotId(Long potId);
     Optional<PotMember> findByPot_PotIdAndUser_Id(Long potId, Long userId);
+
+    @Query("""
+select pm.user.id as userId, pm.roleName as role
+from PotMember pm
+where pm.pot.potId = :potId
+  and pm.user.id in :userIds
+""")
+    List<Object[]> findCreatorRolesByPotAndUserIds(@Param("potId") Long potId,
+                                                   @Param("userIds") Collection<Long> userIds);
 
 }

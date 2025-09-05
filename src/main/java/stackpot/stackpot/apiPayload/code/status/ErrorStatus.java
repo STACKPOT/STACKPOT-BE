@@ -66,7 +66,7 @@ public enum ErrorStatus implements BaseErrorCode {
     // Enum 관련 에러
     INVALID_POT_STATUS(HttpStatus.BAD_REQUEST, "POT_STATUS4000", "Pot Status 형식이 올바르지 않습니다 (RECRUITING / ONGOING / COMPLETED)"),
     INVALID_POT_MODE_OF_OPERATION(HttpStatus.BAD_REQUEST, "MODE_OF_OPERATION4000", "Pot ModeOfOperation 형식이 올바르지 않습니다 (ONLINE / OFFLINE / HYBRID)"),
-    INVALID_ROLE(HttpStatus.BAD_REQUEST, "ROLE4000", "Role 형식이 올바르지 않습니다 (FRONTEND / DESIGN / BACKEND / PLANNING)"),
+    INVALID_ROLE(HttpStatus.BAD_REQUEST, "ROLE4000", "Role 형식이 올바르지 않습니다 (FRONTEND / DESIGN / BACKEND / PLAN)"),
 
     // Taskboard 관련 에러
     TASKBOARD_NOT_FOUND(HttpStatus.NOT_FOUND, "TASKBOARD4004", "해당 Task를 찾을 수 없습니다."),

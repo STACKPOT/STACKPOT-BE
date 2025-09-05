@@ -9,18 +9,14 @@ import stackpot.stackpot.feed.dto.FeedCacheDto;
 import stackpot.stackpot.feed.entity.Feed;
 import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
-import stackpot.stackpot.feed.dto.FeedSearchResponseDto;
 import stackpot.stackpot.feed.entity.Series;
 import stackpot.stackpot.feed.entity.enums.Interest;
 import stackpot.stackpot.feed.repository.FeedCommentRepository;
-import stackpot.stackpot.feed.repository.FeedLikeRepository;
 import stackpot.stackpot.user.entity.User;
 
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static stackpot.stackpot.common.util.RoleNameMapper.mapRoleName;
 
 @RequiredArgsConstructor
 @Component
@@ -37,7 +33,7 @@ public class FeedConverter{
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUser().getId())
                 .writer(writerNickname)
-                .writerRole(feed.getUser().getRole())
+                .writerRoles(feed.getUser().getRoleNames())
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .likeCount(feed.getLikeCount())
@@ -67,7 +63,7 @@ public class FeedConverter{
                 .content(feed.getContent())
                 .writerId(feed.getUser().getId())
                 .writer(feed.getUser().getNickname()+ " 새싹")
-                .writerRole(feed.getUser().getRole())
+                .writerRoles(feed.getUser().getRoleNames())
                 .categories(feed.getCategories().stream()
                         .map(Enum::name)
                         .collect(Collectors.toList()))
@@ -89,20 +85,6 @@ public class FeedConverter{
                 .build();
     }
 
-    public FeedSearchResponseDto toSearchDto(Feed feed) {
-
-        return FeedSearchResponseDto.builder()
-                .userId(feed.getUser().getId())
-                .feedId(feed.getFeedId())
-                .title(feed.getTitle())
-                .content(feed.getContent())
-                .creatorNickname(feed.getUser().getNickname()+" 새싹")
-                .creatorRole(mapRoleName(String.valueOf(feed.getUser().getRole())))
-                .createdAt(DateFormatter.koreanFormatter(feed.getCreatedAt()))
-                .likeCount(feed.getLikeCount()) // 좋아요 개수 포함
-                .build();
-    }
-
     public FeedResponseDto.AuthorizedFeedDto toAuthorizedFeedDto(Feed feed, boolean isOwner, boolean isLiked, boolean isSaved, Long commentCount) {
         Map<String, Object> seriesMap = null;
         if (feed.getSeries() != null) {
@@ -116,7 +98,7 @@ public class FeedConverter{
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUser().getId())
                 .writer(writerNickname)
-                .writerRole(feed.getUser().getRole())
+                .writerRoles(feed.getUser().getRoleNames())
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .createdAt(DateFormatter.koreanFormatter(feed.getCreatedAt()))
@@ -145,7 +127,7 @@ public class FeedConverter{
                 .feedId(feed.getFeedId())
                 .writerId(feed.getUserId())
                 .writer(feed.getWriter())
-                .writerRole(feed.getWriterRole())
+                .writerRoles(feed.getWriterRoles())
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .likeCount(likeCount)
@@ -162,7 +144,7 @@ public class FeedConverter{
                 .feedId(feed.getFeedId())
                 .userId(feed.getUser().getId())
                 .writer(feed.getUser().getNickname())
-                .writerRole(feed.getUser().getRole())
+                .writerRoles(feed.getUser().getRoleNames())
                 .title(feed.getTitle())
                 .content(feed.getContent())
                 .createdAt(feed.getCreatedAt().toString())
