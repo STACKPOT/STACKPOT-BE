@@ -19,6 +19,7 @@ import stackpot.stackpot.task.entity.mapping.Task;
 import stackpot.stackpot.task.repository.TaskRepository;
 import stackpot.stackpot.task.repository.TaskboardRepository;
 import stackpot.stackpot.user.entity.User;
+import stackpot.stackpot.user.entity.enums.Role;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,7 +58,11 @@ public class TaskCommandServiceImpl implements TaskCommandService {
         this.createAndSaveTasks(taskboard, participants);
 
         List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
-        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard, participants);
+        Role creatorRole = potMemberRepository
+                .findRoleByUserId(taskboard.getPot().getPotId(), taskboard.getUser().getUserId())
+                .orElse(Role.UNKNOWN);
+
+        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard, participants,creatorRole);
         response.setParticipants(participantDtos);
 
         return response;
@@ -87,7 +92,12 @@ public class TaskCommandServiceImpl implements TaskCommandService {
         if (!participants.isEmpty()) createAndSaveTasks(taskboard, participants);
 
         List<MyPotTaskResponseDto.Participant> participantDtos = taskboardConverter.toParticipantDtoList(participants);
-        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard, participants);
+
+        Role creatorRole = potMemberRepository
+                .findRoleByUserId(taskboard.getPot().getPotId(), taskboard.getUser().getUserId())
+                .orElse(Role.UNKNOWN);
+
+        MyPotTaskResponseDto response = taskboardConverter.toDTO(taskboard, participants,creatorRole);
         response.setParticipants(participantDtos);
 
         return response;

@@ -51,6 +51,8 @@ import stackpot.stackpot.user.repository.TempUserRepository;
 import stackpot.stackpot.user.repository.UserRepository;
 import stackpot.stackpot.common.service.EmailService;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -94,7 +96,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                         .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         tempUser.setInterest(request.getInterest());
-        tempUser.setRole(request.getRole());
+        tempUser.setRoles(request.getRoles());
 
         tempUserRepository.save(tempUser);
 
@@ -114,7 +116,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 return UserResponseDto.loginDto.builder()
                         .tokenServiceResponse(token)
                         .isNewUser(false)
-                        .role(user.getRole())
+                        .roles(user.getRoleNames())
                         .build();
         }
         else {
@@ -130,7 +132,7 @@ public class UserCommandServiceImpl implements UserCommandService {
             return UserResponseDto.loginDto.builder()
                     .tokenServiceResponse(token)
                     .isNewUser(true)  // 신규 유저임을 표시
-                    .role(null)
+                    .roles(Collections.emptyList())
                     .build();
         }
     }
@@ -155,7 +157,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public UserResponseDto.UserInfoDto getMyUsers() {
         User user = authService.getCurrentUser();
-        if(user.getRole() == Role.UNKNOWN){
+        if (user.getRoles().contains(Role.UNKNOWN)){
             log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
             throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         }
@@ -168,7 +170,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         //탈퇴한 사용자
-        if(user.getRole() == Role.UNKNOWN){
+        if (user.getRoles().contains(Role.UNKNOWN)){
             log.error("탈퇴한 유저에 대한 요청입니다. {}",user.getUserId());
             throw new UserHandler(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
@@ -180,7 +182,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = authService.getCurrentUser();
 
         // 탈퇴한 사용자
-        if (user.getRole() == Role.UNKNOWN) {
+        if (user.getRoles().contains(Role.UNKNOWN)) {
             log.error("탈퇴한 유저에 대한 요청입니다. {}", user.getUserId());
             throw new UserHandler(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
@@ -196,7 +198,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        if (user.getRole() == Role.UNKNOWN) {
+        if (user.getRoles().contains(Role.UNKNOWN)) {
             throw new UserHandler(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
 
@@ -215,9 +217,10 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = authService.getCurrentUser();
 
         // 업데이트할 필드 적용
-        if (requestDto.getRole() != null) {
-            user.setRole(requestDto.getRole());
+        if (requestDto.getRoles() != null && !requestDto.getRoles().isEmpty()) {
+            user.setRoles(requestDto.getRoles()); //
         }
+
         if (requestDto.getInterest() != null && !requestDto.getInterest().isEmpty()) {
             user.setInterests(requestDto.getInterest());
         }
@@ -259,32 +262,47 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     @Transactional
     public TokenServiceResponse saveNickname(String nickname) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        TempUser tempUser = (TempUser) authentication.getPrincipal();
-        log.info("tempUser {} ",tempUser.getId());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long tempUserId = ((TempUser) auth.getPrincipal()).getId();
+
+        TempUser tempUser = tempUserRepository.findWithRolesById(tempUserId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         nickname = trimNickname(nickname);
+
+        String intro = tempUser.getRoles().isEmpty()
+                ? nickname + " 새싹입니다."
+                : tempUser.getRoles().stream()
+                .map(Role::getKoreanName)
+                .collect(Collectors.joining(", ")) + "에 관심있는 " + nickname + " 새싹입니다.";
+
+        List<String> interests = tempUser.getInterest() != null
+                ? new ArrayList<>(tempUser.getInterest())
+                : new ArrayList<>();
+
+        List<Role> roles = tempUser.getRoles() != null
+                ? new ArrayList<>(tempUser.getRoles())
+                : new ArrayList<>();
 
         User user = User.builder()
                 .email(tempUser.getEmail())
                 .nickname(nickname)
                 .userType(UserType.USER)
-                .interests(tempUser.getInterest())
-                .userIntroduction(tempUser.getRole() + "에 관심있는 " + nickname + " " + "새싹입니다.")
+                .interests(interests)
+                .userIntroduction(intro)
+                .roles(roles)
                 .userTemperature(33)
                 .kakaoId(tempUser.getKakaoId())
                 .provider(tempUser.getProvider())
                 .providerId(tempUser.getProviderId())
-                .role(tempUser.getRole())
                 .build();
 
-        userRepository.save(user); // DB에 저장
-        tempUserRepository.delete(tempUser);
+        userRepository.save(user);
+        tempUserRepository.deleteById(tempUser.getId());
 
-        TokenServiceResponse tokenServiceResponse = jwtTokenProvider.createToken(user.getUserId(), user.getProvider(), user.getUserType(), user.getEmail());
-
-        return tokenServiceResponse;
+        return jwtTokenProvider.createToken(user.getUserId(), user.getProvider(), user.getUserType(), user.getEmail());
     }
+
 
     private String trimNickname(String nickname) {
         // 앞뒤 공백 유지
@@ -317,8 +335,6 @@ public class UserCommandServiceImpl implements UserCommandService {
         log.info("회원 탈퇴 시작 id:{}", user.getUserId());
 
         try {
-            // 토큰 블랙리스트 처리
-            blacklistRepository.addToBlacklist(token, jwtTokenProvider.getExpiration(token));
 
             // Feed 관련 데이터 삭제
 //            deleteFeedRelatedData(user.getId());
@@ -339,6 +355,8 @@ public class UserCommandServiceImpl implements UserCommandService {
             } else {
                 handleNormalUserPotDeletion(user);
             }
+            // 토큰 블랙리스트 처리
+            blacklistRepository.addToBlacklist(token, jwtTokenProvider.getExpiration(token));
             return "회원 탈퇴가 완료되었습니다.";
 
         } catch (Exception e) {

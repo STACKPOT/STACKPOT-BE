@@ -10,6 +10,7 @@ import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.task.entity.Taskboard;
 import stackpot.stackpot.task.entity.mapping.Task;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -32,4 +33,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             "GROUP BY t.potMember.potMemberId " +
             "ORDER BY count(t) DESC")
     List<PotMember> getTop2TaskCountByPotMemberId(@Param("potMemberIds") List<Long> potMemberIds, Pageable pageable);
+
+    List<Task> findByTaskboardIn(Collection<Taskboard> taskboards);
+
+
+
 }

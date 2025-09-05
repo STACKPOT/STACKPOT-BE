@@ -21,7 +21,6 @@ import stackpot.stackpot.pot.converter.PotDetailConverter;
 import stackpot.stackpot.pot.dto.*;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.mapping.PotApplication;
-import stackpot.stackpot.pot.entity.mapping.PotMember;
 import stackpot.stackpot.pot.repository.PotCommentRepository;
 import stackpot.stackpot.pot.repository.PotMemberRepository;
 import stackpot.stackpot.pot.repository.PotRepository;
@@ -68,12 +67,11 @@ public class PotQueryServiceImpl implements PotQueryService {
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
                     String formattedMembers = roleCountsMap.entrySet().stream()
-                            .map(entry -> RoleNameMapper.mapRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
+                            .map(entry -> RoleNameMapper.getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
                             .collect(Collectors.joining(", "));
 
-                    Role userPotRole = pot.getUser().getId().equals(user.getId())
-                            ? pot.getUser().getRole()
-                            : potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId()).orElse(pot.getUser().getRole());
+                    Role userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                            .orElse(null);
 
                     return potConverter.toCompletedPotResponseDto(pot, formattedMembers, userPotRole);
                 })
@@ -95,12 +93,16 @@ public class PotQueryServiceImpl implements PotQueryService {
         boolean isSaved = potSaveRepository.existsByUserAndPot_PotId(user, potId);
 
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(rd -> RoleNameMapper.mapRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
+                .map(rd -> RoleNameMapper.getKoreanRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
         Long countComment = potCommentRepository.countByPotId(potId);
+        Role creatorRole = potMemberRepository
+                .findRoleByUserId(pot.getPotId(), pot.getUser().getId())
+                .orElse(null);
 
-        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, isSaved, countComment);
+        String creatorRoleName = creatorRole != null ? creatorRole.name() : "UNKNOWN";
+        return potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, isSaved, countComment, creatorRoleName);
     }
 
     @Override
@@ -234,9 +236,8 @@ public class PotQueryServiceImpl implements PotQueryService {
                             .map(entry -> RoleNameMapper.mapRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
                             .collect(Collectors.joining(", "));
 
-                    Role userPotRole = pot.getUser().getId().equals(user.getId())
-                            ? pot.getUser().getRole()
-                            : potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId()).orElse(pot.getUser().getRole());
+                    Role userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
+                            .orElse(null); // or throw if required
 
                     return potConverter.toCompletedPotResponseDto(pot, formattedMembers, userPotRole);
                 })

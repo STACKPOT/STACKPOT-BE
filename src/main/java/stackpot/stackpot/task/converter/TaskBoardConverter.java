@@ -33,21 +33,26 @@ public class TaskBoardConverter {
                 .user(user)
                 .build();
     }
-    public MyPotTaskResponseDto toDTO(Taskboard taskboard, List<PotMember> participants) {
+    public MyPotTaskResponseDto toDTO(Taskboard taskboard, List<PotMember> participants,
+                                      Role creatorRole) {
+
+        String creatorRoleKo = RoleNameMapper.mapRoleName(creatorRole.name());
+        String creatorNickname = taskboard.getUser().getNickname() + " " + creatorRoleKo;
         return MyPotTaskResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())
                 .title(taskboard.getTitle())
                 .creatorUserId(taskboard.getUser().getUserId())
-                .creatorNickname(taskboard.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(String.valueOf(taskboard.getUser().getRole())))
-                .creatorRole(taskboard.getUser().getRole())
+                .creatorNickname(creatorNickname)
+                .creatorRole(Role.valueOf(creatorRole.name()))
                 .deadLine(DateFormatter.dotFormatter(taskboard.getDeadLine()))
                 .dDay(DdayCounter.dDayCount(taskboard.getDeadLine()))
                 .description(taskboard.getDescription())
                 .status(taskboard.getStatus())
                 .potId(taskboard.getPot().getPotId())
-                .participants(toParticipantDtoList(participants)) // 참여자 리스트 변환
+                .participants(toParticipantDtoList(participants))
                 .build();
     }
+
     public List<MyPotTaskResponseDto.Participant> toParticipantDtoList(List<PotMember> participants) {
         return participants.stream()
                 .map(this::toParticipantDto)
@@ -64,20 +69,25 @@ public class TaskBoardConverter {
                 .build();
     }
 
-    public MyPotTaskPreViewResponseDto toDto(Taskboard taskboard, List<PotMember> participants) {
+    public MyPotTaskPreViewResponseDto toDto(Taskboard taskboard,
+                                             List<PotMember> participants,
+                                             Role creatorRole) {
+        String creatorRoleKo = RoleNameMapper.mapRoleName(creatorRole.name());
+
         return MyPotTaskPreViewResponseDto.builder()
                 .taskboardId(taskboard.getTaskboardId())
                 .title(taskboard.getTitle())
-                .creatorNickname(taskboard.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(String.valueOf(taskboard.getUser().getRole())))
-                .creatorRole(taskboard.getUser().getRole())
+                .creatorNickname(taskboard.getUser().getNickname() + " " + creatorRoleKo) // 닉네임 + 한글
+                .creatorRole(Role.valueOf(creatorRole.name()))
                 .dDay(DdayCounter.dDayCount(taskboard.getDeadLine()))
                 .description(taskboard.getDescription())
-                .category(determineCategories(participants)) // 카테고리 설정
-                .status(taskboard.getStatus()) // OPEN, IN_PROGRESS, CLOSED
+                .category(determineCategories(participants))
+                .status(taskboard.getStatus())
                 .deadLine(DateFormatter.dotFormatter(taskboard.getDeadLine()))
-                .participants(toParticipantDtoList(participants)) // 참여자 리스트 변환
+                .participants(toParticipantDtoList(participants))
                 .build();
     }
+
 
     public MyPotTaskStatusResponseDto toTaskStatusDto(Taskboard taskboard, TaskboardStatus taskboardStatus) {
         return MyPotTaskStatusResponseDto.builder()

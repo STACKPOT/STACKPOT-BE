@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 public class PotPreviewResponseDto {
     private Long userId;
-    protected String userRole;
+    protected List<String> userRoles;
     private String userNickname;
     private Long potId;
     private String potName;

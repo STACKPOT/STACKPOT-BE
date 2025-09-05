@@ -4,7 +4,6 @@ import stackpot.stackpot.badge.dto.BadgeDto;
 import stackpot.stackpot.common.util.DateFormatter;
 import stackpot.stackpot.common.util.DdayCounter;
 import stackpot.stackpot.common.util.OperationModeMapper;
-import stackpot.stackpot.common.util.RoleNameMapper;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.PotRecruitmentDetails;
 import stackpot.stackpot.user.entity.User;
@@ -28,7 +27,7 @@ public class PotDetailConverter{
                 .build();
     }
 
-    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied, Boolean isSaved, Long commentCount) {
+    public PotDetailResponseDto toPotDetailResponseDto(User user, Pot pot, String recruitmentDetails, Boolean isOwner, Boolean isApplied, Boolean isSaved, Long commentCount, String creatorRoleName) {
         String dDay = DdayCounter.dDayCount(pot.getPotRecruitmentDeadline());
 
         Map<String, Integer> recruitingMembers = pot.getRecruitmentDetails().stream()
@@ -39,7 +38,7 @@ public class PotDetailConverter{
 
         return PotDetailResponseDto.builder()
                 .userId(user.getId())
-                .userRole(user.getRole().name())
+                .userRole(creatorRoleName)
                 .userNickname(user.getNickname() + " 새싹")
                 .isOwner(isOwner)
                 .potId(pot.getPotId())

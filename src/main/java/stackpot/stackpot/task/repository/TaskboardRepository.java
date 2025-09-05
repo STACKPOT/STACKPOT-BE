@@ -42,4 +42,5 @@ public interface TaskboardRepository extends JpaRepository<Taskboard, Long> {
                 @Param("date") LocalDate date
         );
 
+
 }

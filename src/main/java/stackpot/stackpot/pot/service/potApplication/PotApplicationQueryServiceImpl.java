@@ -14,11 +14,9 @@ import stackpot.stackpot.pot.dto.PotDetailResponseDto;
 import stackpot.stackpot.pot.dto.PotDetailWithApplicantsResponseDto;
 import stackpot.stackpot.pot.entity.Pot;
 import stackpot.stackpot.pot.entity.mapping.PotApplication;
-import stackpot.stackpot.pot.repository.PotApplicationRepository;
-import stackpot.stackpot.pot.repository.PotCommentRepository;
-import stackpot.stackpot.pot.repository.PotRepository;
-import stackpot.stackpot.pot.repository.PotSaveRepository;
+import stackpot.stackpot.pot.repository.*;
 import stackpot.stackpot.user.entity.User;
+import stackpot.stackpot.user.entity.enums.Role;
 import stackpot.stackpot.user.repository.UserRepository;
 
 import java.util.Collections;
@@ -32,6 +30,7 @@ public class PotApplicationQueryServiceImpl implements PotApplicationQueryServic
     private final PotCommentRepository potCommentRepository;
     private final PotApplicationRepository potApplicationRepository;
     private final PotRepository potRepository;
+    private final PotMemberRepository potMemberRepository;
     private final UserRepository userRepository;
     private final PotApplicationConverter potApplicationConverter;
     private final PotDetailConverter potDetailConverter;
@@ -68,12 +67,16 @@ public class PotApplicationQueryServiceImpl implements PotApplicationQueryServic
         boolean isSaved = potSaveRepository.existsByUserAndPot_PotId(user, potId);
 
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(rd -> RoleNameMapper.mapRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
+                .map(rd -> RoleNameMapper.getKoreanRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
         Long commentCount = potCommentRepository.countByPotId(potId);
+        Role creatorRole = potMemberRepository
+                .findRoleByUserId(pot.getPotId(), pot.getUser().getId())
+                .orElse(null);
 
-        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, isSaved, commentCount);
+        String creatorRoleName = creatorRole != null ? creatorRole.name() : "UNKNOWN";
+        PotDetailResponseDto potDetailDto = potDetailConverter.toPotDetailResponseDto(pot.getUser(), pot, recruitmentDetails, isOwner, isApplied, isSaved, commentCount, creatorRoleName);
 
         List<PotApplicationResponseDto> applicants = Collections.emptyList();
         if (isOwner && "RECRUITING".equals(pot.getPotStatus())) {

@@ -10,7 +10,7 @@ public final class RoleNameMapper {
             "BACKEND", "양파",
             "FRONTEND", "버섯",
             "DESIGN", "브로콜리",
-            "PLANNING", "당근"
+            "PLAN", "당근"
     );
 
     public static String getKoreanRoleName(String role) {
@@ -18,7 +18,7 @@ public final class RoleNameMapper {
                 "BACKEND", "백엔드",
                 "FRONTEND", "프론트엔드",
                 "DESIGN", "디자인",
-                "PLANNING", "기획"
+                "PLAN", "기획"
         );
         return roleToKoreanMap.getOrDefault(role, "알 수 없음");
     }
