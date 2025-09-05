@@ -78,8 +78,10 @@ public class PotMemberCommandServiceImpl implements PotMemberCommandService {
         }
 
         // 생성자 PotMember는 이미 createPot 단계에서 저장됨 → 새로 만들지 말고 조회
-        PotMember creatorPM = potMemberRepository
-                .findByPotIdAndUserId(potId, potCreator.getId());
+        PotMember creatorPM = potMemberRepository.findByPotIdAndUserId(potId, potCreator.getId());
+        if (creatorPM == null) {
+            throw new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND);
+        }
 
         // 승인된 멤버들만 저장
         List<PotMember> savedMembers = potMemberRepository.saveAll(newMembers);
@@ -113,7 +115,7 @@ public class PotMemberCommandServiceImpl implements PotMemberCommandService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void removeMemberFromPot(Long potId) {
         User user = authService.getCurrentUser();
         Pot pot = potRepository.findById(potId)
