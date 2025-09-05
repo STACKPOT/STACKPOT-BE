@@ -82,7 +82,7 @@ public class PotConverter{
     public CompletedPotResponseDto toCompletedPotResponseDto(Pot pot, String formattedMembers, Role userPotRole) {
         Map<String, Integer> roleCountMap = pot.getPotMembers().stream()
                 .collect(Collectors.groupingBy(
-                        member -> member.getRoleName().name(),
+                        member -> member.getRoleName().getKoreanName(),
                         Collectors.reducing(0, e -> 1, Integer::sum)
                 ));
 

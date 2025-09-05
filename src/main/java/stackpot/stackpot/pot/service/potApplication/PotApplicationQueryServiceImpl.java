@@ -67,7 +67,7 @@ public class PotApplicationQueryServiceImpl implements PotApplicationQueryServic
         boolean isSaved = potSaveRepository.existsByUserAndPot_PotId(user, potId);
 
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(rd -> RoleNameMapper.mapRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
+                .map(rd -> RoleNameMapper.getKoreanRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
         Long commentCount = potCommentRepository.countByPotId(potId);

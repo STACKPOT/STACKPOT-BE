@@ -67,7 +67,7 @@ public class PotQueryServiceImpl implements PotQueryService {
                                     roleCount -> ((Long) roleCount[1]).intValue()
                             ));
                     String formattedMembers = roleCountsMap.entrySet().stream()
-                            .map(entry -> RoleNameMapper.mapRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
+                            .map(entry -> RoleNameMapper.getKoreanRoleName(entry.getKey()) + "(" + entry.getValue() + ")")
                             .collect(Collectors.joining(", "));
 
                     Role userPotRole = potMemberRepository.findRoleByUserId(pot.getPotId(), user.getId())
@@ -93,7 +93,7 @@ public class PotQueryServiceImpl implements PotQueryService {
         boolean isSaved = potSaveRepository.existsByUserAndPot_PotId(user, potId);
 
         String recruitmentDetails = pot.getRecruitmentDetails().stream()
-                .map(rd -> RoleNameMapper.mapRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
+                .map(rd -> RoleNameMapper.getKoreanRoleName(rd.getRecruitmentRole().name()) + "(" + rd.getRecruitmentCount() + ")")
                 .collect(Collectors.joining(", "));
 
         Long countComment = potCommentRepository.countByPotId(potId);
