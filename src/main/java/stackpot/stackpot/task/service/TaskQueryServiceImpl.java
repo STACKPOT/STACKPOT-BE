@@ -21,10 +21,13 @@ import stackpot.stackpot.task.entity.mapping.Task;
 import stackpot.stackpot.task.repository.TaskRepository;
 import stackpot.stackpot.task.repository.TaskboardRepository;
 import stackpot.stackpot.user.entity.User;
+import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,7 +55,10 @@ public class TaskQueryServiceImpl implements TaskQueryService {
                             .map(Task::getPotMember)
                             .distinct()
                             .collect(Collectors.toList());
-                    return taskboardConverter.toDto(taskboard, participants);
+                    Role creatorRole = potMemberRepository
+                            .findRoleByUserId(taskboard.getPot().getPotId(), taskboard.getUser().getUserId())
+                            .orElse(Role.UNKNOWN);
+                    return taskboardConverter.toDto(taskboard, participants,creatorRole );
                 })
                 .toList();
 
@@ -72,30 +78,81 @@ public class TaskQueryServiceImpl implements TaskQueryService {
                 .map(Task::getPotMember)
                 .distinct()
                 .collect(Collectors.toList());
-        return taskboardConverter.toDTO(taskboard, participants);
+        Role creatorRole = potMemberRepository
+                .findRoleByUserId(taskboard.getPot().getPotId(), taskboard.getUser().getUserId())
+                .orElse(Role.UNKNOWN);
+        return taskboardConverter.toDTO(taskboard, participants,creatorRole);
     }
 
+//    @Override
+//    public List<MyPotTaskPreViewResponseDto> getTasksFromDate(Long potId, LocalDate date) {
+//        User user = authService.getCurrentUser();
+//
+//        potMemberRepository.findByPotPotIdAndUser(potId, user)
+//                .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
+//
+//        List<Taskboard> taskboards = taskboardRepository.findByPotPotIdAndDeadLine(potId, date);
+//
+//        return taskboards.stream()
+//                .map(taskboard -> {
+//                    List<Task> tasks = taskRepository.findByTaskboard(taskboard); // Task 조회
+//                    List<PotMember> participants = tasks.stream()
+//                            .map(Task::getPotMember) // Task에서 PotMember 추출
+//                            .distinct()
+//                            .collect(Collectors.toList());
+//                    Role creatorRole = potMemberRepository
+//                            .findRoleByUserId(taskboard.getPot().getPotId(), taskboard.getUser().getUserId())
+//                            .orElse(Role.UNKNOWN);
+//                    return taskboardConverter.toDto(taskboard, participants,creatorRole);
+//                })
+//                .collect(Collectors.toList());
+//    }
     @Override
+    @Transactional
     public List<MyPotTaskPreViewResponseDto> getTasksFromDate(Long potId, LocalDate date) {
-        User user = authService.getCurrentUser();
+        User me = authService.getCurrentUser();
 
-        potMemberRepository.findByPotPotIdAndUser(potId, user)
+        // 1) 멤버십 체크
+        potMemberRepository.findByPotPotIdAndUser(potId, me)
                 .orElseThrow(() -> new PotHandler(ErrorStatus.POT_MEMBER_NOT_FOUND));
 
-        List<Taskboard> taskboards = taskboardRepository.findByPotPotIdAndDeadLine(potId, date);
+        // 2) Taskboard 배치 조회
+        List<Taskboard> boards = taskboardRepository.findByPotPotIdAndDeadLine(potId, date);
+        if (boards.isEmpty()) return List.of();
 
-        return taskboards.stream()
-                .map(taskboard -> {
-                    List<Task> tasks = taskRepository.findByTaskboard(taskboard); // Task 조회
-                    List<PotMember> participants = tasks.stream()
-                            .map(Task::getPotMember) // Task에서 PotMember 추출
-                            .distinct()
-                            .collect(Collectors.toList());
+        // 3) Task 배치 조회 후 그룹핑
+        List<Task> allTasks = taskRepository.findByTaskboardIn(boards);
+        Map<Long, List<Task>> tasksByBoardId = allTasks.stream()
+                .collect(Collectors.groupingBy(t -> t.getTaskboard().getTaskboardId()));
 
-                    return taskboardConverter.toDto(taskboard, participants);
-                })
-                .collect(Collectors.toList());
+        // 4) 작성자 역할 배치 조회
+        Set<Long> creatorIds = boards.stream()
+                .map(tb -> tb.getUser().getUserId())
+                .collect(Collectors.toSet());
+
+        Map<Long, Role> creatorRoleMap = potMemberRepository
+                .findCreatorRolesByPotAndUserIds(potId, creatorIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Role) row[1],
+                        (a, b) -> a
+                ));
+
+        // 5) DTO 변환
+        return boards.stream().map(tb -> {
+            // participants: Task → PotMember → id distinct
+            List<Task> tasks = tasksByBoardId.getOrDefault(tb.getTaskboardId(), List.of());
+            List<PotMember> participants = tasks.stream()
+                    .map(Task::getPotMember)
+                    .collect(Collectors.toMap(PotMember::getPotMemberId, pm -> pm, (a, b) -> a))
+                    .values().stream().toList();
+
+            Role creatorRole = creatorRoleMap.getOrDefault(tb.getUser().getUserId(), Role.UNKNOWN);
+
+            return taskboardConverter.toDto(tb, participants, creatorRole);
+        }).toList();
     }
+
 
     @Override
     public List<MonthlyTaskDto> getMonthlyTasks(Long potId, int year, int month) {

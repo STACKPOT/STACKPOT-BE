@@ -16,13 +16,8 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import java.time.format.DateTimeFormatter;
 
 @Component
 public class PotConverter{
@@ -71,7 +66,7 @@ public class PotConverter{
 
         return PotPreviewResponseDto.builder()
                 .userId(user.getId())
-                .userRole(user.getRole().name())
+                .userRoles(user.getRoleNames())
                 .userNickname(user.getNickname() + " 새싹")
                 .potId(pot.getPotId())
                 .potName(pot.getPotName())
@@ -101,33 +96,6 @@ public class PotConverter{
                 .members(formattedMembers)
                 .userPotRole(RoleNameMapper.getKoreanRoleName(userPotRole.name()))
                 .memberCounts(roleCountMap)
-                .build();
-    }
-
-    public PotSearchResponseDto toSearchDto(Pot pot) {
-        String roleName = (pot.getUser() != null && pot.getUser().getRole() != null)
-                ? pot.getUser().getRole().name()
-                : "멤버";
-
-        String nicknameWithRole = (pot.getUser() != null && pot.getUser().getNickname() != null)
-                ? pot.getUser().getNickname() + " " + RoleNameMapper.mapRoleName(roleName)
-                : "Unknown 멤버";
-
-        return PotSearchResponseDto.builder()
-                .potId(pot.getPotId())
-                .potName(pot.getPotName())
-                .potContent(pot.getPotContent())
-                .creatorNickname(nicknameWithRole)
-                .creatorRole(roleName)
-                .recruitmentPart(
-                        pot.getRecruitmentDetails() != null
-                                ? pot.getRecruitmentDetails().stream()
-                                .filter(rd -> rd.getRecruitmentRole() != null)
-                                .map(rd -> rd.getRecruitmentRole().name())
-                                .collect(Collectors.joining(", "))
-                                : "없음"
-                )
-                .recruitmentDeadline(pot.getPotRecruitmentDeadline())
                 .build();
     }
 

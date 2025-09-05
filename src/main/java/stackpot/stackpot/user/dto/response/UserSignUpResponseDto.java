@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import stackpot.stackpot.user.entity.enums.Role;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -15,5 +17,5 @@ public class UserSignUpResponseDto {
     private Long id;
 
     @Schema(description = "역할")
-    private Role role;
+    private List<String> roles;
 }

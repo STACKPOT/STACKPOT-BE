@@ -2,6 +2,8 @@ package stackpot.stackpot.feed.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -11,7 +13,7 @@ public class FeedSearchResponseDto {
     private Long feedId;
     private Long userId;
 
-    private String creatorRole;
+    private List<String> creatorRole;
     private Boolean isLiked;
     private String title;
     private String content;

@@ -26,6 +26,7 @@ import stackpot.stackpot.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -80,10 +81,9 @@ public class PotApplicationCommandServiceImpl implements PotApplicationCommandSe
     private void sendSupportEmailAsync(User user, Pot pot, PotApplication application) {
         String appliedRole = application.getPotRole().name();
         String appliedRoleName = RoleNameMapper.mapRoleName(appliedRole);
-        String applicantRole = Optional.ofNullable(user.getRole())
+        String applicantRole = user.getRoles().stream()
                 .map(role -> RoleNameMapper.mapRoleName(role.name()))
-                .orElse("멤버");
-
+                .collect(Collectors.joining(", "));
         CompletableFuture.runAsync(() -> emailService.sendSupportNotification(
                 pot.getUser().getEmail(),
                 pot.getPotName(),

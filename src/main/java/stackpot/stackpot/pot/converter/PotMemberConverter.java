@@ -18,7 +18,11 @@ public class PotMemberConverter{
                 .user(user)
                 .pot(pot)
                 .potApplication(application)
-                .roleName(application != null ? application.getPotRole() : user.getRole()) // PotRole Enum 그대로 사용
+                .roleName(
+                        application != null
+                                ? application.getPotRole()
+                                : (user.getRoles().isEmpty() ? Role.UNKNOWN : user.getRoles().get(0))
+                )
                 .owner(isOwner)
                 .appealContent(null)
                 .build();
@@ -79,6 +83,14 @@ public class PotMemberConverter{
                 .nickname(nicknameWithRole)
                 .owner(false)
                 .potRole(roleName)
+                .build();
+    }
+    public PotMember toCreatorEntity(User user, Pot pot, String potRole) {
+        return PotMember.builder()
+                .user(user)
+                .pot(pot)
+                .roleName(Role.fromString(potRole))
+                .owner(true)
                 .build();
     }
 }

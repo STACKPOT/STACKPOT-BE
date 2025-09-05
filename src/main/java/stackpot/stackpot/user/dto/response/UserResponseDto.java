@@ -18,7 +18,7 @@ public class UserResponseDto {
         private Long id;
         private String email; // 이메일
         private String nickname; // 닉네임
-        private Role role; // 역할
+        private List<String> roles; // 역할
         @Schema(description = "관심사", example = "[\"사이드 프로젝트\", \"1인 개발\"]")
         private List<String> interest; // 관심사
         private Integer userTemperature; // 유저 온도
@@ -38,7 +38,7 @@ public class UserResponseDto {
         private TokenServiceResponse tokenServiceResponse;
 
         @Schema(description = "역할")
-        private final Role role;
+        private List<String> roles;
 
         @Schema(description = "신규 유저 여부")
         private Boolean isNewUser;
@@ -51,7 +51,7 @@ public class UserResponseDto {
     public static class UserInfoDto {
         private Long id;
         private String nickname;
-        private Role role;
+        private List<String> roles;
         private List<String> interest; // 관심사
         private Integer userTemperature;
         private String userIntroduction;

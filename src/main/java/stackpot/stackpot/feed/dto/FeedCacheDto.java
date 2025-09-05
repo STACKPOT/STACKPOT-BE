@@ -4,6 +4,7 @@ import lombok.*;
 import stackpot.stackpot.user.entity.enums.Role;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,7 +17,7 @@ public class FeedCacheDto {
     private String content;
     private Long userId;
     private String writer;
-    private Role writerRole;
+    private List<String> writerRoles;
     private String createdAt;
 }
 
