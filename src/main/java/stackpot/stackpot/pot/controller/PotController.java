@@ -38,7 +38,7 @@ public class PotController {
         - potStatus: RECRUITING / ONGOING / COMPLETED
         - potStartDate, potEndDate: yyyy.MM 형식 (예: 2025.08)
         - potModeOfOperation: ONLINE / OFFLINE / HYBRID
-        - Role: FRONTEND / BACKEND / DESIGN / PLANNING
+        - Role: FRONTEND / BACKEND / DESIGN / PLAN
     """)
     @PostMapping
     public ResponseEntity<ApiResponse<PotResponseDto>> createPot(@RequestBody @Valid PotRequestDto requestDto) {
