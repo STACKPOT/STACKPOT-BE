@@ -15,13 +15,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PotRepository extends JpaRepository<Pot, Long> {
-    Page<Pot> findByRecruitmentDetails_RecruitmentRole(Role recruitmentRole, Pageable pageable);
-
     Optional<Pot> findPotWithRecruitmentDetailsByPotId(Long potId);
 
     List<Pot> findByPotApplication_User_Id(Long userId);
-
-    List<Pot> findByUserId(Long userId);
 
     Page<Pot> findAll(Pageable pageable);
 
@@ -29,7 +25,10 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
 
     List<Pot> findByUserIdAndPotStatus(Long userId, String status);
 
-    Page<Pot> findByUserIdAndPotStatus(Long userId, String potStatus, Pageable pageable);
+    @Query("SELECT p FROM Pot p WHERE p.user.id = :userId AND p.potStatus = :potStatus ORDER BY p.createdAt DESC")
+    Page<Pot> findByUserIdAndPotStatusOrderByCreatedAtDesc(@Param("userId") Long userId,
+                                                           @Param("potStatus") String potStatus,
+                                                           Pageable pageable);
 
     @Query("SELECT p FROM Pot p " +
             "WHERE LOWER(p.potName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
@@ -49,33 +48,26 @@ public interface PotRepository extends JpaRepository<Pot, Long> {
             "SELECT pm FROM PotMember pm WHERE pm.pot = p AND pm.user.id = :userId)")
     List<Pot> findCompletedPotsByUserId(@Param("userId") Long userId);
 
-    List<Pot> findByPotMembers_User_Id(Long potMembersUserId);
-
     @Query("SELECT p FROM Pot p WHERE p.user.id = :userId AND p.potStatus = 'COMPLETED' AND (:cursor IS NULL OR p.potId < :cursor) ORDER BY p.potId DESC")
     List<Pot> findCompletedPotsCreatedByUser(@Param("userId") Long userId, @Param("cursor") Long cursor);
 
-    @Modifying
-    @Query("DELETE FROM Pot f WHERE f.user.id = :userId")
-    void deleteByUserId(@Param("userId") Long userId);
-//    @Modifying
-//    @Query("DELETE FROM Pot p WHERE p.user.id = :userId AND p.potId IN :potIds AND p.potStatus = 'RECRUITING'")
-//    void deleteByUserIdAndPotIds(@Param("userId") Long userId, @Param("potIds") List<Long> potIds);
     boolean existsByUserId(Long userId);
 
     // 지원자 수 기준으로 모든 Pot 정렬
     @Query("SELECT p FROM Pot p LEFT JOIN PotApplication pa ON p = pa.pot " +
+            "WHERE p.potStatus = :potStatus " +
             "GROUP BY p " +
-            "ORDER BY COUNT(pa.applicationId) DESC, p.createdAt DESC")
-    Page<Pot> findAllOrderByApplicantsCountDesc(Pageable pageable);
+            "ORDER BY p.createdAt DESC, COUNT(pa.applicationId) DESC ")
+    Page<Pot> findAllOrderByApplicantsCountDesc(@Param("potStatus") String potStatus, Pageable pageable);
 
     /// 여러 Role을 기준으로 지원자 수 많은 순 정렬
     @Query("SELECT p FROM Pot p " +
             "LEFT JOIN PotRecruitmentDetails prd ON p = prd.pot " +
             "LEFT JOIN PotApplication pa ON p = pa.pot " +
-            "WHERE prd.recruitmentRole IN :roles " +
+            "WHERE prd.recruitmentRole IN :roles AND p.potStatus = :potStatus " +
             "GROUP BY p " +
-            "ORDER BY COUNT(pa.applicationId) DESC, p.createdAt DESC")
-    Page<Pot> findByRecruitmentRolesInOrderByApplicantsCountDesc(@Param("roles") List<Role> roles, Pageable pageable);
+            "ORDER BY p.createdAt DESC, COUNT(pa.applicationId) DESC ")
+    Page<Pot> findByRecruitmentRolesInOrderByApplicantsCountDesc(@Param("roles") List<Role> roles, @Param("potStatus") String potStatus, Pageable pageable);
 
     List<Pot> findByPotMembers_UserIdOrderByCreatedAtDesc(Long userId);
 
