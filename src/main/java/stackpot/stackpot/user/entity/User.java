@@ -41,7 +41,7 @@ public class User extends BaseEntity implements UserDetails{
     @Enumerated(EnumType.STRING)
     private Provider provider;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String providerId;
 
     @Column(nullable = false)
@@ -108,7 +108,7 @@ public class User extends BaseEntity implements UserDetails{
     public void deleteUser() {
         this.isDeleted = true;
         this.nickname = "(알 수 없음)";  // 표시용 변경
-
+        this.providerId = null;
         if (this.roles != null) {
             this.roles.clear();  // 기존 역할 초기화
         }
