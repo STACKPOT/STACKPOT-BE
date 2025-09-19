@@ -131,7 +131,7 @@ public class PotQueryServiceImpl implements PotQueryService {
         User user = authService.getCurrentUser();
 
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Pot> potPage = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING", pageable);
+        Page<Pot> potPage = potRepository.findByUserIdAndPotStatusOrderByCreatedAtDesc(user.getId(), "RECRUITING", pageable);
 
         List<Pot> pots = potPage.getContent();
 
@@ -264,12 +264,12 @@ public class PotQueryServiceImpl implements PotQueryService {
         Page<Pot> potPage;
 
         if (onlyMine != null && onlyMine && user != null) {
-            potPage = potRepository.findByUserIdAndPotStatus(user.getId(), "RECRUITING", pageable);
+            potPage = potRepository.findByUserIdAndPotStatusOrderByCreatedAtDesc(user.getId(), "RECRUITING", pageable);
         } else {
             if (roles == null || roles.isEmpty()) {
-                potPage = potRepository.findAllOrderByApplicantsCountDesc(pageable);
+                potPage = potRepository.findAllOrderByApplicantsCountDesc("RECRUITING", pageable);
             } else {
-                potPage = potRepository.findByRecruitmentRolesInOrderByApplicantsCountDesc(roles, pageable);
+                potPage = potRepository.findByRecruitmentRolesInOrderByApplicantsCountDesc(roles, "RECRUITING", pageable);
             }
         }
 
