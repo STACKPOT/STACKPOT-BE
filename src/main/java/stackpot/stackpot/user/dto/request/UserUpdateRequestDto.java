@@ -24,7 +24,4 @@ public class UserUpdateRequestDto {
 
     @Schema(description = "유저 소개")
     private String userIntroduction;
-
-    @Schema(description = "카카오 아이디")
-    private String kakaoId;
 }
