@@ -1,7 +1,7 @@
 # Java 17이 설치된 베이스 이미지 사용
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-focal
 
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # JAR 파일을 컨테이너 내부에 복사
 ARG JAR_FILE=build/libs/*.jar
