@@ -6,6 +6,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -78,6 +79,12 @@ public class UserController {
 	private final PotCommandService potCommandService;
 	private final UserQueryService userQueryService;
 	private final FeedQueryService feedQueryService;
+
+	@Value("${spring.google.client-id}")
+	private String clientId;
+
+	@Value("${spring.google.redirect-uri}")
+	private String redirectUri;
 
 	@GetMapping("/login/token")
 	@Operation(
@@ -171,6 +178,28 @@ public class UserController {
 		return ResponseEntity.ok(ApiResponse.onSuccess(userResponse));
 	}
 
+	@GetMapping("/start")
+	public void googleStart(@RequestParam String returnUrl, HttpServletResponse response) throws IOException {
+
+		if (!returnUrl.startsWith("http://localhost:5173")) {
+			throw new IllegalArgumentException("Invalid returnUrl");
+		}
+
+		// state에 returnUrl 넣어서 콜백 때 다시 받기
+		String state = URLEncoder.encode(returnUrl, StandardCharsets.UTF_8);
+
+		String googleAuthUrl =
+			"https://accounts.google.com/o/oauth2/v2/auth"
+				+ "?client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+				+ "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
+				+ "&response_type=code"
+				+ "&scope=" + URLEncoder.encode("openid email profile", StandardCharsets.UTF_8)
+				+ "&access_type=offline"
+				+ "&prompt=consent"
+				+ "&state=" + state;
+
+		response.sendRedirect(googleAuthUrl);
+	}
 	@GetMapping("/oauth/google")
 	@Operation(
 		summary = "구글 로그인 및 토큰발급 API",
