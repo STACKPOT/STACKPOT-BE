@@ -178,7 +178,7 @@ public class UserController {
 		return ResponseEntity.ok(ApiResponse.onSuccess(userResponse));
 	}
 
-	@GetMapping("/start")
+	@GetMapping("/oauth/start")
 	public void googleStart(@RequestParam String returnUrl, HttpServletResponse response) throws IOException {
 
 		if (!returnUrl.startsWith("http://localhost:5173")) {
