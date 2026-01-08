@@ -22,6 +22,11 @@ public enum ErrorStatus implements BaseErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER4004", "유저를 찾을 수 없습니다."),
     USER_WITHDRAWAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "USER5001", "회원 탈퇴에 실패했습니다."),
     USER_ALREADY_WITHDRAWN(HttpStatus.BAD_REQUEST, "USER4002", "이미 탈퇴한 사용자입니다."),
+    LOGIN_TICKET_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH4001", "로그인 티켓을 찾을 수 없습니다."),
+    LOGIN_TICKET_EXPIRED(HttpStatus.BAD_REQUEST, "AUTH4002", "로그인 티켓이 만료되었습니다."),
+    LOGIN_TICKET_PARSE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH5001", "로그인 티켓 처리 중 오류가 발생했습니다."),
+    LOGIN_TICKET_SERIALIZE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH5001", "로그인 티켓 생성 중 오류가 발생했습니다."),
+    LOGIN_TICKET_DESERIALIZE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH5002", "로그인 티켓 처리 중 오류가 발생했습니다."),
 
     // 인증 관련 에러
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4010", "인증에 실패했습니다."),
