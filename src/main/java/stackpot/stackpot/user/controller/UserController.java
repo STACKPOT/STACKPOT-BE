@@ -1,12 +1,8 @@
 package stackpot.stackpot.user.controller;
 
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -41,12 +37,10 @@ import stackpot.stackpot.pot.dto.PotResponseDto;
 import stackpot.stackpot.pot.dto.PotSummaryDto;
 import stackpot.stackpot.pot.service.pot.MyPotService;
 import stackpot.stackpot.pot.service.pot.PotCommandService;
-import stackpot.stackpot.user.dto.request.ExchangeDto;
 import stackpot.stackpot.user.dto.request.MyDescriptionRequestDto;
 import stackpot.stackpot.user.dto.request.TokenRequestDto;
 import stackpot.stackpot.user.dto.request.UserRequestDto;
 import stackpot.stackpot.user.dto.request.UserUpdateRequestDto;
-import stackpot.stackpot.user.dto.response.GoogleUserInfoResponseDto;
 import stackpot.stackpot.user.dto.response.KakaoUserInfoResponseDto;
 import stackpot.stackpot.user.dto.response.MyDescriptionResponseDto;
 import stackpot.stackpot.user.dto.response.NaverUserInfoResponseDto;
@@ -56,9 +50,9 @@ import stackpot.stackpot.user.dto.response.UserMyPageResponseDto;
 import stackpot.stackpot.user.dto.response.UserResponseDto;
 import stackpot.stackpot.user.dto.response.UserSignUpResponseDto;
 import stackpot.stackpot.user.entity.enums.Provider;
-import stackpot.stackpot.user.service.LoginTicketService;
 import stackpot.stackpot.user.service.UserCommandService;
 import stackpot.stackpot.user.service.UserQueryService;
+import stackpot.stackpot.user.service.oauth.GoogleOAuthFacade;
 import stackpot.stackpot.user.service.oauth.GoogleService;
 import stackpot.stackpot.user.service.oauth.KakaoService;
 import stackpot.stackpot.user.service.oauth.NaverService;
@@ -73,18 +67,11 @@ public class UserController {
 	private final UserCommandService userCommandService;
 	private final KakaoService kakaoService;
 	private final NaverService naverService;
-	private final GoogleService googleService;
-	private final LoginTicketService loginTicketService;
+	private final GoogleOAuthFacade googleOAuthFacade;
 	private final MyPotService myPotService;
 	private final PotCommandService potCommandService;
 	private final UserQueryService userQueryService;
 	private final FeedQueryService feedQueryService;
-
-	@Value("${spring.google.client-id}")
-	private String clientId;
-
-	@Value("${spring.google.redirect-uri}")
-	private String redirectUri;
 
 	@GetMapping("/login/token")
 	@Operation(
@@ -178,28 +165,6 @@ public class UserController {
 		return ResponseEntity.ok(ApiResponse.onSuccess(userResponse));
 	}
 
-	@GetMapping("/oauth/start")
-	public void googleStart(@RequestParam String returnUrl, HttpServletResponse response) throws IOException {
-
-		if (!returnUrl.startsWith("http://localhost:5173")) {
-			throw new IllegalArgumentException("Invalid returnUrl");
-		}
-
-		// state에 returnUrl 넣어서 콜백 때 다시 받기
-		String state = URLEncoder.encode(returnUrl, StandardCharsets.UTF_8);
-
-		String googleAuthUrl =
-			"https://accounts.google.com/o/oauth2/v2/auth"
-				+ "?client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
-				+ "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
-				+ "&response_type=code"
-				+ "&scope=" + URLEncoder.encode("openid email profile", StandardCharsets.UTF_8)
-				+ "&access_type=offline"
-				+ "&prompt=consent"
-				+ "&state=" + state;
-
-		response.sendRedirect(googleAuthUrl);
-	}
 	@GetMapping("/oauth/google")
 	@Operation(
 		summary = "구글 로그인 및 토큰발급 API",
@@ -222,37 +187,9 @@ public class UserController {
 			)
 		}
 	)
-	public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> googleCallback(@RequestParam("code") String code,
-		@RequestParam(value = "state", required = false) String state, HttpServletResponse response) throws
-		IOException {
-		String accessToken = googleService.getAccessTokenFromGoogle(code);
-		GoogleUserInfoResponseDto userInfo = googleService.getUserInfo(accessToken);
-
-		String providerId = userInfo.getId();
-		String email = userInfo.getEmail();
-
-		UserResponseDto.loginDto userResponse = userCommandService.isnewUser(Provider.GOOGLE, providerId, email);
-
-		// 로컬 프론트용 state 파라미터 처리 (리다이렉트 URL)
-		if (state != null && !state.isBlank()) {
-			String returnUrl = URLDecoder.decode(state, StandardCharsets.UTF_8);
-
-			if (!returnUrl.startsWith("http://localhost:5173")) {
-				throw new IllegalArgumentException("Invalid returnUrl");
-			}
-
-			String ticket = loginTicketService.issue(userResponse);
-			response.sendRedirect(returnUrl + "?ticket=" + URLEncoder.encode(ticket, StandardCharsets.UTF_8));
-			return ResponseEntity.ok(ApiResponse.onSuccess(userResponse)); // (리다이렉트라 실사용은 안됨)
-		}
-
+	public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> googleCallback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
+		UserResponseDto.loginDto userResponse = googleOAuthFacade.login(code);
 		return ResponseEntity.ok(ApiResponse.onSuccess(userResponse));
-	}
-
-	@PostMapping("/oauth/google/exchange")
-	public ResponseEntity<ApiResponse<UserResponseDto.loginDto>> exchange(@RequestBody ExchangeDto dto) {
-		UserResponseDto.loginDto loginDto = loginTicketService.consume(dto.ticket());
-		return ResponseEntity.ok(ApiResponse.onSuccess(loginDto));
 	}
 
 	@PatchMapping("/profile")
