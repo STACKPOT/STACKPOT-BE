@@ -24,13 +24,11 @@ public class GoogleService {
     private String clientId;
     @Value("${spring.google.client-secret}")
     private String clientSecret;
-    @Value("${spring.google.redirect-uri}")
-    private String redirectUri;
 
     private final String TokenUrl = "https://oauth2.googleapis.com/token";
     private final String UserInfoUrl = "https://www.googleapis.com/userinfo/v2/me";
 
-    public String getAccessTokenFromGoogle(String code) {
+    public String getAccessTokenFromGoogle(String code, String redirectUri) {
         GoogleTokenResponseDto googleTokenResponseDto = WebClient.create(TokenUrl).post()
                 .uri(uriBuilder -> uriBuilder
                         .queryParam("grant_type", "authorization_code")
