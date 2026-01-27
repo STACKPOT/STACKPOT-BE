@@ -1,12 +1,23 @@
 package stackpot.stackpot.feed.controller;
 
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import stackpot.stackpot.apiPayload.ApiResponse;
 import stackpot.stackpot.apiPayload.code.status.ErrorStatus;
 import stackpot.stackpot.common.swagger.ApiErrorCodeExamples;
@@ -14,11 +25,8 @@ import stackpot.stackpot.feed.dto.FeedRequestDto;
 import stackpot.stackpot.feed.dto.FeedResponseDto;
 import stackpot.stackpot.feed.dto.SeriesRequestDto;
 import stackpot.stackpot.feed.entity.enums.Category;
-import stackpot.stackpot.feed.service.FeedQueryService;
 import stackpot.stackpot.feed.service.FeedCommandService;
-import stackpot.stackpot.user.dto.response.UserMyPageResponseDto;
-
-import java.util.Map;
+import stackpot.stackpot.feed.service.FeedQueryService;
 
 
 @RestController
@@ -33,7 +41,7 @@ public class FeedController {
     @PostMapping("")
     @Operation(summary = "Feed 생성 API",
             description = "Feed를 생성하는 API입니다.\n" +
-                    "- categories: 다중 선택 가능하며 enum입니다. [ALL, BACKEND, FRONTEND, DESIGN, PLAN] \n" +
+                    "- categories: 다중 선택 가능하며 enum입니다. [ALL, BACKEND, FRONTEND, DESIGN, PLANNING] \n" +
                     "- interests: 다중 선택 가능하며 enum입니다. [SIDE_PROJECT(사이드 프로젝트), SOLO_DEVELOPMENT(1인 개발), COMPETITION(공모전), STARTUP(창업), NETWORKING(네트워킹 행사)]\n" +
                     "- seriesId: 저장할 시리즈의 Id를 입력해 주시면 됩니다. 선택하지 않을 경우 null을 보내주세요. \n")
     @ApiErrorCodeExamples({
@@ -50,7 +58,7 @@ public class FeedController {
     @GetMapping("")
     @Operation(summary = "Feed 전체 조회 API", description = "category와 sort에 따라 정렬하여 Feed를 보여줍니다. 커서 기반 페이지페니션으로 응답합니다.",
         parameters = {
-                @Parameter(name = "category", description = "ALL : 전체 보기, PLAN/DESIGN/FRONTEND/BACKEND : 역할별로 보기 ", example = "BACKEND"),
+                @Parameter(name = "category", description = "ALL : 전체 보기, PLANNING/DESIGN/FRONTEND/BACKEND : 역할별로 보기 ", example = "BACKEND"),
                 @Parameter(name = "sort", description = "new : 최신순, old : 오래된순, popular : 인기순(좋아요)", example = "old"),
                 @Parameter(name = "cursor", description = "현재 페이지의 마지막 값"),
                 @Parameter(name = "limit", description = "요청에 불러올 Feed 수", example = "10")
@@ -88,7 +96,7 @@ public class FeedController {
     @Operation(
             summary = "Feed 수정 API",
             description = "요청된 feedId의 feed 내용을 수정합니다. 수정 사항이 없다면 null 값을 넣어주세요\n" +
-                    "- categories: 다중 선택 가능하며 enum입니다. [ALL, BACKEND, FRONTEND, DESIGN, PLAN] \n" +
+                    "- categories: 다중 선택 가능하며 enum입니다. [ALL, BACKEND, FRONTEND, DESIGN, PLANNING] \n" +
                     "- interests: 다중 선택 가능하며 enum입니다. [SIDE_PROJECT(사이드 프로젝트), SOLO_DEVELOPMENT(1인 개발), COMPETITION(공모전), STARTUP(창업), NETWORKING(네트워킹 행사)]\n" +
                     "- seriesId: 저장할 시리즈의 Id를 입력해 주시면 됩니다. 선택하지 않을 경우 null을 보내주세요.\n",
             parameters = {
