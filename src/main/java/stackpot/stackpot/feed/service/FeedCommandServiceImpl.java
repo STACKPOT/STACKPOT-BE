@@ -32,6 +32,7 @@ import stackpot.stackpot.save.repository.FeedSaveRepository;
 import stackpot.stackpot.feed.repository.SeriesRepository;
 import stackpot.stackpot.notification.dto.NotificationResponseDto;
 import stackpot.stackpot.notification.event.FeedLikeEvent;
+import stackpot.stackpot.notification.repository.FeedLikeNotificationRepository;
 import stackpot.stackpot.notification.service.NotificationCommandService;
 import stackpot.stackpot.user.entity.User;
 import stackpot.stackpot.user.repository.UserRepository;
@@ -56,6 +57,7 @@ public class FeedCommandServiceImpl implements FeedCommandService {
     private final RedisUtil redisUtil;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final RedisTemplate<String, String> redisTemplate;
+    private final FeedLikeNotificationRepository feedLikeNotificationRepository;
 
     @Override
     public FeedResponseDto.CreatedFeedDto createFeed(FeedRequestDto.createDto request) {
@@ -197,10 +199,13 @@ public class FeedCommandServiceImpl implements FeedCommandService {
 
         if (existingLike.isPresent()) {
             // 이미 좋아요가 있다면 삭제 (좋아요 취소)
-            feedLikeRepository.delete(existingLike.get());
+            FeedLike feedLike = existingLike.get();
+            // 연관된 알림 먼저 삭제
+            feedLikeNotificationRepository.deleteByFeedLikeId(feedLike.getLikeId());
+            // 좋아요 삭제
+            feedLikeRepository.delete(feedLike);
             feed.setLikeCount(feed.getLikeCount() - 1);
             feedRepository.save(feed);
-            // todo 좋아요 알림 삭제
             return false; // 좋아요 취소
         } else {
             // 좋아요 추가
