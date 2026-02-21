@@ -237,22 +237,21 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Transactional
     public NicknameResponseDto createNickname() {
         String nickname;
+        String[] adjectives = {"도전을 즐기는", "배우고 싶은", "아이디어가 자라는", "가능성을 품은", 
+                               "첫걸음을 내딛는", "매일 조금씩 성장하는", "호기심으로 가득한", "열정이 피어나는", 
+                               "아직 미완성이지만 빛나는", "꿈을 키우는", "함께 성장하는"};
 
         while (true) {
-            // 닉네임 생성
-            String prompt = getPromptForNewbie();
-            nickname = potSummarizationService.summarizeText(prompt, 15);
-
+            // 랜덤 닉네임 생성 (OpenAI 할당량 소진으로 임시 대체)
+            nickname = adjectives[new java.util.Random().nextInt(adjectives.length)];
+            
             // 중복 검사
-            if (!userRepository.existsByNickname(nickname)) {
-                log.info("닉네임이 생성되었습니다.{}",nickname);
+            if (!userRepository.existsByNickname(nickname + " 새싹")) {
+                log.info("닉네임이 생성되었습니다.{}", nickname);
                 break;
             }
-            else {
-                log.debug("사용중인 닉네임 입니다.{}", nickname);
-            }
         }
-        return new NicknameResponseDto(nickname+" 새싹");
+        return new NicknameResponseDto(nickname + " 새싹");
     }
 
     @Override
