@@ -340,6 +340,9 @@ public class FeedQueryServiceImpl implements FeedQueryService {
 
         // 미리 좋아요한 피드 ID 조회
         List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserId(user.getId());
+        
+        // 미리 저장한 피드 ID 조회
+        List<Long> savedFeedIds = feedSaveRepository.findFeedIdsByUserId(user.getId());
 
         // 저장 수 조회
         List<Object[]> rawResults = feedSaveRepository.countSavesByFeedIds(feedIds);
@@ -353,7 +356,7 @@ public class FeedQueryServiceImpl implements FeedQueryService {
         List<FeedResponseDto.FeedDto> content = feeds.stream()
                 .map(feed -> {
                     Long feedId = feed.getFeedId();
-                    boolean isSaved = true;
+                    boolean isSaved = savedFeedIds.contains(feedId);
                     boolean isLiked = likedFeedIds.contains(feedId);
                     boolean isOwner = feed.getUser().getId().equals(user.getId());
                     int saveCount = saveCountMap.getOrDefault(feedId, 0);
