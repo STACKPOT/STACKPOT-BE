@@ -345,9 +345,6 @@ public class UserCommandServiceImpl implements UserCommandService {
 			// Task 및 Taskboard 관련 데이터 삭제
 			deleteTaskRelatedData(user.getId());
 
-			// 사용자가 저장한 Pot 삭제
-			potSaveRepository.deleteByUser(user);
-
 			// Pot 관련 데이터 삭제
 			boolean isCreator = potRepository.existsByUserId(user.getId());
 			if (isCreator) {
